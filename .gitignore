@@ -1,0 +1,31 @@
+# XAMPP infrastructure (not needed in repo)
+apache/
+mysql/data/
+php/
+perl/
+tomcat/
+tmp/
+sendmail/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+
+# Passwords (never commit)
+passwords.txt
+
+# Content library (too large for git)
+htdocs/content/
+htdocs/videos/
+htdocs/library/
+*.mp4
+*.mkv
+*.avi

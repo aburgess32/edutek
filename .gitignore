@@ -15,9 +15,33 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+*.orig
+*.bak
 
-# Logs
+# Logs — keep directory, ignore log files
+logs/*.log
 *.log
+
+# Environment — NEVER commit .env
+.env
+
+# Distribution / build output
+dist/
+
+# PHP dependencies
+vendor/
+
+# Node dependencies and build cache
+node_modules/
+.playwright/
+test-results/
+playwright-report/
+
+# Composer
+composer.lock
+
+# Rate-limit temp files (managed at runtime)
+/tmp/edupak_ratelimit/
 
 # Passwords (never commit)
 passwords.txt
@@ -29,3 +53,5 @@ htdocs/library/
 *.mp4
 *.mkv
 *.avi
+*.webm
+*.mov

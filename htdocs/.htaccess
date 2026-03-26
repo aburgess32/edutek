@@ -1,0 +1,196 @@
+# ============================================================
+# EduPak — Apache Configuration
+# XAMPP offline deployment | No external network required
+# ============================================================
+
+# ──────────────────────────────────────────────────────────
+# 1. Disable Directory Listing
+# ──────────────────────────────────────────────────────────
+Options -Indexes -MultiViews
+Options +FollowSymLinks
+
+# ──────────────────────────────────────────────────────────
+# 2. Default Charset
+# ──────────────────────────────────────────────────────────
+AddDefaultCharset UTF-8
+DefaultLanguage en
+
+# ──────────────────────────────────────────────────────────
+# 3. Block Sensitive Directories
+# ──────────────────────────────────────────────────────────
+# Block .git directory
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block .git access
+    RewriteRule ^(.*/)?\.git(/.*)?$ - [F,L]
+
+    # Block .env files
+    RewriteRule ^(.*/)?\.env(/.*)?$ - [F,L]
+
+    # Block includes/ directory listing (allow file access via PHP includes only)
+    RewriteRule ^includes/?$ - [F,L]
+</IfModule>
+
+# Deny direct access to includes/ via FilesMatch / Location
+<IfModule mod_authz_core.c>
+    <Directory "includes">
+        Require all denied
+    </Directory>
+</IfModule>
+
+# ──────────────────────────────────────────────────────────
+# 4. Block Sensitive File Extensions
+# ──────────────────────────────────────────────────────────
+<FilesMatch "\.(sql|log|ini|sh|env|htpasswd|bak|swp|orig|pem|key|crt|phar|git)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Block config files by name pattern
+<FilesMatch "^(config|settings|database|credentials|\.env)\.(php|ini|json|yml|yaml|xml)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ──────────────────────────────────────────────────────────
+# 5. mod_rewrite — Clean URLs
+# ──────────────────────────────────────────────────────────
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Skip real files and directories
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Route everything else to index.php
+    RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+</IfModule>
+
+# ──────────────────────────────────────────────────────────
+# 6. Security Headers
+# ──────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    # Prevent MIME sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Prevent clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Enable XSS filtering in older browsers
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Referrer Policy — no referrer for cross-origin (offline-safe)
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Content Security Policy (offline: no CDNs needed)
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self'; connect-src 'self'; frame-ancestors 'self';"
+
+    # Permissions Policy
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    # Remove server signature
+    Header always unset Server
+    Header always unset X-Powered-By
+</IfModule>
+
+# ──────────────────────────────────────────────────────────
+# 7. Gzip Compression
+# ──────────────────────────────────────────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE application/font-woff
+    AddOutputFilterByType DEFLATE application/font-woff2
+
+    # Don't compress already-compressed formats
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|mp4|mkv|avi|mp3|ogg|gz|zip|bz2)$ no-gzip dont-vary
+</IfModule>
+
+# ──────────────────────────────────────────────────────────
+# 8. Browser Cache Headers for Static Assets
+# ──────────────────────────────────────────────────────────
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Images — 1 year (content is static/offline)
+    ExpiresByType image/jpeg                    "access plus 1 year"
+    ExpiresByType image/png                     "access plus 1 year"
+    ExpiresByType image/gif                     "access plus 1 year"
+    ExpiresByType image/webp                    "access plus 1 year"
+    ExpiresByType image/svg+xml                 "access plus 1 year"
+    ExpiresByType image/x-icon                  "access plus 1 year"
+
+    # CSS & JavaScript — 1 month
+    ExpiresByType text/css                      "access plus 1 month"
+    ExpiresByType application/javascript        "access plus 1 month"
+    ExpiresByType text/javascript               "access plus 1 month"
+
+    # Fonts — 1 year
+    ExpiresByType font/woff                     "access plus 1 year"
+    ExpiresByType font/woff2                    "access plus 1 year"
+    ExpiresByType application/font-woff         "access plus 1 year"
+    ExpiresByType application/font-woff2        "access plus 1 year"
+
+    # HTML & PHP — no cache (always fresh)
+    ExpiresByType text/html                     "access plus 0 seconds"
+
+    # Default
+    ExpiresDefault                              "access plus 2 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Add cache-control for images
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # Add cache-control for CSS/JS
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+
+    # No cache for PHP/HTML
+    <FilesMatch "\.(php|html|htm)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate"
+        Header set Pragma "no-cache"
+    </FilesMatch>
+</IfModule>
+
+# ──────────────────────────────────────────────────────────
+# 9. PHP Error Handling (override in production)
+# ──────────────────────────────────────────────────────────
+<IfModule mod_php.c>
+    # Suppress PHP errors from leaking to browser in production
+    # Override via APP_ENV in .env
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log "../logs/php_errors.log"
+</IfModule>
+
+# ──────────────────────────────────────────────────────────
+# 10. Custom Error Pages
+# ──────────────────────────────────────────────────────────
+ErrorDocument 403 /error.php?code=403
+ErrorDocument 404 /error.php?code=404
+ErrorDocument 500 /error.php?code=500

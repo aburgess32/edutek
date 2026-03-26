@@ -1,0 +1,264 @@
+name: EduPak CI
+
+# ── Triggers ───────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - "**"
+
+# Cancel in-progress runs for the same branch on new pushes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ── Global env ────────────────────────────────────────────────────────────────
+env:
+  PHP_VERSION: "8.1"
+  NODE_VERSION: "18"
+
+# ══════════════════════════════════════════════════════════════════════════════
+jobs:
+
+  # ── 1. LINT ────────────────────────────────────────────────────────────────
+  lint:
+    name: "Lint (PHP + JS + CSS)"
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── PHP setup ─────────────────────────────────────────────────────────
+      - name: Set up PHP ${{ env.PHP_VERSION }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2, phpcs
+          coverage: none
+
+      # Composer cache — keyed on composer.lock so it resets when deps change
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
+      - name: Install Composer dependencies
+        run: |
+          if [ -f composer.json ]; then
+            composer install --no-interaction --prefer-dist --no-progress
+          else
+            echo "No composer.json found — skipping Composer install"
+          fi
+
+      - name: Run PHP_CodeSniffer
+        run: |
+          # Use project-level phpcs.xml if present (PSR-12 + EduPak overrides)
+          if [ -f vendor/bin/phpcs ]; then
+            if [ -f phpcs.xml ]; then
+              vendor/bin/phpcs --standard=phpcs.xml || true  # warn-only; promote to hard fail when codebase is clean
+            else
+              vendor/bin/phpcs --standard=PSR12 --extensions=php \
+                --ignore=vendor,node_modules,dist \
+                htdocs/ tests/ || true
+            fi
+          elif command -v phpcs &>/dev/null; then
+            phpcs --standard=phpcs.xml --extensions=php || true
+          else
+            echo "phpcs not found — install via composer require --dev squizlabs/php_codesniffer"
+          fi
+
+      # ── Node setup ────────────────────────────────────────────────────────
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # npm cache — keyed on package-lock.json
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      - name: Install npm dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            echo "No package.json found — skipping npm install"
+          fi
+
+      - name: Run ESLint
+        run: |
+          if [ -f .eslintrc.js ] || [ -f .eslintrc.json ] || [ -f .eslintrc.yml ] || [ -f eslint.config.js ]; then
+            npm run lint:js
+          else
+            echo "No ESLint config found — skipping ESLint"
+          fi
+
+      - name: Run Stylelint
+        run: |
+          if [ -f .stylelintrc.json ] || [ -f .stylelintrc.js ] || [ -f stylelint.config.js ]; then
+            npm run lint:css
+          else
+            echo "No Stylelint config found — skipping Stylelint"
+          fi
+
+  # ── 2. TEST ────────────────────────────────────────────────────────────────
+  test:
+    name: "PHPUnit Tests"
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    needs: lint
+
+    # MySQL service container — mirrors production EduPak DB
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_ci
+          MYSQL_DATABASE: edupak_test
+          MYSQL_USER: edupak
+          MYSQL_PASSWORD: edupak_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u edupak -pedupak_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=30s
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ env.PHP_VERSION }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          extensions: gd, mysqli, pdo_mysql, mbstring, intl, zip
+          coverage: xdebug
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
+      - name: Install Composer dependencies
+        run: |
+          if [ -f composer.json ]; then
+            composer install --no-interaction --prefer-dist --no-progress
+          else
+            echo "No composer.json — skipping Composer install"
+          fi
+
+      - name: Import database schema
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u edupak -pedupak_ci edupak_test < db/schema.sql
+        env:
+          MYSQL_PWD: edupak_ci
+
+      - name: Run PHPUnit
+        env:
+          APP_ENV: testing
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: edupak_test
+          DB_USER: edupak
+          DB_PASS: edupak_ci
+        run: |
+          if [ -f vendor/bin/phpunit ]; then
+            vendor/bin/phpunit \
+              --configuration phpunit.xml \
+              --coverage-clover coverage.xml \
+              --testdox
+          elif command -v phpunit &>/dev/null; then
+            phpunit --configuration phpunit.xml --testdox
+          else
+            echo "PHPUnit not found — add phpunit/phpunit to composer require --dev"
+            exit 1
+          fi
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7
+
+  # ── 3. PERFORMANCE (PRs only) ──────────────────────────────────────────────
+  performance:
+    name: "Lighthouse CI"
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    # Only run on pull requests — not on every master push
+    if: github.event_name == 'pull_request'
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.13.x
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build and start the app container
+      - name: Build Docker image
+        run: docker compose build app
+
+      - name: Start application
+        run: |
+          docker compose up -d db
+          echo "Waiting for MySQL to be healthy..."
+          timeout 60 bash -c 'until docker compose exec -T db mysqladmin ping -h localhost -u edupak -pedupak_dev --silent 2>/dev/null; do sleep 2; done'
+          docker compose up -d app
+          echo "Waiting for Apache..."
+          timeout 30 bash -c 'until curl -sf http://localhost:8080/ > /dev/null 2>&1; do sleep 2; done'
+          echo "App is up"
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun \
+            --collect.url=http://localhost:8080/ \
+            --collect.numberOfRuns=3 \
+            --assert.preset=lighthouse:no-pwa \
+            --assert.assertions.categories:performance=["warn",{"minScore":0.6}] \
+            --assert.assertions.categories:accessibility=["error",{"minScore":0.8}] \
+            --assert.assertions.categories:best-practices=["warn",{"minScore":0.7}] \
+            --upload.target=temporary-public-storage
+        continue-on-error: true  # Lighthouse results are advisory on PRs
+
+      - name: Tear down containers
+        if: always()
+        run: docker compose down -v

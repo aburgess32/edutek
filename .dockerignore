@@ -1,0 +1,50 @@
+# EduPak .dockerignore
+# Prevents these paths from being sent to the Docker build context.
+# Keeps image builds fast and lean.
+
+# Version control
+.git
+.gitignore
+
+# Node dependencies (not needed in PHP image)
+node_modules
+npm-debug.log
+yarn-error.log
+.npm
+.yarn
+
+# Build output and distribution archives
+dist
+
+# Documentation (not needed at runtime)
+docs
+
+# GitHub Actions workflows
+.github
+
+# Test suite (not in production image)
+tests
+phpunit.xml
+phpunit.xml.dist
+.phpunit.result.cache
+
+# Local development overrides
+docker-compose.override.yml
+.env.local
+.env.*.local
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea
+.vscode
+
+# Logs
+*.log
+
+# Large content library (deployed separately to EduPak)
+htdocs/content
+htdocs/videos
+htdocs/library

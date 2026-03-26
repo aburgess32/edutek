@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<ruleset name="EduPak PHP_CodeSniffer Rules">
+    <description>PSR-12 coding standard for EduPak XAMPP project</description>
+
+    <!-- Scan htdocs/ only -->
+    <file>htdocs/</file>
+
+    <!-- Exclude vendor and node_modules directories -->
+    <exclude-pattern>htdocs/vendor/*</exclude-pattern>
+    <exclude-pattern>htdocs/node_modules/*</exclude-pattern>
+
+    <!-- Exclude config.php from credential-sensitive sniffing rules -->
+    <rule ref="PSR12">
+        <exclude-pattern>htdocs/includes/config.php</exclude-pattern>
+    </rule>
+
+    <!-- Suppress specific credential-related rules for config.php -->
+    <rule ref="Generic.PHP.ForbiddenFunctions">
+        <exclude-pattern>htdocs/includes/config.php</exclude-pattern>
+    </rule>
+
+    <!-- Use PSR-12 as the base standard -->
+    <rule ref="PSR12"/>
+
+    <!-- Set line length to 120 characters -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="0"/>
+        </properties>
+    </rule>
+
+    <!-- Show progress and colors in output -->
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <!-- Only check PHP files -->
+    <arg name="extensions" value="php"/>
+
+    <!-- Set PHP version for compatibility checks -->
+    <config name="php_version" value="80100"/>
+</ruleset>

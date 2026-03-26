@@ -1,0 +1,111 @@
+version: "3.9"
+
+# EduPak Docker Compose — Local development sandbox
+# Mirrors the XAMPP-based production environment on EduPak devices.
+#
+# Usage:
+#   docker compose up -d          # Start all services
+#   docker compose down           # Stop all services
+#   docker compose logs -f app    # Stream PHP/Apache logs
+#
+# Services:
+#   app        → Apache + PHP 8.1  → http://localhost:8080
+#   phpmyadmin → DB admin UI       → http://localhost:8081
+#   db         → MySQL 8.0         → localhost:3306
+
+networks:
+  edupak-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
+
+services:
+
+  # ── PHP + Apache ─────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: edupak-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      # Application source — maps htdocs to Apache document root
+      - ./htdocs:/var/www/html:cached
+      # Custom Apache virtual host / server config
+      - ./config/apache:/etc/apache2/sites-enabled:ro
+    environment:
+      # DB connection — consumed by htdocs/includes/config.php
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: edupak
+      DB_USER: edupak
+      DB_PASS: edupak_dev
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - edupak-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── MySQL 8.0 ─────────────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: edupak-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_dev_only
+      MYSQL_DATABASE: edupak
+      MYSQL_USER: edupak
+      MYSQL_PASSWORD: edupak_dev
+    volumes:
+      # Persist MySQL data across container restarts
+      - mysql-data:/var/lib/mysql
+      # Auto-import schema on first run (only executed when data volume is empty)
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+      - "--default-authentication-plugin=mysql_native_password"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "edupak", "-pedupak_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - edupak-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── phpMyAdmin ────────────────────────────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: edupak-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: edupak
+      PMA_PASSWORD: edupak_dev
+      # Increase upload limit for DB imports
+      UPLOAD_LIMIT: 256M
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - edupak-net

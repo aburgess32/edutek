@@ -42,6 +42,12 @@
             <span class="nav-link-text">Home</span>
           </a>
        </li>
+       <li class="nav-item">
+          <a class="nav-link" href="directory.php">
+            <i class="fa fa-fw fa-list"></i>
+            <span class="nav-link-text">Directory</span>
+          </a>
+       </li>
         <li class="nav-item">
           <form class="form-inline my-2 my-lg-0 mr-lg-2" method="post" action="result.php">
 		  <div class="col-md-12">

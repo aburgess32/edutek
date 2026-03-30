@@ -1,0 +1,262 @@
+{
+  "segments": {
+    "early_learners": {
+      "label": "Early Learners",
+      "description": "Foundation skills, stories, and play",
+      "icon": "🌱",
+      "color": "#FF6B35",
+      "gradient": "linear-gradient(135deg, #FF6B35 0%, #FF8F65 100%)",
+      "image": "assets/tiles/seg_early_learners.webp",
+      "sort_order": 1,
+      "topics": [
+        {
+          "slug": "primary-multiplication",
+          "label": "Primary Multiplication",
+          "icon": "🔢",
+          "color": "#4ECDC4",
+          "type": "video",
+          "content_path": "videos/Primary Multiplication",
+          "href": null
+        },
+        {
+          "slug": "comic-books",
+          "label": "Comic Books",
+          "icon": "📚",
+          "color": "#FF6B6B",
+          "type": "book",
+          "content_path": "videos/Comic Books",
+          "href": "Comic_books.php"
+        },
+        {
+          "slug": "audiobooks",
+          "label": "Audiobooks",
+          "icon": "🎧",
+          "color": "#A78BFA",
+          "type": "audio",
+          "content_path": "videos/Audiobooks",
+          "href": "audiobooks.php"
+        },
+        {
+          "slug": "khan",
+          "label": "Khan Academy",
+          "icon": "🎓",
+          "color": "#14B8A6",
+          "type": "service",
+          "content_path": "service/khan",
+          "href": "khan/"
+        },
+        {
+          "slug": "kiwix-khan",
+          "label": "Kiwix Khan",
+          "icon": "📖",
+          "color": "#06B6D4",
+          "type": "service",
+          "content_path": "service/kiwix-khan",
+          "href": "__PORT_7862__"
+        }
+      ]
+    },
+    "explorers": {
+      "label": "Explorers",
+      "description": "Curiosity-driven, broad topics",
+      "icon": "🧭",
+      "color": "#4ECDC4",
+      "gradient": "linear-gradient(135deg, #4ECDC4 0%, #44B3AA 100%)",
+      "image": "assets/tiles/seg_explorers.webp",
+      "sort_order": 2,
+      "topics": [
+        {
+          "slug": "audiobooks",
+          "label": "Audiobooks",
+          "icon": "🎧",
+          "color": "#A78BFA",
+          "type": "audio",
+          "content_path": "videos/Audiobooks",
+          "href": "audiobooks.php"
+        },
+        {
+          "slug": "comic-books",
+          "label": "Comic Books",
+          "icon": "📚",
+          "color": "#FF6B6B",
+          "type": "book",
+          "content_path": "videos/Comic Books",
+          "href": "Comic_books.php"
+        },
+        {
+          "slug": "generative-ai",
+          "label": "Generative AI",
+          "icon": "🤖",
+          "color": "#8B5CF6",
+          "type": "video",
+          "content_path": "videos/Generative AI with LLMs",
+          "href": null
+        },
+        {
+          "slug": "wiki",
+          "label": "Wiki",
+          "icon": "🌍",
+          "color": "#64748B",
+          "type": "service",
+          "content_path": "service/kiwix-wiki",
+          "href": "__PORT_7865__"
+        },
+        {
+          "slug": "khan",
+          "label": "Khan Academy",
+          "icon": "🎓",
+          "color": "#14B8A6",
+          "type": "service",
+          "content_path": "service/khan",
+          "href": "khan/"
+        },
+        {
+          "slug": "ai-tools",
+          "label": "AI Tools",
+          "icon": "⚡",
+          "color": "#F59E0B",
+          "type": "service",
+          "content_path": "service/ai-tools",
+          "href": "__PORT_7860__"
+        }
+      ]
+    },
+    "advanced": {
+      "label": "Advanced",
+      "description": "Vocational, professional, deep learning",
+      "icon": "⚙️",
+      "color": "#1A535C",
+      "gradient": "linear-gradient(135deg, #1A535C 0%, #2D7A86 100%)",
+      "image": "assets/tiles/seg_advanced.webp",
+      "sort_order": 3,
+      "topics": [
+        {
+          "slug": "electrical-engineering",
+          "label": "Electrical Engineering",
+          "icon": "🔌",
+          "color": "#EF4444",
+          "type": "video",
+          "content_path": "videos/Electrical Engineering",
+          "href": null
+        },
+        {
+          "slug": "hotel-management",
+          "label": "Hotel Management",
+          "icon": "🏨",
+          "color": "#F97316",
+          "type": "video",
+          "content_path": "videos/Hotel Management & Catering",
+          "href": null
+        },
+        {
+          "slug": "generative-ai",
+          "label": "Generative AI",
+          "icon": "🤖",
+          "color": "#8B5CF6",
+          "type": "video",
+          "content_path": "videos/Generative AI with LLMs",
+          "href": null
+        },
+        {
+          "slug": "kiwix-medical",
+          "label": "Kiwix Medical",
+          "icon": "🏥",
+          "color": "#10B981",
+          "type": "service",
+          "content_path": "service/kiwix-medical",
+          "href": "__PORT_7864__"
+        },
+        {
+          "slug": "wiki",
+          "label": "Wiki",
+          "icon": "🌍",
+          "color": "#64748B",
+          "type": "service",
+          "content_path": "service/kiwix-wiki",
+          "href": "__PORT_7865__"
+        }
+      ]
+    },
+    "educators": {
+      "label": "Educators",
+      "description": "Teaching tools and lesson resources",
+      "icon": "📋",
+      "color": "#F7C948",
+      "gradient": "linear-gradient(135deg, #F7C948 0%, #F5D76E 100%)",
+      "image": "assets/tiles/seg_educators.webp",
+      "sort_order": 4,
+      "topics": [
+        {
+          "slug": "khan",
+          "label": "Khan Academy",
+          "icon": "🎓",
+          "color": "#14B8A6",
+          "type": "service",
+          "content_path": "service/khan",
+          "href": "khan/"
+        },
+        {
+          "slug": "kiwix-khan",
+          "label": "Kiwix Khan",
+          "icon": "📖",
+          "color": "#06B6D4",
+          "type": "service",
+          "content_path": "service/kiwix-khan",
+          "href": "__PORT_7862__"
+        },
+        {
+          "slug": "wiki",
+          "label": "Wiki",
+          "icon": "🌍",
+          "color": "#64748B",
+          "type": "service",
+          "content_path": "service/kiwix-wiki",
+          "href": "__PORT_7865__"
+        },
+        {
+          "slug": "kiwix-medical",
+          "label": "Kiwix Medical",
+          "icon": "🏥",
+          "color": "#10B981",
+          "type": "service",
+          "content_path": "service/kiwix-medical",
+          "href": "__PORT_7864__"
+        }
+      ]
+    },
+    "knowledge_power": {
+      "label": "Knowledge is Power",
+      "description": "Curated by your teacher",
+      "icon": "⭐",
+      "color": "#E63946",
+      "gradient": "linear-gradient(135deg, #E63946 0%, #FF6B6B 100%)",
+      "image": "assets/tiles/seg_knowledge_power.webp",
+      "sort_order": 5,
+      "topics": []
+    }
+  },
+  "services": {
+    "kiwix-khan": { "label": "Kiwix Khan", "port": 7862, "type": "service", "icon": "📖" },
+    "kiwix-khmer": { "label": "Kiwix Khmer", "port": 7863, "type": "service", "icon": "🌏" },
+    "kiwix-medical": { "label": "Kiwix Medical", "port": 7864, "type": "service", "icon": "🏥" },
+    "kiwix-wiki": { "label": "Kiwix Wiki", "port": 7865, "type": "service", "icon": "🌍" },
+    "ai-tools": { "label": "AI Tools", "port": 7860, "type": "service", "icon": "⚡" },
+    "ai-image": { "label": "AI Image Generation", "port": 7861, "type": "service", "icon": "🎨" },
+    "khan-interactive": { "label": "Khan Interactive", "port": 9061, "type": "service", "icon": "🧪" }
+  },
+  "special_routes": {
+    "Audiobooks": "audiobooks.php",
+    "Books": "books.php",
+    "Comic Books": "Comic_books.php",
+    "Music": "music.php"
+  },
+  "type_badges": {
+    "video": { "label": "Video", "color": "#3B82F6" },
+    "video_group": { "label": "Video", "color": "#3B82F6" },
+    "audio": { "label": "Audio", "color": "#A78BFA" },
+    "book": { "label": "Book", "color": "#10B981" },
+    "service": { "label": "Tool", "color": "#F59E0B" },
+    "resource": { "label": "Resource", "color": "#64748B" },
+    "mixed": { "label": "Mixed", "color": "#6B7280" }
+  }
+}

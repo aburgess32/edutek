@@ -1,151 +1,101 @@
-    <!-- Custom styles for this watch-->
   <link href="css/index.css" rel="stylesheet">
+  <link href="css/tiles.css" rel="stylesheet">
 <?php
-//equire_once('connect.php'); // Database connection file
-//require_once('functions.php');  // PHP functions file
+    include_once "navhome.php";
+    include_once "includes/tiles.php";
 
-//$page_id = 1;
-//$visitor_ip = $_SERVER['REMOTE_ADDR']; // stores IP address of visitor in variable
+    $hostname = htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'localhost', ENT_QUOTES, 'UTF-8');
+    $segments = getSegments();
+    $allContent = getAllContent();
 
-//add_view($conn, $visitor_ip, $page_id);
-    ?>
-<?php
-    //nabvbar
-    include_once"navhome.php";
-    //nabvbar
-    $check = array('Audiobooks','Books','Music','Comic Books');
-$hostname = $_SERVER['HTTP_HOST'];
-
-
-$cipher = "BF-CBC";
-$iv_length = openssl_cipher_iv_length($cipher);
-$options = 0;
-$iv = "91011121";
-$encryption_key = "hfjfydjnvhbjfi";
-$decryption_iv = "91011121";
-$decryption_key = "hfjfydjnvhbjfi";
+    // Light-colored segments need dark text
+    $lightSegments = ['educators'];
 ?>
 
-        
-        <!--result Wrapper-->
-        
-    <div class="courses" id="all">
-        <div class="">
-        <div class="SavedWrapper">
-            <a href="http://<?php echo $hostname; ?>:7862/" class="course-item">
-                <span class="course-title">KIWIX KHAN</span>
-            </a>
-        </div>
-        <div class="SavedWrapper">
-            <a href="http://<?php echo $hostname; ?>:7863/" class="course-item">
-                <span class="course-title">KIWIX KHMER</span>
-            </a>
-        </div>
-        <div class="SavedWrapper">
-            <a href="http://<?php echo $hostname; ?>:7864/" class="course-item">
-                <span class="course-title">KIWIX MEDICAL</span>
-            </a>
-        </div>
-        <div class="SavedWrapper">
-            <a href="http://<?php echo $hostname; ?>:7865/" class="course-item">
-                <span class="course-title">KIWIX WIKI</span>
-            </a>
-            </div>
-        </div>
-        <div class="">
-        <div class="SavedWrapper">
-            <a href="http://<?php echo $hostname; ?>:7860/" class="course-item">
-                <span class="course-title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ARTIFICIAL INTELLIGENCE (AI)</span>
-            </a>
-            <!-- <a href="http://<?php echo $hostname; ?>:7860/" class="course-item">
-                <span class="course-title">AI VOICE CLONING</span>
-            </a> -->
-            </div>
-            <div class="SavedWrapper">
-            <a href="http://<?php echo $hostname; ?>:7861/" class="course-item">
-                <span class="course-title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AI IMAGE GENERATION</span>
-            </a>
-        </div>
-        </div>
-        <div class="">
-        <div class="SavedWrapper">
-            <a href="khan/" class="course-item">
-                <span ><b>KHAN</b></span>
-            </a>
-        </div>
-        <div class="SavedWrapper">
-            <a href="http://<?php echo $hostname; ?>:9061/" class="course-item">
-                <span ><b>KHAN INTERACTIVE</b></span>
-            </a>
-            </div>
-        <div class="SavedWrapper">
-            <a href="Wiki/" class="course-item">
-                <span class="course-title">WIKI FOR SCHOOLS</span>
-            </a>
-            </div>
-        </div>
+<div class="tiles-page">
 
-        <?php
-        $dd2 = "videos/";
-        $ff2 = (glob($dd2 . "*"));
-        $itemsPerRow = 3;
-        $currentRow = 0;
-        $itemCount = 0;
-
-        foreach ($ff2 as $value) {
-            if (count(glob($value . "*")) > 0) {
-                if ($itemCount % $itemsPerRow == 0) {
-                    if ($currentRow > 0) {
-                        echo '</div>';
-                    }
-                    echo '<div class="">';
-                    $currentRow++;
-                }
-
-                $title = strtoupper(substr($value, 7));
-                $link = '#';
-
-                switch (substr($value, 7)) {
-                    case 'Audiobooks':
-                        $link = 'audiobooks.php';
-                        $title = 'AUDIO BOOKS';
-                        break;
-                    case 'Books':
-                        $link = 'books.php';
-                        $title = 'BOOKS';
-                        break;
-                    case 'Comic Books':
-                        $link = 'Comic_books.php';
-                        $title = 'COMIC BOOKS';
-                        break;
-                    case 'Music':
-                        $link = 'music.php';
-                        $title = 'LISTEN TO GOSPEL MUSIC';
-                        break;
-                    default:
-                        $encryption = str_replace('=', '[equal]', base64_encode(openssl_encrypt(substr($value, 7), $cipher, $encryption_key, $options, $iv)));
-                        $encryption1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("course", $cipher, $encryption_key, $options, $iv)));
-                        $link = "tutorials.php?&{$encryption1}={$encryption}";
-                }
-
-                echo '<div class="SavedWrapper "><a href="' . $link . '" class="course-item">
-						<span class="course-title">' . $title . '</span>
-					</a></div>';
-
-                $itemCount++;
-            }
-        }
-        if ($itemCount % $itemsPerRow != 0) {
-            echo '</div>';
-        }
-        ?>
+    <!-- Hero -->
+    <div class="tiles-hero">
+        <img src="assets/img/edutek-logo.jpg" alt="Edutek" class="tiles-hero-logo">
+        <h1 class="tiles-hero-tagline">Discover. Learn. Grow.</h1>
+        <p class="tiles-hero-sub">Offline education for everyone</p>
     </div>
 
-        <!--//contens are here-->
+    <!-- Choose Your Path: Segment Tiles -->
+    <div class="tiles-section-header">
+        <h2 class="tiles-section-title">Choose Your Path</h2>
+        <a href="directory.php" class="tiles-section-link">View Directory</a>
+    </div>
 
+    <div class="seg-grid">
+        <?php foreach ($segments as $segKey => $seg):
+            $isLight = in_array($segKey, $lightSegments, true);
+            $gradient = htmlspecialchars($seg['gradient'] ?? '', ENT_QUOTES, 'UTF-8');
+            $color = htmlspecialchars($seg['color'] ?? '#333', ENT_QUOTES, 'UTF-8');
+            $label = htmlspecialchars($seg['label'] ?? $segKey, ENT_QUOTES, 'UTF-8');
+            $desc = htmlspecialchars($seg['description'] ?? '', ENT_QUOTES, 'UTF-8');
+            $icon = $seg['icon'] ?? '';
+        ?>
+        <a href="browse.php?seg=<?php echo htmlspecialchars($segKey, ENT_QUOTES, 'UTF-8'); ?>"
+           class="seg-tile<?php echo $isLight ? ' seg-tile--light' : ''; ?>"
+           style="background: <?php echo $gradient ?: $color; ?>;"
+           title="<?php echo $label; ?>">
+            <div class="seg-tile-fallback">
+                <img src="assets/img/edutek-logo.jpg" alt="">
+            </div>
+            <div class="seg-tile-inner">
+                <span class="seg-tile-icon"><?php echo $icon; ?></span>
+                <p class="seg-tile-label"><?php echo $label; ?></p>
+                <p class="seg-tile-desc"><?php echo $desc; ?></p>
+                <?php if ($segKey === 'knowledge_power'): ?>
+                <p class="seg-tile-subtitle">Curated by your teacher</p>
+                <?php endif; ?>
+            </div>
+        </a>
+        <?php endforeach; ?>
+    </div>
 
+    <!-- All Content -->
+    <div class="tiles-section-header">
+        <h2 class="tiles-section-title">All Content</h2>
+        <a href="directory.php" class="tiles-section-link">Full Directory</a>
+    </div>
 
+    <div class="all-content-grid">
+        <?php foreach ($allContent as $item):
+            $badge = getContentTypeBadge($item['type'] ?? 'video');
+            $itemLabel = htmlspecialchars($item['label'] ?? '', ENT_QUOTES, 'UTF-8');
+            $itemHref = htmlspecialchars($item['href'] ?? '#', ENT_QUOTES, 'UTF-8');
+            $itemIcon = $item['icon'] ?? '';
+            if ($itemIcon === '') {
+                // Assign default icon based on type
+                switch ($item['type'] ?? 'video') {
+                    case 'audio': $itemIcon = "\xF0\x9F\x8E\xA7"; break;
+                    case 'book': $itemIcon = "\xF0\x9F\x93\x9A"; break;
+                    case 'service': $itemIcon = "\xE2\x9A\xA1"; break;
+                    default: $itemIcon = "\xF0\x9F\x8E\xAC"; break;
+                }
+            }
+        ?>
+        <a href="<?php echo $itemHref; ?>" class="all-content-card" title="<?php echo $itemLabel; ?>">
+            <span class="all-content-card-icon"><?php echo $itemIcon; ?></span>
+            <span class="all-content-card-label"><?php echo $itemLabel; ?></span>
+            <span class="type-badge" style="background:<?php echo htmlspecialchars($badge['color'], ENT_QUOTES, 'UTF-8'); ?>">
+                <?php echo htmlspecialchars($badge['label'], ENT_QUOTES, 'UTF-8'); ?>
+            </span>
+        </a>
+        <?php endforeach; ?>
+
+        <?php if (empty($allContent)): ?>
+        <div class="tiles-empty">
+            <img src="assets/img/edutek-logo.jpg" alt="" class="tiles-empty-logo">
+            <p class="tiles-empty-text">No content available yet.</p>
+        </div>
+        <?php endif; ?>
+    </div>
+
+</div>
 
 <?php
-    include_once"footer.php";
+    include_once "footer.php";
 ?>

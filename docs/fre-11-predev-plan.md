@@ -218,7 +218,8 @@ $_SESSION['login_time']   = int;      // Unix timestamp
 - Grid of existing user cards showing: **avatar_name** (large), real name (small)
 - Search bar to filter by avatar name or real name
 - Cards sorted by last_active (most recent first)
-- Two buttons at bottom: "I'm New" (student) and "I'm a Teacher" (teacher)
+- Three buttons at bottom: "I'm New" (student), "I'm a Teacher" (teacher), and "Continue as Guest"
+- **Guest mode**: skips login entirely, sets `$_SESSION['role'] = 'guest'`. No watch history saved, no avatar name. Can browse all content freely. Persistent "Create your Avatar Name to save progress" banner on every page.
 - Clean, friendly, colorful — each card uses the avatar_name's accent color
 
 ### Student registration (multi-step wizard)

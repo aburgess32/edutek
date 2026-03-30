@@ -1,4 +1,5 @@
 <?php
+
 /**
  * EduPak Security Helpers
  *

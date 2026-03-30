@@ -1,4 +1,5 @@
 <?php
+
 /**
  * EduPak Configuration
  *
@@ -28,20 +29,20 @@ define('DB_PORT', env('DB_PORT', '3306'));
 // ──────────────────────────────────────────────────────────
 // Application
 // ──────────────────────────────────────────────────────────
-define('APP_ENV',   env('APP_ENV',   'dev'));
+define('APP_ENV', env('APP_ENV', 'dev'));
 define('APP_DEBUG', env('APP_DEBUG', true));
 
 // ──────────────────────────────────────────────────────────
 // Logging
 // ──────────────────────────────────────────────────────────
 define('LOG_LEVEL', env('LOG_LEVEL', 'debug'));
-define('LOG_PATH',  dirname(__DIR__, 2) . '/logs');
+define('LOG_PATH', dirname(__DIR__, 2) . '/logs');
 
 // ──────────────────────────────────────────────────────────
 // Site
 // ──────────────────────────────────────────────────────────
-define('SITE_TITLE',    env('SITE_TITLE',    'EduPak Learning Hub'));
-define('CONTENT_PATH',  env('CONTENT_PATH',  '/content/'));
+define('SITE_TITLE', env('SITE_TITLE', 'EduPak Learning Hub'));
+define('CONTENT_PATH', env('CONTENT_PATH', '/content/'));
 
 // ──────────────────────────────────────────────────────────
 // PHP Error Display (based on APP_DEBUG)

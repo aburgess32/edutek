@@ -15,7 +15,7 @@ RESET := \033[0m
 
 # ── Docker Compose ───────────────────────────────────────────
 DC      := docker compose
-PHP_CTR := php
+PHP_CTR := app
 DB_CTR  := db
 
 # ── Paths ────────────────────────────────────────────────────

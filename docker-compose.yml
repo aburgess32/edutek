@@ -1,5 +1,3 @@
-version: "3.9"
-
 # EduPak Docker Compose — Local development sandbox
 # Mirrors the XAMPP-based production environment on EduPak devices.
 #

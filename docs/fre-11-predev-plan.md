@@ -213,8 +213,10 @@ $_SESSION['login_time']   = int;      // Unix timestamp
 ## Page Designs
 
 ### Login page (default — returning users)
+- Header text: **"Find your Avatar Name to continue learning"**
+- Subtext: "Don't remember? Ask your teacher for help."
 - Grid of existing user cards showing: **avatar_name** (large), emoji icon, real name (small)
-- Search bar to filter
+- Search bar to filter by avatar name or real name
 - Cards sorted by last_active (most recent first)
 - Two buttons at bottom: "I'm New" (student) and "I'm a Teacher" (teacher)
 - Clean, friendly, colorful — each card uses the avatar_name's accent color
@@ -225,6 +227,13 @@ $_SESSION['login_time']   = int;      // Unix timestamp
 - **Step 3**: "Pick your Avatar Name!" — grid of available avatar_names, each showing icon + name + color. Taken names greyed out. Tap to select, confirm.
 - **Welcome screen**: "Welcome, [Name]! You are now [AVATAR NAME] [icon]" with a celebration animation
 - All steps are client-side wizard (no page reload between steps)
+- **Final step — Remember screen**: After avatar name is chosen, show a prominent message:
+  > "Remember your Avatar Name! Write it down."
+  > **SIMBA 🦁**
+  > "Next time you visit, just find SIMBA to pick up where you left off."
+  - Large text, high contrast, pause here for 5 seconds before the "Continue" button activates
+  - On mobile: encourage screenshot ("Take a photo of this screen!")
+  - This is the single most important screen — if they forget, they lose their history
 
 ### Teacher login
 - Clean, professional form: email + password

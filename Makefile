@@ -75,12 +75,12 @@ lint-php: ## Lint PHP with PHP_CodeSniffer (PSR-12)
 .PHONY: lint-js
 lint-js: ## Lint JavaScript with ESLint
 	@echo "$(CYAN)Linting JS (ESLint)...$(RESET)"
-	npx eslint htdocs/js/ --ext .js
+	@if [ -d htdocs/js ]; then npx eslint htdocs/js/ --ext .js; else echo "  No htdocs/js/ directory — skipping."; fi
 
 .PHONY: lint-css
 lint-css: ## Lint CSS with Stylelint
 	@echo "$(CYAN)Linting CSS (Stylelint)...$(RESET)"
-	npx stylelint "htdocs/css/**/*.css"
+	@if [ -d htdocs/css ]; then npx stylelint "htdocs/css/**/*.css"; else echo "  No htdocs/css/ directory — skipping."; fi
 
 .PHONY: lint-fix
 lint-fix: ## Auto-fix all auto-fixable lint issues

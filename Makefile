@@ -70,7 +70,7 @@ lint: lint-php lint-js lint-css ## Run all linters (PHP, JS, CSS)
 .PHONY: lint-php
 lint-php: ## Lint PHP with PHP_CodeSniffer (PSR-12)
 	@echo "$(CYAN)Linting PHP (PSR-12)...$(RESET)"
-	$(DC) exec $(PHP_CTR) ./vendor/bin/phpcs --standard=PSR12 htdocs/
+	$(DC) exec $(PHP_CTR) /var/www/vendor/bin/phpcs --standard=PSR12 htdocs/
 
 .PHONY: lint-js
 lint-js: ## Lint JavaScript with ESLint
@@ -85,7 +85,7 @@ lint-css: ## Lint CSS with Stylelint
 .PHONY: lint-fix
 lint-fix: ## Auto-fix all auto-fixable lint issues
 	@echo "$(CYAN)Auto-fixing PHP...$(RESET)"
-	$(DC) exec $(PHP_CTR) ./vendor/bin/phpcbf --standard=PSR12 htdocs/ || true
+	$(DC) exec $(PHP_CTR) /var/www/vendor/bin/phpcbf --standard=PSR12 htdocs/ || true
 	@echo "$(CYAN)Auto-fixing JS...$(RESET)"
 	npx eslint htdocs/js/ --ext .js --fix || true
 	@echo "$(CYAN)Auto-fixing CSS...$(RESET)"
@@ -99,7 +99,7 @@ lint-fix: ## Auto-fix all auto-fixable lint issues
 .PHONY: test
 test: ## Run PHP unit tests (PHPUnit)
 	@echo "$(CYAN)Running PHPUnit...$(RESET)"
-	$(DC) exec $(PHP_CTR) ./vendor/bin/phpunit --colors=always
+	$(DC) exec $(PHP_CTR) /var/www/vendor/bin/phpunit --colors=always
 
 .PHONY: test-e2e
 test-e2e: ## Run end-to-end tests (Playwright)

@@ -33,6 +33,10 @@ services:
     volumes:
       # Application source — maps htdocs to Apache document root
       - ./htdocs:/var/www/html:cached
+      # PHP vendor directory (phpcs, phpunit, etc.)
+      - ./vendor:/var/www/vendor:cached
+      - ./composer.json:/var/www/composer.json:ro
+      - ./composer.lock:/var/www/composer.lock:ro
       # Custom Apache virtual host / server config
       - ./config/apache:/etc/apache2/sites-enabled:ro
     environment:

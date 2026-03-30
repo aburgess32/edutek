@@ -31,6 +31,9 @@ RUN docker-php-ext-install -j$(nproc) \
     zip \
     opcache
 
+# Install Composer for PHP dependency management
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 # Enable Apache mod_rewrite for .htaccess support
 RUN a2enmod rewrite
 
@@ -63,5 +66,10 @@ RUN sed -i 's|/var/www/html|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/sites-availa
     && sed -i 's|AllowOverride None|AllowOverride All|g' /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
+
+# Install PHP dependencies (composer.json is mounted/copied at runtime)
+# This layer is for production builds; dev uses volume mounts
+COPY composer.json composer.lock* /var/www/
+RUN cd /var/www && composer install --no-interaction --prefer-dist --no-dev 2>/dev/null || true
 
 EXPOSE 80

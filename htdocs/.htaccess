@@ -32,12 +32,16 @@ DefaultLanguage en
     RewriteRule ^includes/?$ - [F,L]
 </IfModule>
 
-# Deny direct access to includes/ via FilesMatch / Location
-<IfModule mod_authz_core.c>
-    <Directory "includes">
+# Deny direct access to includes/ PHP files via browser
+<FilesMatch "^(config|security|logger|env)\.php$">
+    <IfModule mod_authz_core.c>
         Require all denied
-    </Directory>
-</IfModule>
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
 
 # ──────────────────────────────────────────────────────────
 # 4. Block Sensitive File Extensions

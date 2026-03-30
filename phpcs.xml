@@ -5,9 +5,16 @@
     <!-- Scan htdocs/ only -->
     <file>htdocs/</file>
 
-    <!-- Exclude vendor and node_modules directories -->
+    <!-- Exclude vendor, node_modules, and third-party libraries -->
     <exclude-pattern>htdocs/vendor/*</exclude-pattern>
     <exclude-pattern>htdocs/node_modules/*</exclude-pattern>
+    <exclude-pattern>htdocs/assets/*</exclude-pattern>
+    <exclude-pattern>htdocs/fonts/*</exclude-pattern>
+    <exclude-pattern>htdocs/fpdf.php</exclude-pattern>
+    <exclude-pattern>*/bootstrap*</exclude-pattern>
+    <exclude-pattern>*/jquery*</exclude-pattern>
+    <exclude-pattern>*.min.js</exclude-pattern>
+    <exclude-pattern>*.min.css</exclude-pattern>
 
     <!-- Exclude config.php from credential-sensitive sniffing rules -->
     <rule ref="PSR12">

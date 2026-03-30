@@ -50,12 +50,12 @@ No passwords for students. Fun, fast, visual. Teachers get proper auth stored lo
 │  STEP 3: Pick your Avatar Name!                 │
 │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐       │
 │  │Simba │ │Nova  │ │Kibo  │ │Storm │       │
-│  │ 🦁   │ │ ⭐   │ │ 🏔️   │ │ ⚡   │       │
+│  │   │ │   │ │   │ │   │       │
 │  │Phoenix│ │Zuri  │ │Atlas │ │Amani │       │
-│  │ 🔥   │ │ 💎   │ │ 🌍   │ │ 🕊️   │       │
+│  │   │ │   │ │   │ │   │       │
 │  └──────┘ └──────┘ └──────┘ └──────┘       │
 │         ▼                                    │
-│  "Welcome, Kofi! You are now SIMBA 🦁"      │
+│  "Welcome, Kofi! You are now SIMBA"      │
 │  → redirect to /                             │
 └─────────────────────────────────────────────┘
 ```
@@ -69,7 +69,7 @@ No passwords for students. Fun, fast, visual. Teachers get proper auth stored lo
 │  Welcome back! Tap your name:                │
 │                                              │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐    │
-│  │ SIMBA 🦁 │ │ NOVA ⭐  │ │ KIBO 🏔️  │    │
+│  │ SIMBA │ │ NOVA  │ │ KIBO  │    │
 │  │ Kofi     │ │ Amara    │ │ James    │    │
 │  └──────────┘ └──────────┘ └──────────┘    │
 │                                              │
@@ -109,32 +109,32 @@ No passwords for students. Fun, fast, visual. Teachers get proper auth stored lo
 
 ## Avatar Name Library
 
-~60 avatar_names organized by vibe. Each has a name, an emoji icon, and a color. Mix of African-origin and universal names.
+~60 avatar_names organized by vibe. Each has a nameand a color. Mix of African-origin and universal names.
 
 ### Sample Library
 
 | Avatar Name | Origin | Icon | Color | Meaning |
 |----------|--------|------|-------|---------|
-| Simba | Swahili | 🦁 | #FF6B35 | Lion — brave, strong |
-| Zuri | Swahili | 💎 | #E91E63 | Beautiful |
-| Kibo | Swahili | 🏔️ | #1A535C | Peak of Kilimanjaro |
-| Amani | Swahili | 🕊️ | #4ECDC4 | Peace |
-| Jelani | Swahili | ⚡ | #F7C948 | Mighty |
-| Keza | Kinyarwanda | 🌸 | #FF69B4 | Beautiful |
-| Imara | Swahili | 🛡️ | #8B5CF6 | Firm, strong |
-| Tendo | Luganda | 🙏 | #14B8A6 | Thankful |
-| Nia | Swahili | 🎯 | #EF4444 | Purpose |
-| Asante | Swahili | ❤️ | #E63946 | Thank you |
-| Phoenix | Universal | 🔥 | #FF4500 | Rising from ashes |
-| Nova | Universal | ⭐ | #FFD700 | New star |
-| Storm | Universal | ⛈️ | #6366F1 | Powerful, dynamic |
-| Atlas | Universal | 🌍 | #3B82F6 | World on shoulders |
-| Blaze | Universal | 🔥 | #F97316 | Fire, passion |
-| Titan | Universal | 💪 | #7C3AED | Unstoppable |
-| Echo | Universal | 🔔 | #06B6D4 | Voice that carries |
-| Arrow | Universal | 🏹 | #10B981 | Focused, precise |
-| Zenith | Universal | 🌟 | #A855F7 | Highest point |
-| Orbit | Universal | 🪐 | #6366F1 | Beyond this world |
+| Simba | Swahili | | #FF6B35 | Lion — brave, strong |
+| Zuri | Swahili | | #E91E63 | Beautiful |
+| Kibo | Swahili | | #1A535C | Peak of Kilimanjaro |
+| Amani | Swahili | | #4ECDC4 | Peace |
+| Jelani | Swahili | | #F7C948 | Mighty |
+| Keza | Kinyarwanda | | #FF69B4 | Beautiful |
+| Imara | Swahili | | #8B5CF6 | Firm, strong |
+| Tendo | Luganda | | #14B8A6 | Thankful |
+| Nia | Swahili | | #EF4444 | Purpose |
+| Asante | Swahili | | #E63946 | Thank you |
+| Phoenix | Universal | | #FF4500 | Rising from ashes |
+| Nova | Universal | | #FFD700 | New star |
+| Storm | Universal | | #6366F1 | Powerful, dynamic |
+| Atlas | Universal | | #3B82F6 | World on shoulders |
+| Blaze | Universal | | #F97316 | Fire, passion |
+| Titan | Universal | | #7C3AED | Unstoppable |
+| Echo | Universal | | #06B6D4 | Voice that carries |
+| Arrow | Universal | | #10B981 | Focused, precise |
+| Zenith | Universal | | #A855F7 | Highest point |
+| Orbit | Universal | | #6366F1 | Beyond this world |
 
 Full library: 60 names stored in `htdocs/config/avatar-names.json`
 
@@ -203,7 +203,7 @@ $_SESSION['login_time']   = int;      // Unix timestamp
 
 | File | Changes |
 |------|---------|
-| `htdocs/navhome.php` | Add user indicator ("SIMBA 🦁 · Switch") |
+| `htdocs/navhome.php` | Add user indicator ("SIMBA · Switch") |
 | `htdocs/navbar.php` | Same user indicator |
 | `htdocs/index.php` | Check session, redirect to login if no user |
 | `htdocs/includes/security.php` | Add session validation helpers |
@@ -215,7 +215,7 @@ $_SESSION['login_time']   = int;      // Unix timestamp
 ### Login page (default — returning users)
 - Header text: **"Find your Avatar Name to continue learning"**
 - Subtext: "Don't remember? Ask your teacher for help."
-- Grid of existing user cards showing: **avatar_name** (large), emoji icon, real name (small)
+- Grid of existing user cards showing: **avatar_name** (large), real name (small)
 - Search bar to filter by avatar name or real name
 - Cards sorted by last_active (most recent first)
 - Two buttons at bottom: "I'm New" (student) and "I'm a Teacher" (teacher)
@@ -224,12 +224,12 @@ $_SESSION['login_time']   = int;      // Unix timestamp
 ### Student registration (multi-step wizard)
 - **Step 1**: "What's your first name?" — single text input, large, friendly
 - **Step 2**: "How old are you?" — 4 large visual tiles (Under 10 / 10-14 / 15-19 / 20+), each with an aspirational image
-- **Step 3**: "Pick your Avatar Name!" — grid of available avatar_names, each showing icon + name + color. Taken names greyed out. Tap to select, confirm.
+- **Step 3**: "Pick your Avatar Name!" — grid of available avatar_names, each showing name + color. Taken names greyed out. Tap to select, confirm.
 - **Welcome screen**: "Welcome, [Name]! You are now [AVATAR NAME] [icon]" with a celebration animation
 - All steps are client-side wizard (no page reload between steps)
 - **Final step — Remember screen**: After avatar name is chosen, show a prominent message:
   > "Remember your Avatar Name! Write it down."
-  > **SIMBA 🦁**
+  > **SIMBA**
   > "Next time you visit, just find SIMBA to pick up where you left off."
   - Large text, high contrast, pause here for 5 seconds before the "Continue" button activates
   - On mobile: encourage screenshot ("Take a photo of this screen!")
@@ -261,7 +261,7 @@ function requireTeacher() { ... }
 function isTeacher(): bool { ... }
 function getCurrentUser(): ?array { ... }
 function getUserDisplay(): string {
-    // Returns "AVATAR NAME 🦁" for students, "Name" for teachers
+    // Returns "AVATAR NAME" for students, "Name" for teachers
 }
 ```
 

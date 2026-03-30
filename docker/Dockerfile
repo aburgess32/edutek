@@ -21,12 +21,12 @@ RUN docker-php-ext-configure gd \
     --with-webp
 
 # Install PHP extensions needed by EduPak
+# Note: mbstring is included in the base php:8.1-apache image
 RUN docker-php-ext-install -j$(nproc) \
     gd \
     mysqli \
     pdo \
     pdo_mysql \
-    mbstring \
     intl \
     zip \
     opcache

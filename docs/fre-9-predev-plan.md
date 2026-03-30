@@ -161,8 +161,10 @@ CREATE TABLE content_segments (
 
 ### Fallback chain
 ```
-tile image → category color background → segment color → grey + icon
+tile image → category color background + Edutek logo → segment color + Edutek logo
 ```
+
+Logo file: `htdocs/assets/img/edutek-logo.jpg`
 
 ---
 

@@ -142,7 +142,7 @@ Full library: 60 names stored in `htdocs/config/avatar-names.json`
 - Once picked, a avatar_name is taken — no two users can have the same one
 - Avatar Name displayed prominently (it's their identity in the app)
 - Real name stored in DB but avatar_name is what others see
-- If all 60 are taken, system generates "[Name] the [Adjective]" combos
+- If all 120 are taken, names repeat with a counter suffix and no space: Simba2, Simba3, Nova2, etc.
 
 ---
 

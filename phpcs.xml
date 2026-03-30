@@ -24,7 +24,7 @@
 
     <!-- Exclude side-effects sniff for XAMPP-style utility includes -->
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
-        <exclude-pattern>htdocs/includes/*.php</exclude-pattern>
+        <exclude-pattern>*/includes/*.php</exclude-pattern>
     </rule>
 
     <!-- Set line length to 120 characters -->

@@ -214,7 +214,8 @@ $_SESSION['login_time']   = int;      // Unix timestamp
 
 ### Login page (default — returning users)
 - Header text: **"Find your Avatar Name to continue learning"**
-- Subtext: "Don't remember? Ask your teacher for help."
+- Subtext: "Don't remember?" → link to **"Find my name"** page
+- **"Find my name" flow**: alphabetical directory of ALL registered users (real name + avatar name), tap to select, confirm "Is this you?", log in. Simple A-Z filter. No security gate — we accept that shared account use will happen and that's OK for this context.
 - Grid of existing user cards showing: **avatar_name** (large), real name (small)
 - Search bar to filter by avatar name or real name
 - Cards sorted by last_active (most recent first)

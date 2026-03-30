@@ -14,12 +14,14 @@
 
 declare(strict_types=1);
 
+namespace EduPak;
+
 /**
  * EduPak Logger
  *
  * Usage:
- *   Logger::info('User logged in', ['user_id' => 42]);
- *   Logger::error('DB connection failed', ['exception' => $e->getMessage()]);
+ *   \EduPak\Logger::info('User logged in', ['user_id' => 42]);
+ *   \EduPak\Logger::error('DB connection failed', ['exception' => $e->getMessage()]);
  */
 class Logger
 {
@@ -180,7 +182,8 @@ class Logger
         // Build log line
         $timestamp   = date('Y-m-d H:i:s');
         $levelName   = self::LEVEL_NAMES[$level] ?? 'UNKNO';
-        $contextJson = empty($context) ? '' : ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $jsonFlags   = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        $contextJson = empty($context) ? '' : ' | ' . json_encode($context, $jsonFlags);
         $line        = "[{$timestamp}] [{$levelName}] [{$callerFile}:{$callerLine}] {$message}{$contextJson}" . PHP_EOL;
 
         // Write to daily log file

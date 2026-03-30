@@ -105,7 +105,7 @@
     overflow: hidden;
     text-decoration: none;
     color: var(--color-text-light);
-    min-height: 120px;
+    min-height: 180px;
     -webkit-box-flex: 1;
     -webkit-flex: 1 1 calc(50% - var(--tile-gap));
     flex: 1 1 calc(50% - var(--tile-gap));
@@ -130,8 +130,8 @@
     -webkit-box-pack: end;
     -webkit-justify-content: flex-end;
     justify-content: flex-end;
-    padding: 16px;
-    min-height: 120px;
+    padding: 20px;
+    min-height: 180px;
     position: relative;
     z-index: 1;
 }
@@ -143,16 +143,16 @@
 }
 
 .seg-tile-label {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
-    margin: 0 0 2px;
+    margin: 0 0 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .seg-tile-desc {
-    font-size: 12px;
+    font-size: 14px;
     opacity: 0.85;
     margin: 0;
     overflow: hidden;
@@ -235,12 +235,13 @@
 .seg-tile--has-image .seg-tile-inner {
     z-index: 1;
     position: relative;
-    min-height: 160px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    min-height: 200px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
 
 .seg-tile--has-image .seg-tile-label {
-    font-size: 18px;
+    font-size: 22px;
+    letter-spacing: 0.01em;
 }
 
 /* Override light theme on image tiles — always white text */
@@ -862,11 +863,11 @@
         -webkit-flex: 1 1 calc(25% - var(--tile-gap));
         flex: 1 1 calc(25% - var(--tile-gap));
         max-width: calc(25% - var(--tile-gap) * 3 / 4);
-        min-height: 140px;
+        min-height: 200px;
     }
 
     .seg-tile-inner {
-        min-height: 140px;
+        min-height: 200px;
     }
 
     .topic-grid {
@@ -903,11 +904,15 @@
         -webkit-flex: 1 1 calc(20% - var(--tile-gap));
         flex: 1 1 calc(20% - var(--tile-gap));
         max-width: calc(20% - var(--tile-gap) * 4 / 5);
-        min-height: 160px;
+        min-height: 220px;
     }
 
     .seg-tile-inner {
-        min-height: 160px;
+        min-height: 220px;
+    }
+
+    .seg-tile--has-image .seg-tile-label {
+        font-size: 24px;
     }
 
     .topic-tile {

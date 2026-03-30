@@ -1,0 +1,44 @@
+.pwrapper{
+	width:100%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	background:#fbcfde;
+	color:blue;
+	padding:1%;
+}
+
+.pimage{
+	width:200px;
+	height:200px;
+	border-radius:200px;
+}
+
+.pimage:hover{
+	opacity:0.8;
+}
+
+.playWrapper{
+	width:24%;
+	float:left;
+	background:#fcfafb;
+	border-radius:3px;
+	margin:2px;
+	overflow:hidden;
+	border:1px solid red;
+}
+
+.devider{
+	clear:both;
+	display:block;
+	padding-top:1%;
+}
+
+.Wpvideo{
+	width:95%;
+	height:350px;
+	border-bottom:4px dotted #b10c9c;
+	margin:0;
+	padding:0;
+	text-align:center;
+}

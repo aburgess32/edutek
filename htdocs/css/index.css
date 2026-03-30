@@ -1,0 +1,157 @@
+.SavedWrapper{
+	width:49%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:left;
+}
+
+.rimage{
+	width:220px;
+	height:200px;
+	border-right:1px solid white;
+	float:left;
+}
+
+.rimage:hover{
+	opacity:0.8;
+}
+
+.rcontents{
+	width:100%;
+	height:150px;
+	padding:1%;
+}
+
+.rtitle{
+	text-align:center;
+	
+}
+
+.rdesc{
+	text-align:center;
+}
+/* Extra small devices (phones, 600px and down) */
+
+@media only screen and (max-width: 480px) {
+   .SavedWrapper{
+	width:100%;
+	margin-bottom:10%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:justify;
+	margin:5px;
+}
+
+.rimage{
+	width:100%;
+	height:50%;
+	border-right:1px solid white;
+	float:justify;
+}
+
+.rcontents{
+	width:auto;
+	height:auto;
+	padding:1%;
+}
+.courses{
+	width:100%;
+	margin-top:50px;
+}
+}
+
+@media only screen and (max-width: 600px) and (min-width: 480px) {
+   .SavedWrapper{
+	width:100%;
+	margin-bottom:10%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:justify;
+	margin:5px;
+}
+
+.rimage{
+	width:100%;
+	height:50%;
+	border-right:1px solid white;
+	float:justify;
+}
+
+.rcontents{
+	width:auto;
+	height:auto;
+	padding:1%;
+}
+.courses{
+	width:100%;
+	margin-top:50px;
+}
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (max-width: 768px) and (min-width: 600px) {
+     .SavedWrapper{
+	width:100%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+}
+
+.rimage{
+	width:40%;
+	height:200px;
+	border-right:1px solid white;
+	float:left;
+}
+
+.rcontents{
+	width:60%;
+	height:auto;
+	float:right;
+}
+.courses{
+	width:100%;
+	margin-top:50px;
+}
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .example {background: orange;}
+} 
+
+.courses {
+    padding: 20px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.course-item {
+    flex: 1;
+    margin: 0 10px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    display: block;
+}
+
+.course-title {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.course-item:hover {
+    background-color: #e0e0e0;
+    transition: background-color 0.3s ease;
+}

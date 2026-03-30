@@ -1,0 +1,287 @@
+.Wwrapper{
+	width:70%;
+	margin-bottom:1%;
+}
+
+.WSWrapper{
+	width:100%;
+	height:auto;
+	float:right;
+}
+
+.Swrapper{
+	width:29%;
+	height:auto;
+	margin-top:-38%;
+	float:right;
+	overflow:auto;
+	 font-family:  sans-serif;
+}
+.footp{
+	font-size:15px;
+	color:black;
+}
+.Wvideo{
+	width:90%;
+	height:auto;
+	margin-left:5%;
+	margin-top:2%;
+}
+.Wtitle{
+
+	margin:1%;
+	font-weight:bold;
+	text-align:center;
+	font-size:15px;
+	
+	
+}
+.Contents{
+	width:80%;
+	height:auto;
+	color:black;
+	
+}
+
+ a .Contents:hover{
+	opacity:0.8;
+}
+
+/* Extra Small Devices, Phones */
+@media screen and (max-width: 600px) {
+
+.Wwrapper{
+	width:100%;
+	margin-top:10%;
+	height:auto;
+	position: fixed;
+	
+}
+
+.Swrapper{
+	width:100%;
+	height:auto;
+	margin-top:100%;
+}
+.WSWrapper{
+	width:100%;
+	height:auto;
+	
+}
+.footp{
+	font-size:15px;
+	height:auto;
+	width:100%;
+	color:black;
+}
+
+.Contents{
+	width:100%;
+	height:auto;
+	float:left;
+}
+.Wtitle{
+	
+	margin:1%;
+	font-weight:bold;
+	letter-spacing:1px;
+	float:justify;
+	font-size:15px;
+	
+}
+
+.Wvideo{
+	width:100%;
+	height:auto;
+	margin-left:0;
+	margin-top:0;
+}
+
+h3{
+	float:justify;
+	font-size:10px;
+	margin:auto;
+}
+	
+}
+@media screen and (min-width: 992px){
+  
+.Wwrapper{
+	width:70%;
+	margin-bottom:1%;
+}
+
+.WSWrapper{
+	width:100%;
+	height:auto;
+	float:right;
+}
+
+.Swrapper{
+	width:29%;
+	height:auto;
+	margin-top:-38%;
+	float:right;
+	overflow:auto;
+}
+
+.Wvideo{
+	width:90%;
+	height:auto;
+	margin-left:5%;
+	margin-top:2%;
+}
+.Wtitle{
+
+	margin:1%;
+	font-weight:bold;
+	text-align:center;
+	font-size:15px;
+	
+}
+.Contents{
+	width:80%;
+	height:auto;
+	
+	
+}
+
+	
+}
+/*min-width: 1366px*/
+@media screen and (max-width: 873px) and (min-width: 770px){
+  
+.Wwrapper{
+	width:70%;
+	margin-top:3%;
+	margin-left:5%;
+}
+
+.WSWrapper{
+	width:100%;
+	height:auto;
+	float:right;
+}
+
+.Swrapper{
+	width:29%;
+	height:auto;
+	margin-top:-30%;
+	float:right;
+	overflow:auto;
+}
+
+.Wvideo{
+	width:80%;
+	height:120%;
+	
+}
+.Wtitle{
+
+	margin:1%;
+	font-weight:bold;
+	float:left;
+	font-size:15px;
+	width:80%;
+	
+}
+.Contents{
+	width:80%;
+	height:auto;
+	
+	
+}
+
+	/*,(max-width: 1024px)*/
+}
+@media screen and (max-width: 1366px) and (min-width: 1115px){
+  
+.Wwrapper{
+	width:70%;
+	margin-top:-7%;
+	margin-left:5%;
+}
+
+.WSWrapper{
+	width:100%;
+	height:auto;
+	float:right;
+}
+
+.Swrapper{
+	width:29%;
+	height:auto;
+	margin-top:-40%;
+	float:right;
+	overflow:auto;
+}
+
+.Wvideo{
+	width:80%;
+	height:120%;
+	
+}
+.Wtitle{
+
+	margin:1%;
+	font-weight:bold;
+	float:left;
+	font-size:15px;
+	width:80%;
+	
+}
+.Contents{
+	width:80%;
+	height:auto;
+	
+	
+}
+
+	
+}
+
+@media screen and (max-width: 1024px) and (min-width: 873px){
+  
+.Wwrapper{
+	width:70%;
+	margin-top:1%;
+	margin-left:5%;
+}
+
+.WSWrapper{
+	width:100%;
+	height:auto;
+	float:right;
+}
+
+.Swrapper{
+	width:29%;
+	height:auto;
+	margin-top:-30%;
+	float:right;
+	overflow:auto;
+}
+
+.Wvideo{
+	width:80%;
+	height:auto;
+	
+}
+.Wtitle{
+
+	margin:1%;
+	font-weight:bold;
+	float:left;
+	font-size:15px;
+	width:80%;
+	
+}
+.Contents{
+	width:80%;
+	height:auto;
+	
+	
+}
+
+	
+}

@@ -1,0 +1,49 @@
+.Wrapper{
+	width:19%;
+	height:280px;
+	float:left;
+	background:#fbc2d7;
+	border-radius:3px;
+	overflow:hidden;
+}
+
+.btn-default{
+	border:1px solid silver;
+	color:red;
+}
+
+.top{
+	width:100%;
+	padding:1%;
+	border-bottom:1px solid silver;
+	overflow:hidden;
+}
+
+.top img{
+	margin:2px;
+}
+
+.top a{
+	color:#0a613d;
+	text-decoration:none;
+}
+
+
+
+
+
+.font{
+	margin-left:7px;
+	color:#9597f8;
+}
+
+
+.footp .fa{
+	color:#000000;
+}
+
+.devider{
+	clear:both;
+	display:block;
+	padding-top:1%;
+}

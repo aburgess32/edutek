@@ -1,0 +1,244 @@
+.SavedWrapper{
+	width:49%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:left;
+}
+
+.rimage{
+	width:220px;
+	height:200px;
+	border-right:1px solid white;
+	float:left;
+}
+
+.rimage:hover{
+	opacity:0.8;
+}
+
+.rcontents{
+	width:100%;
+	height:150px;
+	padding:1%;
+}
+
+.rtitle{
+	text-align:center;
+	
+}
+
+.rdesc{
+	text-align:center;
+}
+/* Extra small devices (phones, 600px and down) */
+
+@media only screen and (max-width: 480px) {
+   .SavedWrapper{
+	width:100%;
+	margin-bottom:10%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:justify;
+	margin:5px;
+}
+
+.rimage{
+	width:100%;
+	height:50%;
+	border-right:1px solid white;
+	float:justify;
+}
+
+.rcontents{
+	width:auto;
+	height:auto;
+	padding:1%;
+}
+.courses{
+	width:100%;
+	margin-top:50px;
+}
+}
+
+@media only screen and (max-width: 600px) and (min-width: 480px) {
+   .SavedWrapper{
+	width:100%;
+	margin-bottom:10%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:justify;
+	margin:5px;
+}
+
+.rimage{
+	width:100%;
+	height:50%;
+	border-right:1px solid white;
+	float:justify;
+}
+
+.rcontents{
+	width:auto;
+	height:auto;
+	padding:1%;
+}
+.courses{
+	width:100%;
+	margin-top:50px;
+}
+}
+@media screen and (max-width: 1024px) and (min-width: 873px){
+	.SavedWrapper{
+	width:90%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:none;
+	margin-left:5%;
+	
+}
+
+.rimage{
+	width:40%;
+	height:40%;
+	border-right:1px solid white;
+	float:left;
+}
+
+.rimage:hover{
+	opacity:0.8;
+}
+
+.rcontents{
+	width:80%;
+	height:50%;
+	margin-left:40%;
+	margin-top:-2%;
+	
+}
+
+.rtitle{
+	text-align:center;
+	
+}
+
+.rdesc{
+	text-align:center;
+}
+}
+
+@media screen and (max-width: 873px) and (min-width: 770px){
+  .SavedWrapper{
+	width:90%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	overflow:hidden;
+	float:none;
+	margin-left:5%;
+	
+}
+
+.rimage{
+	width:40%;
+	height:90%;
+	border-right:1px solid white;
+	float:left;
+}
+
+.rimage:hover{
+	opacity:0.8;
+}
+
+.rcontents{
+	width:100%;
+	height:100%;
+	margin-left:45%;
+	margin-top:-2%;
+	
+}
+
+.rtitle{
+	text-align:center;
+	
+}
+
+.rdesc{
+	text-align:center;
+}
+}
+
+
+@media only screen and (max-width: 600px) {
+   .SavedWrapper{
+	width:90%;
+	margin-top:10%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	margin-left:5%;
+	margin-right:5%;
+}
+
+.rimage{
+	width:100%;
+	height:40%;
+	border-right:1px solid white;
+	
+}
+
+.rimage:hover{
+	opacity:0.8;
+}
+
+.rcontents{
+	width:100%;
+	height:80%;
+	padding:1%;
+}
+
+.rtitle{
+	text-align:center;
+	
+}
+
+.rdesc{
+	text-align:center;
+}
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (max-width: 768px) and (min-width: 600px) {
+     .SavedWrapper{
+	width:100%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+}
+
+.rimage{
+	width:40%;
+	height:200px;
+	border-right:1px solid white;
+	float:left;
+}
+
+.rcontents{
+	width:60%;
+	height:auto;
+	float:right;
+}
+.courses{
+	width:100%;
+	margin-top:50px;
+}
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .example {background: orange;}
+} 

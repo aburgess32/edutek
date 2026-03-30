@@ -1,0 +1,39 @@
+.navbar-dark{
+	background-color:#150779;
+}
+
+.nav-link-text{
+	color:#fbd6de;
+	font-weight:bold;
+}
+
+.fa{
+	color:#9c970a;
+}
+
+.bg-color{
+	background-color:#150779;
+}
+
+.dropdown-divider{
+	background-color:#f97552;
+}
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+  .example {background: red;}
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  .example {background: green;}
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+  .example {background: blue;}
+} 
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .example {background: orange;}
+} 

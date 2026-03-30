@@ -1,0 +1,47 @@
+.Rwrapper{
+	width:100%;
+	margin-bottom:1%;
+	border:1px solid #ffa3c6;
+	border-radius:3px;
+	background:#fbcfde;
+	overflow:hidden;
+}
+
+.rimage{
+	width:220px;
+	height:200px;
+	border-right:2px dotted green;
+	float:left;
+}
+
+.rimage:hover{
+	opacity:0.8;
+}
+
+.rcontents{
+	width:700px;
+	height:200px;
+	padding:1%;
+}
+
+.rtitle{
+	margin-left:50px;
+	text-decoration:underline;
+}
+
+.rdesc{
+	margin-left:50px;
+	font-family:Viner Hand ITC;
+	letter-spacing:1px;
+}
+
+.rviewer{
+	margin-left:50px;
+	color:white;
+}
+
+.rcomments{
+	margin-left:50px;
+	color:red;
+	width:100px;
+}

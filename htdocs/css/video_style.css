@@ -1,0 +1,60 @@
+
+/** page structure **/
+#w {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+}
+
+#content {
+  display: block;
+  width: 100%;
+  background: #fff;
+  padding: 5px 20px;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+}
+
+
+/** audio player styles **/
+.video-player, .video-player div, .video-player h2, .video-player a, .video-player span, .video-player button {
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+}
+
+div.video-player {
+  position: relative;
+  width: 100%;
+  height: 70px;
+  margin: 0 auto;
+  background: #2596be;
+  background: -webkit-linear-gradient(top, #2596be 0%, #2596be 100%);
+  background: -moz-linear-gradient(top, #2596be 0%, #2596be 100%);
+  background: -o-linear-gradient(top, #2596be 0%, #2596be 100%);
+  background: -ms-linear-gradient(top, #2596be 0%, #2596be 100%);
+  background: linear-gradient(top, #2596be 0%, #2596be 100%);
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+.video-player h2 {
+  position: absolute;
+  top: 7px;
+  left: 10px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  color: #ececec;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+#w {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  margin-top:40px;
+}
+}

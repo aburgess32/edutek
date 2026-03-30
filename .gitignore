@@ -50,8 +50,25 @@ passwords.txt
 htdocs/content/
 htdocs/videos/
 htdocs/library/
+htdocs/images/
 *.mp4
 *.mkv
 *.avi
 *.webm
 *.mov
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.pdf
+*.epub
+*.cbz
+*.cbr
+
+# Old XAMPP vendor dir (use root composer.json instead)
+htdocs/vendor/
+
+# Backup / copy files
+*.old
+*copy*
+*Copy*

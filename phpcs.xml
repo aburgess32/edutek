@@ -16,16 +16,6 @@
     <exclude-pattern>*.min.js</exclude-pattern>
     <exclude-pattern>*.min.css</exclude-pattern>
 
-    <!-- Exclude config.php from credential-sensitive sniffing rules -->
-    <rule ref="PSR12">
-        <exclude-pattern>htdocs/includes/config.php</exclude-pattern>
-    </rule>
-
-    <!-- Suppress specific credential-related rules for config.php -->
-    <rule ref="Generic.PHP.ForbiddenFunctions">
-        <exclude-pattern>htdocs/includes/config.php</exclude-pattern>
-    </rule>
-
     <!-- Use PSR-12 as the base standard -->
     <rule ref="PSR12"/>
 
@@ -34,7 +24,7 @@
         <exclude-pattern>*/includes/*.php</exclude-pattern>
     </rule>
 
-    <!-- Set line length to 120 characters -->
+    <!-- Set line length to 120 characters (warning only, no hard limit) -->
     <rule ref="Generic.Files.LineLength">
         <properties>
             <property name="lineLimit" value="120"/>

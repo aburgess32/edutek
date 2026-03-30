@@ -202,6 +202,52 @@
     object-fit: contain;
 }
 
+/* Image-backed segment tiles */
+.seg-tile-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+}
+
+.seg-tile-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Dark overlay on image tiles for text readability */
+.seg-tile--has-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 100%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.seg-tile--has-image .seg-tile-inner {
+    z-index: 1;
+    position: relative;
+    min-height: 160px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.seg-tile--has-image .seg-tile-label {
+    font-size: 18px;
+}
+
+/* Override light theme on image tiles — always white text */
+.seg-tile--has-image.seg-tile--light {
+    color: var(--color-text-light);
+}
+
 /* --------------------------------------------------------------------------
    Topic Tile Grid (browse.php)
    -------------------------------------------------------------------------- */

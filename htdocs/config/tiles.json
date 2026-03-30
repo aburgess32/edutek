@@ -16,7 +16,8 @@
           "color": "#4ECDC4",
           "type": "video",
           "content_path": "videos/Primary Multiplication",
-          "href": null
+          "href": null,
+          "image": "assets/tiles/primary-multiplication.webp"
         },
         {
           "slug": "comic-books",
@@ -25,7 +26,8 @@
           "color": "#FF6B6B",
           "type": "book",
           "content_path": "videos/Comic Books",
-          "href": "Comic_books.php"
+          "href": "Comic_books.php",
+          "image": "assets/tiles/comic-books.webp"
         },
         {
           "slug": "audiobooks",
@@ -34,7 +36,8 @@
           "color": "#A78BFA",
           "type": "audio",
           "content_path": "videos/Audiobooks",
-          "href": "audiobooks.php"
+          "href": "audiobooks.php",
+          "image": "assets/tiles/audiobooks.webp"
         },
         {
           "slug": "khan",
@@ -72,7 +75,8 @@
           "color": "#A78BFA",
           "type": "audio",
           "content_path": "videos/Audiobooks",
-          "href": "audiobooks.php"
+          "href": "audiobooks.php",
+          "image": "assets/tiles/audiobooks.webp"
         },
         {
           "slug": "comic-books",
@@ -81,7 +85,8 @@
           "color": "#FF6B6B",
           "type": "book",
           "content_path": "videos/Comic Books",
-          "href": "Comic_books.php"
+          "href": "Comic_books.php",
+          "image": "assets/tiles/comic-books.webp"
         },
         {
           "slug": "generative-ai",
@@ -90,7 +95,8 @@
           "color": "#8B5CF6",
           "type": "video",
           "content_path": "videos/Generative AI with LLMs",
-          "href": null
+          "href": null,
+          "image": "assets/tiles/generative-ai.webp"
         },
         {
           "slug": "wiki",
@@ -137,7 +143,8 @@
           "color": "#EF4444",
           "type": "video",
           "content_path": "videos/Electrical Engineering",
-          "href": null
+          "href": null,
+          "image": "assets/tiles/electrical-engineering.webp"
         },
         {
           "slug": "hotel-management",
@@ -146,7 +153,8 @@
           "color": "#F97316",
           "type": "video",
           "content_path": "videos/Hotel Management & Catering",
-          "href": null
+          "href": null,
+          "image": "assets/tiles/hotel-management.webp"
         },
         {
           "slug": "generative-ai",
@@ -155,7 +163,8 @@
           "color": "#8B5CF6",
           "type": "video",
           "content_path": "videos/Generative AI with LLMs",
-          "href": null
+          "href": null,
+          "image": "assets/tiles/generative-ai.webp"
         },
         {
           "slug": "kiwix-medical",
@@ -236,13 +245,48 @@
     }
   },
   "services": {
-    "kiwix-khan": { "label": "Kiwix Khan", "port": 7862, "type": "service", "icon": "📖" },
-    "kiwix-khmer": { "label": "Kiwix Khmer", "port": 7863, "type": "service", "icon": "🌏" },
-    "kiwix-medical": { "label": "Kiwix Medical", "port": 7864, "type": "service", "icon": "🏥" },
-    "kiwix-wiki": { "label": "Kiwix Wiki", "port": 7865, "type": "service", "icon": "🌍" },
-    "ai-tools": { "label": "AI Tools", "port": 7860, "type": "service", "icon": "⚡" },
-    "ai-image": { "label": "AI Image Generation", "port": 7861, "type": "service", "icon": "🎨" },
-    "khan-interactive": { "label": "Khan Interactive", "port": 9061, "type": "service", "icon": "🧪" }
+    "kiwix-khan": {
+      "label": "Kiwix Khan",
+      "port": 7862,
+      "type": "service",
+      "icon": "📖"
+    },
+    "kiwix-khmer": {
+      "label": "Kiwix Khmer",
+      "port": 7863,
+      "type": "service",
+      "icon": "🌏"
+    },
+    "kiwix-medical": {
+      "label": "Kiwix Medical",
+      "port": 7864,
+      "type": "service",
+      "icon": "🏥"
+    },
+    "kiwix-wiki": {
+      "label": "Kiwix Wiki",
+      "port": 7865,
+      "type": "service",
+      "icon": "🌍"
+    },
+    "ai-tools": {
+      "label": "AI Tools",
+      "port": 7860,
+      "type": "service",
+      "icon": "⚡"
+    },
+    "ai-image": {
+      "label": "AI Image Generation",
+      "port": 7861,
+      "type": "service",
+      "icon": "🎨"
+    },
+    "khan-interactive": {
+      "label": "Khan Interactive",
+      "port": 9061,
+      "type": "service",
+      "icon": "🧪"
+    }
   },
   "special_routes": {
     "Audiobooks": "audiobooks.php",
@@ -251,12 +295,33 @@
     "Music": "music.php"
   },
   "type_badges": {
-    "video": { "label": "Video", "color": "#3B82F6" },
-    "video_group": { "label": "Video", "color": "#3B82F6" },
-    "audio": { "label": "Audio", "color": "#A78BFA" },
-    "book": { "label": "Book", "color": "#10B981" },
-    "service": { "label": "Tool", "color": "#F59E0B" },
-    "resource": { "label": "Resource", "color": "#64748B" },
-    "mixed": { "label": "Mixed", "color": "#6B7280" }
+    "video": {
+      "label": "Video",
+      "color": "#3B82F6"
+    },
+    "video_group": {
+      "label": "Video",
+      "color": "#3B82F6"
+    },
+    "audio": {
+      "label": "Audio",
+      "color": "#A78BFA"
+    },
+    "book": {
+      "label": "Book",
+      "color": "#10B981"
+    },
+    "service": {
+      "label": "Tool",
+      "color": "#F59E0B"
+    },
+    "resource": {
+      "label": "Resource",
+      "color": "#64748B"
+    },
+    "mixed": {
+      "label": "Mixed",
+      "color": "#6B7280"
+    }
   }
 }

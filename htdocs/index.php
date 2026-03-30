@@ -36,15 +36,28 @@
             $desc = htmlspecialchars($seg['description'] ?? '', ENT_QUOTES, 'UTF-8');
             $icon = $seg['icon'] ?? '';
         ?>
+        <?php
+            $segImage = $seg['image'] ?? '';
+            $segImageJpg = str_replace('.webp', '.jpg', $segImage);
+            $hasImage = ($segImage !== '' && file_exists(__DIR__ . '/' . $segImage));
+        ?>
         <a href="browse.php?seg=<?php echo htmlspecialchars($segKey, ENT_QUOTES, 'UTF-8'); ?>"
-           class="seg-tile<?php echo $isLight ? ' seg-tile--light' : ''; ?>"
+           class="seg-tile<?php echo $isLight ? ' seg-tile--light' : ''; ?><?php echo $hasImage ? ' seg-tile--has-image' : ''; ?>"
            style="background: <?php echo $gradient ?: $color; ?>;"
            title="<?php echo $label; ?>">
+            <?php if ($hasImage): ?>
+            <div class="seg-tile-bg">
+                <picture>
+                    <source srcset="<?php echo htmlspecialchars($segImage, ENT_QUOTES, 'UTF-8'); ?>" type="image/webp">
+                    <img src="<?php echo htmlspecialchars($segImageJpg, ENT_QUOTES, 'UTF-8'); ?>" alt="" loading="lazy" decoding="async">
+                </picture>
+            </div>
+            <?php else: ?>
             <div class="seg-tile-fallback">
                 <img src="assets/img/edutek-logo.jpg" alt="">
             </div>
+            <?php endif; ?>
             <div class="seg-tile-inner">
-                <span class="seg-tile-icon"><?php echo $icon; ?></span>
                 <p class="seg-tile-label"><?php echo $label; ?></p>
                 <p class="seg-tile-desc"><?php echo $desc; ?></p>
                 <?php if ($segKey === 'knowledge_power'): ?>

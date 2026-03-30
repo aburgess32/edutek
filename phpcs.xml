@@ -39,6 +39,4 @@
     <!-- Only check PHP files -->
     <arg name="extensions" value="php"/>
 
-    <!-- Set PHP version for compatibility checks -->
-    <config name="php_version" value="80100"/>
 </ruleset>

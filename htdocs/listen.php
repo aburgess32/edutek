@@ -1,6 +1,6 @@
-	<!-- Custom styles for this watch-->
+    <!-- Custom styles for this watch-->
   <link rel="stylesheet" type="text/css" media="all" href="css/styles.css">
-  	<style>
+    <style>
 .playlist {
   background-color: #2596be;
   color: #ffffff;
@@ -59,129 +59,126 @@ color: #ffffff;
 
 </style>
 <?php
-	//nabvbar
-	include_once"navbar.php";
-	//nabvbar
-	
-	$cipher = "BF-CBC"; 
-$iv_length = openssl_cipher_iv_length($cipher); 
-$options = 0; 
-$iv = "91011121"; 
-$encryption_key = "hfjfydjnvhbjfi"; 
-$decryption_iv = "91011121"; 
-$decryption_key = "hfjfydjnvhbjfi"; 
+    //nabvbar
+    include_once"navbar.php";
+    //nabvbar
 
-        $videolink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink1", $cipher,$encryption_key, $options, $iv))); 
-	    $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname1",$cipher,$encryption_key, $options, $iv))); 
-	    $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher,$encryption_key, $options, $iv))); 
-		$videoname = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname",$cipher,$encryption_key, $options, $iv))); 
-		
-	 $file='';
- $file =openssl_decrypt(base64_decode(str_replace('[equal]','=', $_GET[$videolink])), $cipher,$decryption_key, $options, $iv);
+    $cipher = "BF-CBC";
+    $iv_length = openssl_cipher_iv_length($cipher);
+    $options = 0;
+    $iv = "91011121";
+    $encryption_key = "hfjfydjnvhbjfi";
+    $decryption_iv = "91011121";
+    $decryption_key = "hfjfydjnvhbjfi";
 
- $file1='';
- $file1 = openssl_decrypt(base64_decode(str_replace('[equal]','=', $_GET[$videoname])),$cipher,$decryption_key, $options, $iv);
- 
- $filea='';
- $filea =openssl_decrypt(base64_decode(str_replace('[equal]','=',$_GET[$videolink1])), $cipher,$decryption_key, $options, $iv);
+        $videolink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink1", $cipher, $encryption_key, $options, $iv)));
+        $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname1", $cipher, $encryption_key, $options, $iv)));
+        $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher, $encryption_key, $options, $iv)));
+        $videoname = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname", $cipher, $encryption_key, $options, $iv)));
 
- $file1b='';
- $file1b =openssl_decrypt(base64_decode(str_replace('[equal]','=', $_GET[$videoname1])),$cipher,$decryption_key, $options, $iv);
+     $file = '';
+    $file = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink])), $cipher, $decryption_key, $options, $iv);
 
- $dd2 =$file."/";
- $length = strlen($dd2);
- $ff2 =(glob($dd2."*", GLOB_BRACE));
- $ray = array();
- $audio = array('wav','wma','mp3','m4a');
-?>
+    $file1 = '';
+    $file1 = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname])), $cipher, $decryption_key, $options, $iv);
 
-	<?php
-	
-	if($filea==''){
-		$files2 = (glob($dd2."*", GLOB_BRACE));
-		$length = strlen($dd2);
-		if(in_array(pathinfo(substr($files2[0], ($length)), PATHINFO_EXTENSION), $audio)) {
-	echo'
+    $filea = '';
+    $filea = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink1])), $cipher, $decryption_key, $options, $iv);
+
+    $file1b = '';
+    $file1b = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname1])), $cipher, $decryption_key, $options, $iv);
+
+    $dd2 = $file . "/";
+    $length = strlen($dd2);
+    $ff2 = (glob($dd2 . "*", GLOB_BRACE));
+    $ray = array();
+    $audio = array('wav','wma','mp3','m4a');
+    ?>
+
+    <?php
+
+    if ($filea == '') {
+        $files2 = (glob($dd2 . "*", GLOB_BRACE));
+        $length = strlen($dd2);
+        if (in_array(pathinfo(substr($files2[0], ($length)), PATHINFO_EXTENSION), $audio)) {
+            echo'
 	<div id="w">
     <div id="content">
       <div class="audio-player">
-        <h2>'.substr($files2[0], ($length)).'</h2>
-        <audio id="audio-player" src="'.$files2[0].'" type="audio/mp3" controls="controls">
+        <h2>' . substr($files2[0], ($length)) . '</h2>
+        <audio id="audio-player" src="' . $files2[0] . '" type="audio/mp3" controls="controls">
 		</audio>
       </div>
     </div>
   </div>';
-		}
-}
-else{
-	if(in_array(pathinfo($file1b, PATHINFO_EXTENSION), $audio)) {
-	 echo'
+        }
+    } else {
+        if (in_array(pathinfo($file1b, PATHINFO_EXTENSION), $audio)) {
+            echo'
 	<div id="w">
     <div id="content">
       <div class="audio-player">
        
-        <audio id="audio-player" src="'.$filea.'" type="audio/mp3" controls="controls"></audio>
+        <audio id="audio-player" src="' . $filea . '" type="audio/mp3" controls="controls"></audio>
       </div>
     </div>
   </div>';
-	}
-}
-	
-	?>
-	<hr>
-		<h3>Matched &  Recommended</h3>
-		<hr>
-					<?php
-	#t=<?php print '20,40';
-	if($filea!=''){
-	if(in_array(pathinfo($file1b, PATHINFO_EXTENSION), $audio)) {
-		$encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher,$encryption_key, $options, $iv))); 
-	    $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher,$encryption_key, $options, $iv))); 
-	    $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filea,$cipher,$encryption_key, $options, $iv))); 
-		$encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1b, $cipher,$encryption_key, $options, $iv)));
-		echo'
+        }
+    }
+
+    ?>
+    <hr>
+        <h3>Matched &  Recommended</h3>
+        <hr>
+                    <?php
+    #t=<?php print '20,40';
+                    if ($filea != '') {
+                        if (in_array(pathinfo($file1b, PATHINFO_EXTENSION), $audio)) {
+                            $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
+                            $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
+                            $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filea, $cipher, $encryption_key, $options, $iv)));
+                            $encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1b, $cipher, $encryption_key, $options, $iv)));
+                            echo'
 	<div id="w">
     <div id="content">
       <div class="playlist">
-	  <a href="listen.php?&'.$videolink.'='.$encryptfile.'&'.$videoname.'='.$encryptfile1.'&'.$videolink1.'='.$encryptfilea.'&'.$videoname1.'='.$encryptfile1b.'">
-        <h2><i class="fa fa-volume-up" style="font-size:20px;color:red"></i> '.$file1b.'</h2>
+	  <a href="listen.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . '">
+        <h2><i class="fa fa-volume-up" style="font-size:20px;color:red"></i> ' . $file1b . '</h2>
 		</a>
       </div>
     </div>
   </div>';
-	}
-}
+                        }
+                    }
 
- 	foreach($ff2 as $value )
-{
-
-if(substr($value, ($length))!=$file1b){
-	if(in_array(pathinfo(substr($value, ($length)), PATHINFO_EXTENSION), $audio)) {
-		$encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher,$encryption_key, $options, $iv))); 
-	    $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher,$encryption_key, $options, $iv))); 
-	    $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value,$cipher,$encryption_key, $options, $iv))); 
-		$encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt(substr($value, ($length)), $cipher,$encryption_key, $options, $iv)));
- echo'
+                    foreach ($ff2 as $value) {
+                        if (substr($value, ($length)) != $file1b) {
+                            if (in_array(pathinfo(substr($value, ($length)), PATHINFO_EXTENSION), $audio)) {
+                                $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
+                                $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
+                                $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value, $cipher, $encryption_key, $options, $iv)));
+                                $encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt(substr($value, ($length)), $cipher, $encryption_key, $options, $iv)));
+                                 echo'
 	
     <div class="playlist">
-	  <a href="listen.php?&'.$videolink.'='.$encryptfile.'&'.$videoname.'='.$encryptfile1.'&'.$videolink1.'='.$encryptfilea.'&'.$videoname1.'='.$encryptfile1b.'">
+	  <a href="listen.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . '">
         
-		<h2><i class="fa fa-music" style="font-size:20px;color:red"></i> '.substr($value, ($length)).'</h2>
+		<h2><i class="fa fa-music" style="font-size:20px;color:red"></i> ' . substr($value, ($length)) . '</h2>
 		</a>
     </div>
 	
 	              <button>
-				<a  href="'.$value.'" download="'.substr($value, ($length)).'"><i class="fa fa-download "> Download</i></a>
+				<a  href="' . $value . '" download="' . substr($value, ($length)) . '"><i class="fa fa-download "> Download</i></a>
 			</button>
   ';
-}
-}
-}
+                            }
+                        }
+                    }
 
-?>
+                    ?>
 
   <script type="text/javascript" src="js/mediaelement-and-player.min.js"></script>
-		<script type="text/javascript">
+        <script type="text/javascript">
 $(function(){
   $('#audio-player').mediaelementplayer({
     alwaysShowControls: true,

@@ -17,18 +17,20 @@
 	overflow:auto;
 	 font-family:  sans-serif;
 }
+
 .footp{
 	font-size:15px;
 	color:black;
 }
+
 .Wvideo{
 	width:90%;
 	height:auto;
 	margin-left:5%;
 	margin-top:2%;
 }
-.Wtitle{
 
+.Wtitle{
 	margin:1%;
 	font-weight:bold;
 	text-align:center;
@@ -36,6 +38,7 @@
 	
 	
 }
+
 .Contents{
 	width:80%;
 	height:auto;
@@ -48,8 +51,7 @@
 }
 
 /* Extra Small Devices, Phones */
-@media screen and (max-width: 600px) {
-
+@media screen and (width <= 600px) {
 .Wwrapper{
 	width:100%;
 	margin-top:10%;
@@ -63,11 +65,13 @@
 	height:auto;
 	margin-top:100%;
 }
+
 .WSWrapper{
 	width:100%;
 	height:auto;
 	
 }
+
 .footp{
 	font-size:15px;
 	height:auto;
@@ -80,8 +84,8 @@
 	height:auto;
 	float:left;
 }
+
 .Wtitle{
-	
 	margin:1%;
 	font-weight:bold;
 	letter-spacing:1px;
@@ -104,8 +108,8 @@ h3{
 }
 	
 }
-@media screen and (min-width: 992px){
-  
+
+@media screen and (width >= 992px){
 .Wwrapper{
 	width:70%;
 	margin-bottom:1%;
@@ -131,14 +135,15 @@ h3{
 	margin-left:5%;
 	margin-top:2%;
 }
-.Wtitle{
 
+.Wtitle{
 	margin:1%;
 	font-weight:bold;
 	text-align:center;
 	font-size:15px;
 	
 }
+
 .Contents{
 	width:80%;
 	height:auto;
@@ -148,9 +153,9 @@ h3{
 
 	
 }
-/*min-width: 1366px*/
-@media screen and (max-width: 873px) and (min-width: 770px){
-  
+
+/* min-width: 1366px */
+@media screen and (width <= 873px) and (width >= 770px){
 .Wwrapper{
 	width:70%;
 	margin-top:3%;
@@ -176,8 +181,8 @@ h3{
 	height:120%;
 	
 }
-.Wtitle{
 
+.Wtitle{
 	margin:1%;
 	font-weight:bold;
 	float:left;
@@ -185,6 +190,7 @@ h3{
 	width:80%;
 	
 }
+
 .Contents{
 	width:80%;
 	height:auto;
@@ -192,10 +198,10 @@ h3{
 	
 }
 
-	/*,(max-width: 1024px)*/
+	/* ,(max-width: 1024px) */
 }
-@media screen and (max-width: 1366px) and (min-width: 1115px){
-  
+
+@media screen and (width <= 1366px) and (width >= 1115px){
 .Wwrapper{
 	width:70%;
 	margin-top:-7%;
@@ -221,8 +227,8 @@ h3{
 	height:120%;
 	
 }
-.Wtitle{
 
+.Wtitle{
 	margin:1%;
 	font-weight:bold;
 	float:left;
@@ -230,6 +236,7 @@ h3{
 	width:80%;
 	
 }
+
 .Contents{
 	width:80%;
 	height:auto;
@@ -240,8 +247,7 @@ h3{
 	
 }
 
-@media screen and (max-width: 1024px) and (min-width: 873px){
-  
+@media screen and (width <= 1024px) and (width >= 873px){
 .Wwrapper{
 	width:70%;
 	margin-top:1%;
@@ -267,8 +273,8 @@ h3{
 	height:auto;
 	
 }
-.Wtitle{
 
+.Wtitle{
 	margin:1%;
 	font-weight:bold;
 	float:left;
@@ -276,6 +282,7 @@ h3{
 	width:80%;
 	
 }
+
 .Contents{
 	width:80%;
 	height:auto;

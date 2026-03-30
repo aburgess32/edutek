@@ -32,9 +32,10 @@
 .rdesc{
 	text-align:center;
 }
+
 /* Extra small devices (phones, 600px and down) */
 
-@media only screen and (max-width: 480px) {
+@media only screen and (width <= 480px) {
    .SavedWrapper{
 	width:100%;
 	margin-bottom:10%;
@@ -57,13 +58,14 @@
 	height:auto;
 	padding:1%;
 }
+
 .courses{
 	width:100%;
 	margin-top:50px;
 }
 }
 
-@media only screen and (max-width: 600px) and (min-width: 480px) {
+@media only screen and (width <= 600px) and (width >= 480px) {
    .SavedWrapper{
 	width:100%;
 	margin-bottom:10%;
@@ -86,6 +88,7 @@
 	height:auto;
 	padding:1%;
 }
+
 .courses{
 	width:100%;
 	margin-top:50px;
@@ -93,7 +96,7 @@
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (max-width: 768px) and (min-width: 600px) {
+@media only screen and (width <= 768px) and (width >= 600px) {
      .SavedWrapper{
 	width:100%;
 	margin-bottom:1%;
@@ -113,6 +116,7 @@
 	height:auto;
 	float:right;
 }
+
 .courses{
 	width:100%;
 	margin-top:50px;
@@ -120,7 +124,7 @@
 }
 
 /* Large devices (laptops/desktops, 992px and up) */
-@media only screen and (min-width: 992px) {
+@media only screen and (width >= 992px) {
   .example {background: orange;}
 } 
 

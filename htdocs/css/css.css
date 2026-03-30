@@ -4,10 +4,12 @@
     padding: 0;
     box-sizing: border-box;
 }
+
 body::-webkit-scrollbar
 {
    width: 10px;
 }
+
 body::-webkit-scrollbar-thumb
 {
    height: 80px;
@@ -15,19 +17,23 @@ body::-webkit-scrollbar-thumb
    border: 8px solid transparent;
    border-radius: 12px;
 }
+
 body::-webkit-scrollbar-thumb:active
 {
     background: #003349;
 }
+
 body
 {
     font-family: sans-serif;
     background: #002333;
 }
+
 li
 {
     list-style: none;
 }
+
 section
 {
     display: flex;
@@ -47,6 +53,7 @@ section
     width: 100%;
     margin-bottom: 10px;
 }
+
 .container
 {
     position: relative;
@@ -55,8 +62,10 @@ section
     display: grid;
     grid-template-columns: 2fr 1fr;
     overflow: hidden;
+
     /* border: 2px solid red; */
 }
+
 .container #main-Video
 {
     position: relative;
@@ -76,13 +85,16 @@ section
     border-radius: 5px;
     margin-bottom: 10px;
 }
+
 .playlistBx
 {
     position: relative;
     height: 100%;
-    margin: 0 10px 0 10px;
+    margin: 0 10px;
+
     /* border: 2px solid green; */
 }
+
 .playlist
 {
     position: absolute;
@@ -92,10 +104,12 @@ section
     border-top: 1px solid #dcdee1;
     padding-bottom: 42px; /* I forget to add this while I was recording this video please add this line if you don't add this property then the last li in the playlist will not show  */
 }
+
 .playlist::-webkit-scrollbar
 {
-   width: 0px;
+   width: 0;
 }
+
 .playlistBx .row .AllLessons
 {
    display: block;
@@ -106,6 +120,7 @@ section
    margin-left: 20px;
    line-height: 40px;
 }
+
 .playlist li
 {
    display: flex;
@@ -118,10 +133,12 @@ section
    padding: 15px 20px;
    border-radius: 5px;
 }
+
 .playlist li:hover
 {
     border: 0.5px solid #375666;
 }
+
 .playlist li .row span
 {
     font-size: 15px;
@@ -131,6 +148,7 @@ section
     display: inline-block;
     text-align: left;
 }
+
 .playlist li .row span::before
 {
     content: '\f01d';
@@ -139,6 +157,7 @@ section
     margin-right: 15px;
     font-size: 20px;
 }
+
 ul li.playing .row span::before
 {
     content: '\f28c';
@@ -147,10 +166,12 @@ ul li.playing .row span::before
     margin-right: 15px;
     font-size: 20px;
 }
+
 .playlist li.playing .row span
 {
    color: #fff;
 }
+
 .playlist li span.duration
 {
     font-size: 15px;
@@ -159,6 +180,7 @@ ul li.playing .row span::before
     color: #dcdee1;
     text-align: right;
 }
+
 .playlist li.playing
 {
    pointer-events: none;
@@ -166,11 +188,12 @@ ul li.playing .row span::before
    border: 0.5px solid #1d3541;
 }
 
-@media(max-width: 1092px){
+@media(width <= 1092px){
     section
     {
         padding: 30px 10px;
     }
+
     .container
     {
         width: 100%;
@@ -178,15 +201,18 @@ ul li.playing .row span::before
         grid-template-columns: repeat(1,1fr);
         overflow: hidden;
     }
+
     .container #main-Video
     {
         height: 100%;
     }
+
     .playlistBx
     {
         height: 380px;
         margin-top: 10px;
     }
+
     .playlist
     {
         position: absolute;

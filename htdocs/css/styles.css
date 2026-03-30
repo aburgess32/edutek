@@ -7,13 +7,14 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
   vertical-align: baseline;
   outline: none;
   -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
+  text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  box-sizing: border-box;
+  box-sizing: border-box;
   box-sizing: border-box;
 }
 html { overflow-y: scroll; }
+
 body { 
   background: #f0f0f0; 
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -23,22 +24,25 @@ body {
 }
 
 ::selection { background: #a4dcec; }
-::-moz-selection { background: #a4dcec; }
+::selection { background: #a4dcec; }
 ::-webkit-selection { background: #a4dcec; }
 
-::-webkit-input-placeholder { /* WebKit browsers */
+::input-placeholder { /* WebKit browsers */
   color: #ccc;
   font-style: italic;
 }
-:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+
+:placeholder { /* Mozilla Firefox 4 to 18 */
   color: #ccc;
   font-style: italic;
 }
-::-moz-placeholder { /* Mozilla Firefox 19+ */
+
+::placeholder { /* Mozilla Firefox 19+ */
   color: #ccc;
   font-style: italic;
 }
-:-ms-input-placeholder { /* Internet Explorer 10+ */
+
+:input-placeholder { /* Internet Explorer 10+ */
   color: #ccc !important;
   font-style: italic;  
 }
@@ -50,16 +54,16 @@ ol, ul { list-style: none; }
 
 input, textarea { 
   -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
+  text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  box-sizing: border-box;
+  box-sizing: border-box;
   box-sizing: border-box;
   outline: none; 
 }
 
 blockquote, q { quotes: none; }
-blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; }
+blockquote::before, blockquote::after, q::before, q::after { content: ''; content: none; }
 strong { font-weight: bold; } 
 
 table { border-collapse: collapse; border-spacing: 0; }
@@ -67,11 +71,12 @@ img { border: 0; max-width: 100%; }
 
 #topbar {
   background: blue;
-  padding: 10px 0 10px 0;
+  padding: 10px 0;
   text-align: center;
   height: 36px;
   overflow: hidden;
 }
+
 #topbar a {
   color: #fff;
   font-size:1.3em;
@@ -80,6 +85,7 @@ img { border: 0; max-width: 100%; }
   opacity: 0.5;
   font-weight: bold;
 }
+
 #topbar a:hover {
   opacity: 1;
 }
@@ -98,8 +104,9 @@ h1 {
 	white-space: nowrap;
 	text-align: center;
 }
-h1:before,
-h1:after {
+
+h1::before,
+h1::after {
   content: "";
   position: relative;
   display: inline-block;
@@ -108,14 +115,17 @@ h1:after {
   vertical-align: middle;
   background: #f0f0f0;
 }
-h1:before {    
+
+h1::before {    
   left: -.5em;
   margin: 0 0 0 -50%;
 }
-h1:after {    
+
+h1::after {    
   left: .5em;
   margin: 0 -50% 0 0;
 }
+
 h1 > span {
   display: inline-block;
   vertical-align: middle;
@@ -161,9 +171,9 @@ a:hover { text-decoration: underline; }
   width: 100%;
   background: #fff;
   padding: 5px 20px;
-  -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
-  -moz-box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 1px 2px 0;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 1px 2px 0;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 1px 2px 0;
 }
 
 
@@ -181,15 +191,16 @@ div.audio-player {
   height: 70px;
   margin: 0 auto;
   background: #4c4e5a;
-  background: -webkit-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
-  background: -moz-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
-  background: -o-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
-  background: -ms-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
   background: linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  background: linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+  background: linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+  background: linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+  background: linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
 }
+
 .audio-player h2 {
   position: absolute;
   top: 7px;
@@ -242,11 +253,11 @@ div.audio-player {
   width: 120px;
   height: 11px;
   background: #212227;
-  -webkit-box-shadow: inset 0px 1px 0px rgba(0,0,0,0.3), 0px 1px 0px rgba(255,255,255,0.25);
-  -moz-box-shadow: inset 0px 1px 0px rgba(0,0,0,0.3), 0px 1px 0px rgba(255,255,255,0.25);
-  box-shadow: inset 0px 1px 0px rgba(0,0,0,0.3), 0px 1px 0px rgba(255,255,255,0.25);
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.25);
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.25);
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.25);
+  border-radius: 4px;
+  border-radius: 4px;
   border-radius: 4px;
 }
 
@@ -257,13 +268,13 @@ div.audio-player {
   top: 1px;
   left: 1px;
   background: #90d26a;
-  background: -webkit-linear-gradient(top, #90d26a 0%, #83bb63 100%);
-  background: -moz-linear-gradient(top, #90d26a 0%, #83bb63 100%);
-  background: -o-linear-gradient(top, #90d26a 0%, #83bb63 100%);
-  background: -ms-linear-gradient(top, #90d26a 0%, #83bb63 100%);
   background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
-  -webkit-border-radius: 8px;
-  -moz-border-radius: 8px;
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  border-radius: 8px;
+  border-radius: 8px;
   border-radius: 8px;
 }
 
@@ -279,40 +290,42 @@ div.audio-player {
   top: 40px;
   left: 55px;
   cursor: pointer;
-  -webkit-border-radius: 0px 0px 2px 2px;
-  -moz-border-radius: 0px 0px 2px 2px;
-  border-radius: 0px 0px 2px 2px;
+  border-radius: 0 0 2px 2px;
+  border-radius: 0 0 2px 2px;
+  border-radius: 0 0 2px 2px;
 }
  
 .mejs-controls .mejs-time-rail .mejs-time-total { 
   background: #565860; 
   width: 95% !important; /* fixes display bug using jQuery 1.8+ */
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
   
 }
+
 .mejs-controls .mejs-time-rail .mejs-time-loaded {
   top: 0;
   left: 0;
   width: 0;
   background: #7b7d82;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
 }
+
 .mejs-controls .mejs-time-rail .mejs-time-current {
   top: 0;
   left: 0;
   width: 0;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
   background: #90d26a;
-  background: -webkit-linear-gradient(top, #90d26a 0%, #83bb63 100%);
-  background: -moz-linear-gradient(top, #90d26a 0%, #83bb63 100%);
-  background: -o-linear-gradient(top, #90d26a 0%, #83bb63 100%);
-  background: -ms-linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
+  background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
   background: linear-gradient(top, #90d26a 0%, #83bb63 100%);
 }
 
@@ -325,6 +338,7 @@ div.audio-player {
   top: -6px;
   background: url('handle-lg.png') no-repeat;
 }
+
 .mejs-controls .mejs-horizontal-volume-slider .mejs-horizontal-volume-handle {
   position: absolute;
   display: block;
@@ -361,20 +375,21 @@ div.audio-player {
 }
 
 /** clearfix **/
-.clearfix:after { content: "."; display: block; clear: both; visibility: hidden; line-height: 0; height: 0; }
+.clearfix::after { content: "."; display: block; clear: both; visibility: hidden; line-height: 0; height: 0; }
 .clearfix { display: inline-block; }
  
 html[xmlns] .clearfix { display: block; }
 * html .clearfix { height: 1%; }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (width <= 600px) {
 .mejs-controls .mejs-time-rail .mejs-time-total { 
   background: #565860; 
   width: 85% !important; /* fixes display bug using jQuery 1.8+ */
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
 }
+
 #w {
   display: block;
   width: 100%;
@@ -382,31 +397,33 @@ html[xmlns] .clearfix { display: block; }
   margin-top:40px;
 }
 }
-@media only screen and (max-width: 768px) and (min-width: 600px) {
+
+@media only screen and (width <= 768px) and (width >= 600px) {
 	.mejs-controls .mejs-time-rail .mejs-time-total { 
   background: #565860; 
   width: 87% !important; /* fixes display bug using jQuery 1.8+ */
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
 }
 }
-@media only screen and (max-width: 992px) and (min-width: 768px){
+
+@media only screen and (width <= 992px) and (width >= 768px){
   .mejs-controls .mejs-time-rail .mejs-time-total { 
   background: #565860; 
   width: 87% !important; /* fixes display bug using jQuery 1.8+ */
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
 }
 } 
 
-@media only screen and (max-width: 1024px) and (min-width: 992px){
+@media only screen and (width <= 1024px) and (width >= 992px){
 	.mejs-controls .mejs-time-rail .mejs-time-total { 
   background: #565860; 
   width: 90% !important; /* fixes display bug using jQuery 1.8+ */
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border-radius: 3px;
   border-radius: 3px;
 } 
 	 

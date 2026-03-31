@@ -22,7 +22,7 @@
                 'label' => $topic['label'] ?? '',
                 'icon' => $topic['icon'] ?? '',
                 'type' => $topic['type'] ?? 'video',
-                'href' => buildTopicHref($topic, $_SERVER['HTTP_HOST'] ?? 'localhost'),
+                'href' => buildTopicHref($topic, $_SERVER['HTTP_HOST'] ?? 'localhost', $segKey),
             ];
         }
     }
@@ -113,5 +113,10 @@
 <script src="js/tiles.js"></script>
 
 <?php
+    // FRE-12: Breadcrumb — single "Directory" crumb
+    require_once 'includes/breadcrumb.php';
+    $crumbs = [['label' => 'Directory', 'color' => null, 'href' => null]];
+    renderBreadcrumb($crumbs);
+
     include_once "footer.php";
 ?>

@@ -180,22 +180,40 @@ function tileEncrypt(string $value): string
  *
  * @param  array  $topic    Topic data from tiles.json.
  * @param  string $hostname Current HTTP_HOST value.
+ * @param  string $segKey   Segment key for breadcrumb context (FRE-12).
+ * @param  string $topicSlug Topic slug for breadcrumb context (FRE-12).
  * @return string            URL to navigate to.
  */
-function buildTopicHref(array $topic, string $hostname): string
+function buildTopicHref(array $topic, string $hostname, string $segKey = '', string $topicSlug = ''): string
 {
     $href = $topic['href'] ?? null;
     $label = $topic['label'] ?? '';
     $type = $topic['type'] ?? 'video';
 
-    // Port-based service links
+    // Build breadcrumb context query string (FRE-12)
+    $bcParams = '';
+    if ($segKey !== '') {
+        $bcParams .= '&seg=' . urlencode($segKey);
+    }
+    if ($topicSlug === '' && isset($topic['slug'])) {
+        $topicSlug = $topic['slug'];
+    }
+    if ($topicSlug !== '') {
+        $bcParams .= '&topic=' . urlencode($topicSlug);
+    }
+
+    // Port-based service links (no breadcrumb context — external service)
     if ($href !== null && strpos($href, '__PORT_') === 0) {
         $port = str_replace(['__PORT_', '__'], '', $href);
         return 'http://' . $hostname . ':' . $port . '/';
     }
 
-    // Explicit href (direct link)
+    // Explicit href (direct link) — append breadcrumb context if it's an internal PHP page
     if ($href !== null && $href !== '') {
+        if ($bcParams !== '' && preg_match('/\.php/', $href)) {
+            $sep = (strpos($href, '?') !== false) ? '&' : '?';
+            return $href . $sep . ltrim($bcParams, '&');
+        }
         return $href;
     }
 
@@ -203,7 +221,12 @@ function buildTopicHref(array $topic, string $hostname): string
     $config = getTileConfig();
     $specialRoutes = $config['special_routes'] ?? [];
     if (isset($specialRoutes[$label])) {
-        return $specialRoutes[$label];
+        $route = $specialRoutes[$label];
+        if ($bcParams !== '' && preg_match('/\.php/', $route)) {
+            $sep = (strpos($route, '?') !== false) ? '&' : '?';
+            return $route . $sep . ltrim($bcParams, '&');
+        }
+        return $route;
     }
 
     // Video type with null href — generate encrypted tutorials.php link
@@ -217,7 +240,7 @@ function buildTopicHref(array $topic, string $hostname): string
 
         $encCourse = tileEncrypt($folderName);
         $encKey = tileEncrypt('course');
-        return 'tutorials.php?&' . $encKey . '=' . $encCourse;
+        return 'tutorials.php?&' . $encKey . '=' . $encCourse . $bcParams;
     }
 
     return '#';

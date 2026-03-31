@@ -69,5 +69,14 @@
         ?>
 
 <?php
+    // FRE-12: Breadcrumb
+    require_once 'includes/breadcrumb.php';
+    $crumbs = buildBreadcrumb($_GET);
+    // If no seg context, show "Audiobooks" as single crumb
+    if (empty($crumbs)) {
+        $crumbs = [['label' => 'Audiobooks', 'color' => '#A78BFA', 'href' => null]];
+    }
+    renderBreadcrumb($crumbs);
+
     include_once"footer.php";
 ?>

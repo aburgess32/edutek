@@ -64,6 +64,15 @@ color: #ffffff;
   $decryption_iv = "91011121";
   $decryption_key = "hfjfydjnvhbjfi";
 
+    // FRE-12: Propagate breadcrumb context through watch.php links
+    $bcQuery = '';
+    if (isset($_GET['seg']) && $_GET['seg'] !== '') {
+        $bcQuery .= '&seg=' . urlencode($_GET['seg']);
+    }
+    if (isset($_GET['topic']) && $_GET['topic'] !== '') {
+        $bcQuery .= '&topic=' . urlencode($_GET['topic']);
+    }
+
         $videolink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink1", $cipher, $encryption_key, $options, $iv)));
         $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname1", $cipher, $encryption_key, $options, $iv)));
         $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher, $encryption_key, $options, $iv)));
@@ -142,7 +151,7 @@ color: #ffffff;
 			<div class="footp">
 				&nbsp;
 				
-				<a href="watch.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . '">
+				<a href="watch.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . $bcQuery . '">
 						<p> ' . $file1b . '
 					</p>
 				</a>
@@ -174,7 +183,7 @@ foreach ($ff2 as $key => $value) {
 
 <div class="WSWrapper playlist">    
             
-                <a href="watch.php?&<?php echo $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptname;?>">
+                <a href="watch.php?&<?php echo $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptname . $bcQuery;?>">
                     <p class="playing" style="color: #ffffff;">
                         <i class="fa fa-youtube-play" style="font-size:48px;color:red"></i><?php echo substr($value, ($length));?>
                     </p>
@@ -190,6 +199,13 @@ foreach ($ff2 as $key => $value) {
     </div>
     </div>
     <!---/Contaner Fliud-->
+
+<?php
+    // FRE-12: Breadcrumb — watch page shows full 3-level trail
+    require_once 'includes/breadcrumb.php';
+    $crumbs = buildBreadcrumb($_GET, $file1b ?? $file1 ?? null, true);
+    renderBreadcrumb($crumbs);
+?>
 
         <!----Foter-->
     <footer class="sticky-footer">

@@ -46,7 +46,7 @@ function myFunction() {
 	<!-- Navbar-->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
 		<!-----user name code here-->
-    <a href="" class="navbar-brand" href="index.php"><i class="fa fa-fw fa-user"></i> EDUCATION WITH MODERN TECHNOLOGY</a>
+    <a class="navbar-brand" href="index.php"><img src="assets/img/edutek-logo.jpg" alt="EduTek" class="navbar-brand-logo"> EduTek</a>
     <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -106,64 +106,6 @@ function myFunction() {
 	
 	<!-----Main Contianer-->
   <div class="content-wrapper">
-		<!-----Container Fluid-->
-		     <div class="home-sec" id="home" >
-           <div class="overlay">
- <div class="container">
-           <div class="row text-center " >
-           
-               <div class="col-lg-12  col-md-12 col-sm-12">
-               
-                <div class="flexslider set-flexi" id="main-section" >
-                    <ul class="slides move-me">
-                        <!-- Slider 01 -->
-                        <li>
-                              <h3>Vision for Africa Delivering Quality Education</h3>
-                           <h1>EDUCATION FOR ALL</h1>
-                            <a  href="#all" class="btn btn-info btn-lg" >
-                                ENJOY SOMETHING NEW 
-                            </a>
-                           
-                        </li>
-                        <!-- End Slider 01 -->
-                        
-                        <!-- Slider 02 -->
-                        <li>
-                            <h3>Delivering Quality Education</h3>
-                           <h1>UNMATCHED APPROACH</h1>
-                             <a  href="#all" class="btn btn-primary btn-lg" >
-                               ENJOY SOMETHING NEW 
-                            </a>
-                      
-                        </li>
-                        <!-- End Slider 02 -->
-                        
-                        <!-- Slider 03 -->
-                        <li>
-                            <h3>Delivering Quality Education</h3>
-                           <h1>AWESOME VIDEOS IN ALL SUBJECTS</h1>
-                             <a  href="#all" class="btn btn-default btn-lg" >
-                                ENJOY SOMETHING NEW 
-                            </a>
-                             <a  href="#all" class="btn btn-info btn-lg" >
-                                FEATURE LIST
-                            </a>
-                        </li>
-                        <!-- End Slider 03 -->
-                    </ul>
-                </div>
-                   
-     
-              
-              
-            </div>
-                
-               </div>
-                </div>
-           </div>
-           
-       </div>
-    </div></div>
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

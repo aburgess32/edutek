@@ -111,5 +111,10 @@
 </div>
 
 <?php
+    // FRE-14: Render breadcrumb shell (toggle + mode icon) on homepage
+    // No crumbs — just the controls so mode toggle is always accessible
+    require_once 'includes/breadcrumb.php';
+    renderBreadcrumb([]);
+
     include_once "footer.php";
 ?>

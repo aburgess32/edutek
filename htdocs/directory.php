@@ -115,7 +115,10 @@
 <?php
     // FRE-12: Breadcrumb — single "Directory" crumb
     require_once 'includes/breadcrumb.php';
-    $crumbs = [['label' => 'Directory', 'color' => null, 'href' => null]];
+    $crumbs = [
+        ['label' => 'Home', 'color' => null, 'href' => 'index.php'],
+        ['label' => 'Directory', 'color' => null, 'href' => null],
+    ];
     renderBreadcrumb($crumbs);
 
     include_once "footer.php";

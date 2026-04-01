@@ -2,8 +2,8 @@
 /**
  * FRE-12: Breadcrumb Path
  *
- * Builds a max-3-level breadcrumb trail:
- *   Category (segment) > Sub-category (topic) > Current Video
+ * Builds a breadcrumb trail (max 4 levels with Home):
+ *   Home > Category (segment) > Sub-category (topic) > Current Video
  *
  * Data sourced from URL query params + tiles.json + filesystem.
  * No DB dependency — all fallback-safe.
@@ -192,6 +192,15 @@ function buildBreadcrumb(array $params, ?string $videoTitle = null, bool $isCont
         ];
     }
 
+    // Prepend "Home" crumb to all trails so every page links back to index
+    if (!empty($crumbs)) {
+        array_unshift($crumbs, [
+            'label' => 'Home',
+            'color' => null,
+            'href'  => 'index.php',
+        ]);
+    }
+
     return $crumbs;
 }
 
@@ -202,10 +211,9 @@ function buildBreadcrumb(array $params, ?string $videoTitle = null, bool $isCont
  * @param  array $crumbs Array from buildBreadcrumb()
  * @return void          Outputs HTML directly
  */
-function renderBreadcrumb(array $crumbs): void
+function renderBreadcrumb(array $crumbs = []): void
 {
-    if (empty($crumbs)) {
-        return;
-    }
+    // Always render — the nav shell (toggle + mode icon) should appear on every page,
+    // even when there are no crumbs (e.g. homepage).
     include __DIR__ . '/breadcrumb.html.php';
 }

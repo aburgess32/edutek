@@ -977,6 +977,33 @@
   color: var(--text-muted);
   margin-bottom: 8px;
 }
+.mini-dash-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.mini-dash-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  padding: 6px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.mini-dash-tab:hover {
+  background: rgba(0,151,167,0.08);
+}
+.mini-dash-tab.active {
+  color: #0097A7;
+  background: rgba(0,151,167,0.12);
+}
 .mini-dash-placeholder {
   font-size: 13px;
   font-weight: 600;

@@ -48,7 +48,11 @@
         '</div>' +
       '</div>' +
       '<div class="mini-dash-section">' +
-        '<div class="mini-dash-section-title">Recent Videos</div>' +
+        '<div class="mini-dash-tabs" id="mini-dash-tabs">' +
+          '<button class="mini-dash-tab active" data-type="videos">Videos</button>' +
+          '<button class="mini-dash-tab" data-type="audiobooks">Audiobooks</button>' +
+          '<button class="mini-dash-tab" data-type="media">Media</button>' +
+        '</div>' +
         '<div id="mini-dash-recent" class="mini-dash-placeholder">Loading&hellip;</div>' +
       '</div>' +
       '<div class="mini-dash-section" style="padding-top:4px;">' +
@@ -61,6 +65,17 @@
       '</div>';
     document.body.appendChild(dash);
 
+    // Tab click handler
+    var tabsContainer = document.getElementById('mini-dash-tabs');
+    tabsContainer.addEventListener('click', function(e) {
+      var btn = e.target.closest('.mini-dash-tab');
+      if (!btn) return;
+      var tabs = tabsContainer.querySelectorAll('.mini-dash-tab');
+      for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+      btn.classList.add('active');
+      loadRecentVideos(avatarColor, btn.getAttribute('data-type'));
+    });
+
     // Close on outside click
     document.addEventListener('click', function(e) {
       if (!miniDashOpen) return;
@@ -69,7 +84,7 @@
       }
     });
 
-    loadRecentVideos(avatarColor);
+    loadRecentVideos(avatarColor, 'videos');
   }
 
   function toggleMiniDash() {
@@ -202,16 +217,29 @@
     input.focus();
   }
 
-  function loadRecentVideos(color) {
-    fetch('/api/recent_videos.php')
+  var emptyLabels = {
+    videos: 'No recent videos',
+    audiobooks: 'No recent audiobooks',
+    media: 'No recent media'
+  };
+
+  function loadRecentVideos(color, type) {
+    type = type || 'videos';
+    var container = document.getElementById('mini-dash-recent');
+    if (container) {
+      container.className = 'mini-dash-placeholder';
+      container.innerHTML = 'Loading&hellip;';
+    }
+
+    fetch('/api/recent_videos.php?type=' + encodeURIComponent(type))
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var container = document.getElementById('mini-dash-recent');
         if (!container) return;
 
         var videos = data.videos || [];
         if (videos.length === 0) {
-          container.innerHTML = 'No videos watched yet';
+          container.className = 'mini-dash-placeholder';
+          container.innerHTML = emptyLabels[type] || 'No recent content';
           return;
         }
 
@@ -237,22 +265,26 @@
         }
         container.innerHTML = html;
 
-        // Screen time
-        var seconds = data.screen_time_seconds || 0;
-        var label = document.getElementById('mini-dash-screen-time');
-        var fill = document.getElementById('mini-dash-bar-fill');
-        if (label) {
-          label.textContent = 'Total: ' + formatScreenTime(seconds);
-        }
-        if (fill) {
-          // Cap bar at 100% (60 min = full bar as a reference)
-          var pct = Math.min(100, Math.round((seconds / 3600) * 100));
-          fill.style.width = pct + '%';
+        // Screen time (only update on initial load)
+        if (type === 'videos') {
+          var seconds = data.screen_time_seconds || 0;
+          var label = document.getElementById('mini-dash-screen-time');
+          var fill = document.getElementById('mini-dash-bar-fill');
+          if (label) {
+            label.textContent = 'Total: ' + formatScreenTime(seconds);
+          }
+          if (fill) {
+            // Cap bar at 100% (60 min = full bar as a reference)
+            var pct = Math.min(100, Math.round((seconds / 3600) * 100));
+            fill.style.width = pct + '%';
+          }
         }
       })
       .catch(function() {
-        var container = document.getElementById('mini-dash-recent');
-        if (container) container.innerHTML = 'No videos watched yet';
+        if (container) {
+          container.className = 'mini-dash-placeholder';
+          container.innerHTML = emptyLabels[type] || 'No recent content';
+        }
       });
   }
 

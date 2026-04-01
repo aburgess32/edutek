@@ -94,6 +94,7 @@ function applyTestSchema(\PDO $pdo): void
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
 
     $pdo->exec('DROP TABLE IF EXISTS lesson_plans');
+    $pdo->exec('DROP TABLE IF EXISTS content_meta');
     $pdo->exec('DROP TABLE IF EXISTS watch_history');
     $pdo->exec('DROP TABLE IF EXISTS users');
 
@@ -126,6 +127,32 @@ function applyTestSchema(\PDO $pdo): void
     ");
 
     $pdo->exec("
+        CREATE TABLE IF NOT EXISTS content_meta (
+            id               INT AUTO_INCREMENT PRIMARY KEY,
+            content_id       VARCHAR(255)  NOT NULL UNIQUE,
+            title            VARCHAR(500)  NOT NULL,
+            description      TEXT,
+            subject          VARCHAR(100),
+            grade_level      VARCHAR(50),
+            content_type     VARCHAR(50),
+            category         VARCHAR(100) DEFAULT '',
+            subcategory      VARCHAR(100) DEFAULT '',
+            source           VARCHAR(100) DEFAULT '',
+            file_path        VARCHAR(1000) NOT NULL,
+            thumbnail_path   VARCHAR(1000),
+            duration_seconds INT           DEFAULT NULL,
+            language         VARCHAR(10)   DEFAULT 'en',
+            created_at       TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_subject_grade (subject, grade_level),
+            INDEX idx_subject      (subject),
+            INDEX idx_grade_level  (grade_level),
+            INDEX idx_content_type (content_type),
+            INDEX idx_language     (language),
+            FULLTEXT ft_search (title, category, subcategory, source)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    $pdo->exec("
         CREATE TABLE IF NOT EXISTS lesson_plans (
             id INT AUTO_INCREMENT PRIMARY KEY,
             teacher_id INT,
@@ -148,6 +175,7 @@ function truncateTestTables(\PDO $pdo): void
 {
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
     $pdo->exec('TRUNCATE TABLE lesson_plans');
+    $pdo->exec('TRUNCATE TABLE content_meta');
     $pdo->exec('TRUNCATE TABLE watch_history');
     $pdo->exec('TRUNCATE TABLE users');
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');

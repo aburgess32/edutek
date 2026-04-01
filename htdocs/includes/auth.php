@@ -12,6 +12,11 @@
 
 // Note: strict_types removed — this file is included from other files
 
+// Start output buffering FIRST so session_start works even after HTML output
+if (session_status() === PHP_SESSION_NONE && !ob_get_level()) {
+    ob_start();
+}
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/security.php';
 

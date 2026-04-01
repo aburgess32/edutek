@@ -38,3 +38,19 @@
 @media only screen and (width >= 992px) {
   .example {background: orange;}
 } 
+/* Navbar brand logo */
+.navbar-brand-logo {
+    height: 32px;
+    width: auto;
+    margin-right: 8px;
+    vertical-align: middle;
+    border-radius: 4px;
+}
+
+.navbar-brand {
+    display: flex !important;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #fff !important;
+}

@@ -46,7 +46,7 @@ function myFunction() {
 	<!-- Navbar-->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
 		<!-----user name code here-->
-    <a href="" class="navbar-brand" href="index.php"><i class="fa fa-fw fa-user"></i> EDUCATION WITH MODERN TECHNOLOGY</a>
+    <a class="navbar-brand" href="index.php"><img src="assets/img/edutek-logo.jpg" alt="EduTek" class="navbar-brand-logo"> EduTek</a>
     <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -106,64 +106,46 @@ function myFunction() {
 	
 	<!-----Main Contianer-->
   <div class="content-wrapper">
-		<!-----Container Fluid-->
-		     <div class="home-sec" id="home" >
-           <div class="overlay">
- <div class="container">
-           <div class="row text-center " >
-           
-               <div class="col-lg-12  col-md-12 col-sm-12">
-               
-                <div class="flexslider set-flexi" id="main-section" >
-                    <ul class="slides move-me">
-                        <!-- Slider 01 -->
-                        <li>
-                              <h3>Vision for Africa Delivering Quality Education</h3>
-                           <h1>EDUCATION FOR ALL</h1>
-                            <a  href="#all" class="btn btn-info btn-lg" >
-                                ENJOY SOMETHING NEW 
-                            </a>
-                           
-                        </li>
-                        <!-- End Slider 01 -->
-                        
-                        <!-- Slider 02 -->
-                        <li>
-                            <h3>Delivering Quality Education</h3>
-                           <h1>UNMATCHED APPROACH</h1>
-                             <a  href="#all" class="btn btn-primary btn-lg" >
-                               ENJOY SOMETHING NEW 
-                            </a>
-                      
-                        </li>
-                        <!-- End Slider 02 -->
-                        
-                        <!-- Slider 03 -->
-                        <li>
-                            <h3>Delivering Quality Education</h3>
-                           <h1>AWESOME VIDEOS IN ALL SUBJECTS</h1>
-                             <a  href="#all" class="btn btn-default btn-lg" >
-                                ENJOY SOMETHING NEW 
-                            </a>
-                             <a  href="#all" class="btn btn-info btn-lg" >
-                                FEATURE LIST
-                            </a>
-                        </li>
-                        <!-- End Slider 03 -->
-                    </ul>
-                </div>
-                   
-     
-              
-              
+    <!-- Hero Slider -->
+    <div class="hero-slider" id="heroSlider">
+        <?php
+        $featured = getFeaturedContent();
+        if (!empty($featured)):
+            foreach ($featured as $fi => $fItem):
+                $badge = getContentTypeBadge($fItem['badge'] ?? 'video');
+                $bgImg = htmlspecialchars($fItem['bg_image'] ?? '', ENT_QUOTES, 'UTF-8');
+                $bgJpg = str_replace('.webp', '.jpg', $bgImg);
+        ?>
+        <div class="hero-slide<?php echo $fi === 0 ? ' active' : ''; ?>" data-index="<?php echo $fi; ?>">
+            <picture class="hero-slide-bg">
+                <source srcset="<?php echo $bgImg; ?>" type="image/webp">
+                <img src="<?php echo $bgJpg; ?>" alt="<?php echo htmlspecialchars($fItem['headline'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" loading="<?php echo $fi === 0 ? 'eager' : 'lazy'; ?>">
+            </picture>
+            <div class="hero-slide-overlay"></div>
+            <div class="hero-slide-content">
+                <span class="hero-badge" style="background:<?php echo htmlspecialchars($badge['color'], ENT_QUOTES, 'UTF-8'); ?>">
+                    <?php echo htmlspecialchars($badge['label'], ENT_QUOTES, 'UTF-8'); ?>
+                </span>
+                <h1 class="hero-headline"><?php echo htmlspecialchars($fItem['headline'] ?? '', ENT_QUOTES, 'UTF-8'); ?></h1>
+                <p class="hero-subhead"><?php echo htmlspecialchars($fItem['subhead'] ?? '', ENT_QUOTES, 'UTF-8'); ?></p>
+                <a href="<?php echo htmlspecialchars($fItem['cta_href'] ?? '#', ENT_QUOTES, 'UTF-8'); ?>" class="hero-cta">
+                    <?php echo htmlspecialchars($fItem['cta_label'] ?? 'Explore', ENT_QUOTES, 'UTF-8'); ?> &rarr;
+                </a>
             </div>
-                
-               </div>
-                </div>
-           </div>
-           
-       </div>
-    </div></div>
+        </div>
+        <?php endforeach; ?>
+
+        <div class="hero-indicators" id="heroDots">
+            <?php foreach ($featured as $fi => $fItem): ?>
+            <button class="hero-dot<?php echo $fi === 0 ? ' active' : ''; ?>"
+                    data-index="<?php echo $fi; ?>"
+                    aria-label="Slide <?php echo $fi + 1; ?>"></button>
+            <?php endforeach; ?>
+        </div>
+        <div class="hero-progress" id="heroProgress"></div>
+        <?php endif; ?>
+    </div>
+    </div>
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -199,6 +181,79 @@ function myFunction() {
       $('body').toggleClass('bg-dark bg-light');
     });
 
+    </script>
+
+    <!-- Hero Slider Script -->
+    <script>
+    (function() {
+        var slides = document.querySelectorAll('.hero-slide');
+        var dots = document.querySelectorAll('.hero-dot');
+        var progress = document.getElementById('heroProgress');
+        var heroEl = document.getElementById('heroSlider');
+        if (!slides.length) return;
+
+        var INTERVAL = 6000;
+        var current = 0;
+        var timer = null;
+        var startTime = 0;
+        var rafId = null;
+
+        function goTo(index) {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = index;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+            resetTimer();
+        }
+
+        function next() {
+            goTo((current + 1) % slides.length);
+        }
+
+        function resetTimer() {
+            clearTimeout(timer);
+            cancelAnimationFrame(rafId);
+            startTime = Date.now();
+            if (progress) progress.style.width = '0%';
+            tick();
+            timer = setTimeout(next, INTERVAL);
+        }
+
+        function tick() {
+            var elapsed = Date.now() - startTime;
+            var pct = Math.min((elapsed / INTERVAL) * 100, 100);
+            if (progress) progress.style.width = pct + '%';
+            if (pct < 100) rafId = requestAnimationFrame(tick);
+        }
+
+        // Dot click handlers
+        for (var i = 0; i < dots.length; i++) {
+            (function(idx) {
+                dots[idx].addEventListener('click', function() { goTo(idx); });
+            })(i);
+        }
+
+        // Pause on hover
+        if (heroEl) {
+            heroEl.addEventListener('mouseenter', function() {
+                clearTimeout(timer);
+                cancelAnimationFrame(rafId);
+            });
+            heroEl.addEventListener('mouseleave', function() {
+                resetTimer();
+            });
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') goTo((current + 1) % slides.length);
+            if (e.key === 'ArrowLeft') goTo((current - 1 + slides.length) % slides.length);
+        });
+
+        // Start
+        resetTimer();
+    })();
     </script>
 </body>
 

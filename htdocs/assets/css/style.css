@@ -268,3 +268,166 @@ h1::after {
     color:#fff;
     font-size:15px;
 }
+/*=====================================
+  HERO SLIDER STYLES
+  ===================================*/
+.hero-slider {
+    position: relative;
+    height: 460px;
+    overflow: hidden;
+    background: #0a0a0a;
+}
+
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    pointer-events: none;
+    display: flex;
+    align-items: flex-end;
+}
+
+.hero-slide.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.hero-slide-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+}
+
+.hero-slide-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-slide-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.88) 0%,
+        rgba(0,0,0,0.45) 40%,
+        rgba(0,0,0,0.15) 100%
+    );
+    z-index: 1;
+}
+
+.hero-slide-content {
+    position: relative;
+    z-index: 2;
+    padding: 0 5% 48px;
+    max-width: 680px;
+}
+
+.hero-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #fff;
+    margin-bottom: 14px;
+}
+
+.hero-headline {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin: 0 0 8px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+
+.hero-subhead {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.82);
+    margin: 0 0 22px;
+    line-height: 1.4;
+}
+
+.hero-cta {
+    display: inline-block;
+    padding: 12px 28px;
+    background: #4ECDC4;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(78,205,196,0.3);
+}
+
+.hero-cta:hover {
+    background: #3DB8B0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(78,205,196,0.4);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Slide Indicators */
+.hero-indicators {
+    position: absolute;
+    bottom: 16px;
+    right: 5%;
+    z-index: 3;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.hero-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+    border: none;
+    padding: 0;
+}
+
+.hero-dot:hover {
+    background: rgba(255,255,255,0.6);
+}
+
+.hero-dot.active {
+    background: #4ECDC4;
+    transform: scale(1.3);
+}
+
+/* Progress Bar */
+.hero-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 4;
+    height: 3px;
+    background: #4ECDC4;
+    transition: width 0.1s linear;
+    width: 0%;
+}
+
+/* Mobile hero */
+@media (max-width: 600px) {
+    .hero-slider {
+        height: 360px;
+    }
+    .hero-slide-content {
+        padding: 0 5% 32px;
+    }
+    .hero-headline {
+        font-size: 1.75rem;
+    }
+    .hero-subhead {
+        font-size: 0.95rem;
+    }
+}

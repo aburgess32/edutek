@@ -323,5 +323,47 @@
       "label": "Mixed",
       "color": "#6B7280"
     }
-  }
+  },
+  "featured": [
+    {
+      "slug": "comic-books",
+      "headline": "Adventures Await",
+      "subhead": "Dive into stories that spark your imagination and make learning unforgettable.",
+      "cta_label": "Start Reading",
+      "cta_href": "Comic_books.php",
+      "bg_image": "assets/hero/hero-comics.webp",
+      "badge": "book",
+      "segment": "early_learners"
+    },
+    {
+      "slug": "audiobooks",
+      "headline": "Listen & Learn",
+      "subhead": "Close your eyes and let audiobooks take you to worlds you’ve never imagined.",
+      "cta_label": "Listen Now",
+      "cta_href": "audiobooks.php",
+      "bg_image": "assets/hero/hero-audiobooks.webp",
+      "badge": "audio",
+      "segment": "explorers"
+    },
+    {
+      "slug": "generative-ai",
+      "headline": "Build the Future",
+      "subhead": "Learn how AI is transforming the world — and how you can shape what comes next.",
+      "cta_label": "Watch Now",
+      "cta_href": null,
+      "bg_image": "assets/hero/hero-ai.webp",
+      "badge": "video",
+      "segment": "advanced"
+    },
+    {
+      "slug": "primary-multiplication",
+      "headline": "Master Your Numbers",
+      "subhead": "Fun, step-by-step multiplication videos that turn math into magic.",
+      "cta_label": "Watch Now",
+      "cta_href": null,
+      "bg_image": "assets/hero/hero-multiplication.webp",
+      "badge": "video",
+      "segment": "early_learners"
+    }
+  ]
 }

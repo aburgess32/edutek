@@ -24,13 +24,6 @@
     </div>
     <?php endif; ?>
 
-    <!-- Hero -->
-    <div class="tiles-hero">
-        <img src="assets/img/edutek-logo.jpg" alt="Edutek" class="tiles-hero-logo">
-        <h1 class="tiles-hero-tagline">Discover. Learn. Grow.</h1>
-        <p class="tiles-hero-sub">Offline education for everyone</p>
-    </div>
-
     <!-- Choose Your Path: Segment Tiles -->
     <div class="tiles-section-header">
         <h2 class="tiles-section-title">Choose Your Path</h2>

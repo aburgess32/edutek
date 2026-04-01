@@ -33,6 +33,11 @@ $teacherId = (int)($user['id'] ?? 0);
   <!-- Header -->
   <header class="teacher-header">
     <div class="teacher-header__left">
+      <a href="/index.php" class="teacher-header__back" aria-label="Browse Content">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Browse Content
+      </a>
+      <div class="teacher-header__divider"></div>
       <div class="teacher-header__avatar"><?= $initials ?></div>
       <div>
         <div class="teacher-header__name"><?= $displayName ?></div>

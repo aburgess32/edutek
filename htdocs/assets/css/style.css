@@ -273,7 +273,7 @@ h1::after {
   ===================================*/
 .hero-slider {
     position: relative;
-    height: 460px;
+    height: 540px;
     overflow: hidden;
     background: #0a0a0a;
 }
@@ -419,7 +419,7 @@ h1::after {
 /* Mobile hero */
 @media (max-width: 600px) {
     .hero-slider {
-        height: 360px;
+        height: 420px;
     }
     .hero-slide-content {
         padding: 0 5% 32px;

@@ -1016,8 +1016,8 @@
 }
 
 /* ========== ALIASES for backend PHP class names ========== */
-.auth-container { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
-.auth-card { background: var(--card-bg, #fff); border-radius: 16px; padding: 32px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; text-align: center; }
+.auth-container { max-width: 680px; margin: 0 auto; padding: 24px 16px; }
+.auth-card { background: var(--card-bg, #fff); border-radius: 16px; padding: 28px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; text-align: center; }
 .auth-title { font-size: 24px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
 .auth-subtitle { font-size: 14px; color: #6B7280; margin-bottom: 20px; }
 .auth-back { display: inline-block; margin-bottom: 16px; color: var(--teal, #00BCD4); text-decoration: none; font-weight: 600; font-size: 14px; }
@@ -1046,41 +1046,40 @@
   flex-direction: column;
   -webkit-align-items: center;
   align-items: center;
-  padding: 16px 12px 12px;
-  border-radius: 16px;
+  padding: 12px 6px 10px;
+  border-radius: 14px;
   cursor: pointer;
   -webkit-transition: transform 0.15s, box-shadow 0.15s;
   transition: transform 0.15s, box-shadow 0.15s;
   text-align: center;
-  min-height: 110px;
   -webkit-justify-content: center;
   justify-content: center;
 }
-.avatar-chip:hover { -webkit-transform: scale(1.06); transform: scale(1.06); }
+.avatar-chip:hover { -webkit-transform: scale(1.08); transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
 .avatar-chip:active { -webkit-transform: scale(0.95); transform: scale(0.95); }
 .avatar-chip.selected {
   border-color: var(--teal, #00BCD4) !important;
-  box-shadow: 0 0 0 4px rgba(0,188,212,0.4);
+  box-shadow: 0 0 0 4px rgba(0,188,212,0.5), 0 4px 20px rgba(0,188,212,0.3);
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
 }
-.avatar-chip-svg { display: block; margin-bottom: 8px; width: 56px; height: 56px; }
-.avatar-chip-svg svg { display: block; width: 56px; height: 56px; }
-.avatar-chip-name { font-size: 14px; font-weight: 800; display: block; }
+.avatar-chip-svg { display: block; margin: 0 auto 6px; width: 64px; height: 64px; }
+.avatar-chip-svg svg { display: block; width: 64px; height: 64px; }
+.avatar-chip-name { font-size: 12px; font-weight: 800; display: block; white-space: nowrap; }
 
 /* Avatar grid override for register page */
 .auth-card .avatar-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
   padding: 0;
   margin-top: 16px;
 }
-@media (max-width: 500px) {
-  .auth-card .avatar-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 420px) {
+  .auth-card .avatar-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 }
-@media (min-width: 700px) {
-  .auth-card .avatar-grid { grid-template-columns: repeat(5, 1fr); }
+@media (min-width: 421px) and (max-width: 599px) {
+  .auth-card .avatar-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
 }
 
 /* Age tile enhancements */

@@ -178,7 +178,7 @@ try {
                         var name = chips[i].getAttribute('data-name');
                         var color = chips[i].getAttribute('data-color');
                         var svgEl = document.getElementById('av-' + name);
-                        if (svgEl) svgEl.innerHTML = generateAvatar(name, 48, color);
+                        if (svgEl) svgEl.innerHTML = generateAvatar(name, 64, color);
                     }
                 })();
                 </script>

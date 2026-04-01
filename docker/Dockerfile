@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure and install GD with full format support

@@ -51,6 +51,9 @@ htdocs/content/
 htdocs/videos/
 htdocs/library/
 htdocs/images/
+
+# Auto-generated video thumbnails (cached by videoThumb())
+**/thumbs/
 *.mp4
 *.mkv
 *.avi

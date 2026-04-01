@@ -1,4 +1,6 @@
-<?php ob_start(); ?>
+<?php ob_start();
+    include_once "includes/auth.php";
+?>
   <link href="css/WatchVideos.css" rel="stylesheet">
   <script src="ajax/jquery.min.js"></script>
     <script src="ajax/popper.min.js"></script>
@@ -275,5 +277,69 @@ foreach ($ff2 as $key => $value) {
     -->
 
 
+<?php
+// FRE-10: Determine thumbnail path server-side for progress tracking
+$cwThumbPath = '';
+if (!empty($filea)) {
+    // Primary: same filename with .jpg extension
+    $cwThumbPath = preg_replace('/\.[^.]+$/', '.jpg', $filea);
+    if (!file_exists($cwThumbPath)) {
+        // Fallback: subcategory folder .jpg in parent directory
+        $cwFolder = rtrim($file, '/');
+        $cwFallback = dirname($cwFolder) . '/' . basename($cwFolder) . '.jpg';
+        if (file_exists($cwFallback)) {
+            $cwThumbPath = $cwFallback;
+        }
+    }
+}
+?>
+<?php if (isLoggedIn() && !isGuest() && !empty($filea)): ?>
+<script>
+(function() {
+    var video = document.querySelector('.Wvideo');
+    if (!video) return;
+
+    var contentId = <?php echo json_encode($filea); ?>;
+    var contentTitle = <?php echo json_encode($file1b); ?>;
+    var thumbnailPath = <?php echo json_encode($cwThumbPath); ?>;
+    var lastReported = 0;
+    var INTERVAL = 30;
+    var apiUrl = '/api/update_progress.php';
+
+    function sendProgress() {
+        if (!video.duration || video.duration <= 0) return;
+        var now = Math.floor(video.currentTime);
+        if (now === lastReported) return;
+        lastReported = now;
+
+        var data = {
+            content_id: contentId,
+            content_title: contentTitle,
+            content_type: 'video',
+            thumbnail_path: thumbnailPath,
+            progress_seconds: now,
+            duration_seconds: Math.floor(video.duration)
+        };
+        navigator.sendBeacon(apiUrl, new Blob([JSON.stringify(data)], {type: 'application/json'}));
+    }
+
+    var timer = null;
+    video.addEventListener('play', function() {
+        if (timer) clearInterval(timer);
+        timer = setInterval(sendProgress, INTERVAL * 1000);
+    });
+    video.addEventListener('pause', function() {
+        if (timer) { clearInterval(timer); timer = null; }
+        sendProgress();
+    });
+    video.addEventListener('ended', function() {
+        if (timer) { clearInterval(timer); timer = null; }
+        sendProgress();
+    });
+
+    window.addEventListener('beforeunload', sendProgress);
+})();
+</script>
+<?php endif; ?>
 <script src="js/login.js"></script>
 <script src="js/avatar-bubble.js"></script>

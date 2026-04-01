@@ -24,6 +24,96 @@
     </div>
     <?php endif; ?>
 
+    <?php
+    // FRE-10: Continue Watching row (server-side rendered)
+    if (isLoggedIn() && !isGuest()):
+        try {
+            $cwPdo = getDbConnection();
+            $cwStmt = $cwPdo->prepare("
+                SELECT content_id, content_title, thumbnail_path,
+                       progress_seconds, duration_seconds
+                FROM watch_history
+                WHERE user_id = :uid AND duration_seconds > 0
+                ORDER BY last_watched DESC
+                LIMIT 10
+            ");
+            $cwStmt->execute([':uid' => (int) $_SESSION['user_id']]);
+            $cwRows = $cwStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $cwItems = [];
+            foreach ($cwRows as $cwRow) {
+                $cwPct = round(($cwRow['progress_seconds'] / $cwRow['duration_seconds']) * 100);
+                if ($cwPct >= 95) continue;
+                $cwRow['progress_pct'] = (int) $cwPct;
+
+                // Check thumbnail exists
+                $cwThumbFile = __DIR__ . '/' . ltrim($cwRow['thumbnail_path'], '/');
+                $cwRow['thumb_ok'] = file_exists($cwThumbFile);
+
+                $cwItems[] = $cwRow;
+                if (count($cwItems) >= 5) break;
+            }
+        } catch (PDOException $e) {
+            $cwItems = [];
+        }
+
+        if (!empty($cwItems)):
+            // Pre-compute encrypted param keys for watch.php links
+            $cwKeyVideolink  = tileEncrypt('videolink');
+            $cwKeyVideoname  = tileEncrypt('videoname');
+            $cwKeyVideolink1 = tileEncrypt('videolink1');
+            $cwKeyVideoname1 = tileEncrypt('videoname1');
+    ?>
+    <section class="continue-row" aria-label="Continue Watching">
+        <h2 class="continue-row__heading">Continue Watching</h2>
+        <div class="continue-row__scroll" role="list">
+            <?php foreach ($cwItems as $cwItem):
+                // Reconstruct watch.php URL params from content_id
+                $cwContentId  = $cwItem['content_id'];
+                $cwFolderPath = dirname($cwContentId) . '/';
+                $cwFolderName = basename(dirname($cwContentId));
+                $cwFileName   = basename($cwContentId);
+
+                $cwEncLink  = tileEncrypt($cwFolderPath);
+                $cwEncName  = tileEncrypt($cwFolderName);
+                $cwEncLink1 = tileEncrypt($cwContentId);
+                $cwEncName1 = tileEncrypt($cwFileName);
+
+                $cwHref = 'watch.php?&' . $cwKeyVideolink . '=' . $cwEncLink
+                        . '&' . $cwKeyVideoname . '=' . $cwEncName
+                        . '&' . $cwKeyVideolink1 . '=' . $cwEncLink1
+                        . '&' . $cwKeyVideoname1 . '=' . $cwEncName1;
+
+                $cwTitle = htmlspecialchars($cwItem['content_title'] ?: $cwFileName, ENT_QUOTES, 'UTF-8');
+                $cwPct   = $cwItem['progress_pct'];
+            ?>
+            <a class="continue-card" href="<?php echo $cwHref; ?>" role="listitem"
+               aria-label="Continue: <?php echo $cwTitle; ?> &ndash; <?php echo $cwPct; ?>% watched">
+                <div class="continue-card__thumb">
+                    <?php if ($cwItem['thumb_ok']): ?>
+                    <img src="<?php echo htmlspecialchars($cwItem['thumbnail_path'], ENT_QUOTES, 'UTF-8'); ?>"
+                         alt="<?php echo $cwTitle; ?> thumbnail"
+                         loading="lazy" decoding="async">
+                    <?php else: ?>
+                    <div class="continue-card__placeholder">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="11" stroke="#fff" stroke-width="1.5" opacity="0.6"/>
+                            <polygon points="10,7 18,12 10,17" fill="#fff" opacity="0.8"/>
+                        </svg>
+                    </div>
+                    <?php endif; ?>
+                    <div class="continue-card__progress" style="--pct: <?php echo $cwPct; ?>%"></div>
+                </div>
+                <p class="continue-card__title"><?php echo $cwTitle; ?></p>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php
+        endif; // !empty($cwItems)
+    endif; // isLoggedIn && !isGuest
+    ?>
+
     <!-- Choose Your Path: Segment Tiles -->
     <div class="tiles-section-header">
         <h2 class="tiles-section-title">Choose Your Path</h2>

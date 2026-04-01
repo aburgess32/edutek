@@ -17,39 +17,58 @@ if (isLoggedIn()) {
 }
 
 $error = '';
+$resignMatch = null; // Pre-matched user from avatar name quick-connect
 
-// ── Handle POST (confirm login) ──
+// ── Handle POST ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $token  = filter_input(INPUT_POST, '_csrf_token', FILTER_DEFAULT) ?? '';
-    $userId = (int) (filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT) ?? 0);
+    $resignName = trim(filter_input(INPUT_POST, 'resign_avatar_name', FILTER_DEFAULT) ?? '');
+    $userId     = (int) (filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT) ?? 0);
+    $token      = filter_input(INPUT_POST, '_csrf_token', FILTER_DEFAULT) ?? '';
 
-    if (!csrf_verify($token)) {
-        $error = 'Invalid form submission. Please try again.';
-    } elseif ($userId <= 0) {
-        $error = 'Invalid user selection.';
-    } else {
+    if ($resignName !== '') {
+        // ── Quick-connect: look up by avatar name ──
         $pdo  = getDbConnection();
         $stmt = $pdo->prepare(
             'SELECT id, display_name, avatar_name, avatar_color, user_type, age_range
-             FROM users WHERE id = ? AND user_type != ?'
+             FROM users WHERE avatar_name = ? AND user_type != ?'
         );
-        $stmt->execute([$userId, 'teacher']);
+        $stmt->execute([$resignName, 'teacher']);
         $user = $stmt->fetch();
 
-        if (!$user) {
-            $error = 'User not found. Please try again.';
+        if ($user) {
+            // Found — store for confirmation (don't auto-login, show confirm overlay)
+            $resignMatch = $user;
         } else {
-            loginUser(
-                (int) $user['id'],
-                $user['display_name'],
-                $user['avatar_name'] ?? '',
-                $user['avatar_color'] ?? '#333',
-                'student',
-                $user['age_range'] ?? ''
+            $error = 'No student found with avatar name "' . htmlspecialchars($resignName, ENT_QUOTES, 'UTF-8') . '".';
+        }
+    } elseif ($userId > 0) {
+        // ── Confirm login (card tap or confirm overlay) ──
+        if (!csrf_verify($token)) {
+            $error = 'Invalid form submission. Please try again.';
+        } else {
+            $pdo  = getDbConnection();
+            $stmt = $pdo->prepare(
+                'SELECT id, display_name, avatar_name, avatar_color, user_type, age_range
+                 FROM users WHERE id = ? AND user_type != ?'
             );
-            updateLastActive($pdo, (int) $user['id']);
-            header('Location: /');
-            exit;
+            $stmt->execute([$userId, 'teacher']);
+            $user = $stmt->fetch();
+
+            if (!$user) {
+                $error = 'User not found. Please try again.';
+            } else {
+                loginUser(
+                    (int) $user['id'],
+                    $user['display_name'],
+                    $user['avatar_name'] ?? '',
+                    $user['avatar_color'] ?? '#333',
+                    'student',
+                    $user['age_range'] ?? ''
+                );
+                updateLastActive($pdo, (int) $user['id']);
+                header('Location: /');
+                exit;
+            }
         }
     }
 }
@@ -215,6 +234,33 @@ foreach ($students as $s) {
     }
 })();
 </script>
+
+<?php if ($resignMatch): ?>
+<script>
+// Auto-open confirm overlay for quick-connect match
+(function() {
+    var uid   = <?php echo (int) $resignMatch['id']; ?>;
+    var name  = <?php echo json_encode($resignMatch['avatar_name'] ?? ''); ?>;
+    var display = <?php echo json_encode($resignMatch['display_name'] ?? ''); ?>;
+    var color = <?php echo json_encode($resignMatch['avatar_color'] ?? '#333'); ?>;
+
+    document.getElementById('confirm-uid').value = uid;
+    document.getElementById('confirm-name').textContent = name;
+    document.getElementById('confirm-display').textContent = display;
+
+    var badge = document.getElementById('confirm-badge');
+    if (typeof generateAvatar === 'function') {
+        badge.innerHTML = generateAvatar(name, 64, color);
+        badge.style.background = 'transparent';
+    } else {
+        badge.textContent = name.charAt(0);
+        badge.style.background = color;
+    }
+
+    document.getElementById('confirm-overlay').classList.add('show');
+})();
+</script>
+<?php endif; ?>
 
 </body>
 </html>

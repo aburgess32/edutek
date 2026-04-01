@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
   <link href="css/WatchVideos.css" rel="stylesheet">
   <script src="ajax/jquery.min.js"></script>
     <script src="ajax/popper.min.js"></script>

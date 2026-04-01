@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
     <!-- Custom styles for this readpdf.php-->
  <link href="css/saved.css" rel="stylesheet">
  <script src="ajax/pdfobject.min.js"></script>

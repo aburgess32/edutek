@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
     <!-- Custom styles for this watch-->
   <link rel="stylesheet" type="text/css" media="all" href="css/styles.css">
     <style>

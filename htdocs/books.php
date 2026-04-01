@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
     <!-- Custom styles for this listofbooks.php-->
  <link href="css/saved.css" rel="stylesheet">
 

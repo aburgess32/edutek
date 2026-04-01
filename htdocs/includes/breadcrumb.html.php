@@ -12,6 +12,17 @@ if (empty($crumbs)) {
 $crumbCount = count($crumbs);
 ?>
 <nav class="bc" aria-label="You are here" style="pointer-events:none">
+  <!-- Mode cycle button — hidden when bc is collapsed -->
+  <button class="bc__mode" type="button"
+          aria-label="Switch layout mode"
+          title="Switch layout mode"
+          style="pointer-events:auto"
+          onclick="(function(b){var modes=['phone','tablet','screen'];var icons={phone:'&#x1F4F1;',tablet:'&#x1F4CB;',screen:'&#x1F4FA;'};var cur=document.body.dataset.mode||'phone';var next=modes[(modes.indexOf(cur)+1)%3];document.body.dataset.mode=next;b.querySelector('.bc__mode-icon').textContent=icons[next];document.cookie='edupak_mode='+next+';path=/;max-age='+(86400*30)+';SameSite=Lax';var fd=new FormData();fd.append('mode',next);fetch('/api/set-mode.php',{method:'POST',body:fd}).catch(function(){});})(this)">
+    <span class="bc__mode-icon"><?php
+      $modeIcons = ['phone' => "\u{1F4F1}", 'tablet' => "\u{1F4CB}", 'screen' => "\u{1F4FA}"];
+      echo $modeIcons[getMode()] ?? "\u{1F4F1}";
+    ?></span>
+  </button>
   <button class="bc__toggle" type="button"
           aria-label="Toggle breadcrumb"
           aria-expanded="true"

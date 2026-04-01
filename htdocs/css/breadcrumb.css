@@ -147,6 +147,30 @@
     flex-shrink: 0;
 }
 
+/* --- Mode cycle button (above bc toggle) --- */
+.bc__mode {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.3);
+    transition: color 0.15s;
+    pointer-events: auto;
+    position: absolute;
+    bottom: 100%;
+    left: 12px;
+    margin-bottom: 4px;
+}
+.bc__mode:hover { color: rgba(0, 0, 0, 0.5); }
+
+/* Hidden when breadcrumb is collapsed */
+.bc--collapsed .bc__mode { display: none; }
+
 /* --- Touch devices --- */
 @media (pointer: coarse) {
     .bc__link,
@@ -160,5 +184,10 @@
     .bc__toggle {
         width: 28px;
         height: 28px;
+    }
+    .bc__mode {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
     }
 }

@@ -23,6 +23,25 @@ require_once __DIR__ . '/security.php';
 // Session is started by security.php — no need to start again
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Layout Mode
+// ──────────────────────────────────────────────────────────────────────────────
+
+$GLOBALS['edupak_mode'] = 'phone';
+$_allowed_modes = ['phone', 'tablet', 'screen'];
+
+if (!empty($_SESSION['mode']) && in_array($_SESSION['mode'], $_allowed_modes, true)) {
+    $GLOBALS['edupak_mode'] = $_SESSION['mode'];
+} elseif (!empty($_COOKIE['edupak_mode']) && in_array($_COOKIE['edupak_mode'], $_allowed_modes, true)) {
+    $GLOBALS['edupak_mode'] = $_COOKIE['edupak_mode'];
+    $_SESSION['mode'] = $GLOBALS['edupak_mode'];
+}
+
+function getMode(): string
+{
+    return $GLOBALS['edupak_mode'] ?? 'phone';
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // PDO Database Connection
 // ──────────────────────────────────────────────────────────────────────────────
 

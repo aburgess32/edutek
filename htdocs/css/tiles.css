@@ -914,3 +914,66 @@
         column-count: 4;
     }
 }
+
+/* ==========================================================================
+   Layout Mode Overrides (FRE-14)
+   Phone = default (no overrides). Tablet = 3-col. Screen = 4-col + dark.
+   ========================================================================== */
+
+/* --- Tablet mode: 3-col segments, 3-col topics, 14px gap --- */
+[data-mode="tablet"] .seg-tile {
+    -webkit-flex: 1 1 calc(33.333% - 14px);
+    flex: 1 1 calc(33.333% - 14px);
+    max-width: calc(33.333% - 10px);
+}
+[data-mode="tablet"] .topic-tile {
+    -webkit-flex: 1 1 calc(33.333% - 14px);
+    flex: 1 1 calc(33.333% - 14px);
+    max-width: calc(33.333% - 10px);
+}
+[data-mode="tablet"] .seg-grid,
+[data-mode="tablet"] .topic-grid {
+    gap: 14px;
+}
+
+/* --- Screen mode: 4-col, 24px gap --- */
+[data-mode="screen"] .seg-tile {
+    -webkit-flex: 1 1 calc(25% - 24px);
+    flex: 1 1 calc(25% - 24px);
+    max-width: calc(25% - 18px);
+}
+[data-mode="screen"] .topic-tile {
+    -webkit-flex: 1 1 calc(25% - 24px);
+    flex: 1 1 calc(25% - 24px);
+    max-width: calc(25% - 18px);
+}
+[data-mode="screen"] .seg-grid,
+[data-mode="screen"] .topic-grid {
+    gap: 24px;
+}
+
+/* --- Screen mode: dark theme --- */
+body[data-mode="screen"] {
+    font-size: 1.35rem;
+    background: #000;
+    color: #fff;
+}
+[data-mode="screen"] .navbar {
+    background: #111 !important;
+}
+[data-mode="screen"] .seg-tile,
+[data-mode="screen"] .topic-tile {
+    border: 2px solid rgba(255,255,255,0.15);
+}
+[data-mode="screen"] .bc__toggle,
+[data-mode="screen"] .bc__mode,
+[data-mode="screen"] .bc__link,
+[data-mode="screen"] .bc__label {
+    color: rgba(255,255,255,0.4);
+}
+[data-mode="screen"] .bc__mode:hover {
+    color: rgba(255,255,255,0.6);
+}
+[data-mode="screen"] .bc__toggle:hover {
+    color: rgba(255,255,255,0.6);
+}

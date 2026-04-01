@@ -152,8 +152,9 @@ try {
 
             <!-- Step 3: Avatar Picker -->
             <div class="wizard-step" id="step-3">
-                <h2 class="auth-title">Pick your avatar name</h2>
-                <p class="auth-subtitle">This is your unique identity on Edutek</p>
+                <h2 class="auth-title" style="font-size:28px; color:var(--teal, #00BCD4);">Pick your Avatar Name!</h2>
+                <p class="auth-subtitle">This name is YOURS on EduPak</p>
+                <p style="font-size:13px; color:#999; margin:-12px 0 8px;">Tap the one you want!</p>
                 <div class="avatar-grid" id="avatar-picker-grid">
                     <?php
                     $showAvatars = array_slice($availableAvatars, 0, 20);

@@ -68,6 +68,34 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+.teacher-header__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  text-decoration: none;
+  border-radius: var(--teacher-radius-sm);
+  transition: background 150ms ease, color 150ms ease;
+}
+.teacher-header__back:hover,
+.teacher-header__back:focus {
+  background: rgba(78, 205, 196, 0.1);
+  color: var(--accent-dark);
+  text-decoration: none;
+}
+.teacher-header__back svg {
+  flex-shrink: 0;
+}
+.teacher-header__divider {
+  width: 1px;
+  height: 28px;
+  background: var(--teacher-border);
+  flex-shrink: 0;
+}
 .teacher-header__logout {
   background: none;
   border: 1.5px solid var(--teacher-border);

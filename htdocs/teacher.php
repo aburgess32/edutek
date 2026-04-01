@@ -14,6 +14,7 @@ requireTeacher();
 $user = getCurrentUser();
 $displayName = htmlspecialchars($user['display_name'] ?? 'Teacher');
 $initials = mb_strtoupper(mb_substr($displayName, 0, 1));
+$teacherId = (int)($user['id'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,9 +22,11 @@ $initials = mb_strtoupper(mb_substr($displayName, 0, 1));
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Hub – EduPak</title>
+  <meta name="csrf-token" content="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
   <link rel="stylesheet" href="/css/teacher.css">
+  <link rel="stylesheet" href="/css/playlist.css">
 </head>
-<body class="teacher-page">
+<body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>">
 
   <!-- Header -->
   <header class="teacher-header">
@@ -63,21 +66,17 @@ $initials = mb_strtoupper(mb_substr($displayName, 0, 1));
       </div>
     </section>
 
-    <!-- Playlists Tab (placeholder for Phase 4) -->
+    <!-- Playlists Tab -->
     <section id="playlists" class="tab-panel" role="tabpanel">
-      <div class="placeholder-content">
-        <div class="placeholder-content__icon">&#x1F4DA;</div>
-        <div class="placeholder-content__text">Playlists</div>
-        <div class="placeholder-content__sub">Coming soon — create and manage lesson plans.</div>
+      <div id="playlists-content">
+        <!-- Populated by lesson-builder.js -->
       </div>
     </section>
 
-    <!-- Profile Tab (placeholder for Phase 4) -->
+    <!-- Profile Tab -->
     <section id="profile" class="tab-panel" role="tabpanel">
-      <div class="placeholder-content">
-        <div class="placeholder-content__icon">&#x1F464;</div>
-        <div class="placeholder-content__text">Profile</div>
-        <div class="placeholder-content__sub">Coming soon — manage your account settings.</div>
+      <div id="profile-root">
+        <!-- Populated by teacher-profile.js -->
       </div>
     </section>
 
@@ -87,7 +86,7 @@ $initials = mb_strtoupper(mb_substr($displayName, 0, 1));
   (function() {
     var tabs = document.querySelectorAll('.teacher-tabs__btn');
     var panels = document.querySelectorAll('.tab-panel');
-    var dashLoaded = false;
+    var initialized = {};
 
     function activateTab(tabName) {
       tabs.forEach(function(btn) {
@@ -98,15 +97,31 @@ $initials = mb_strtoupper(mb_substr($displayName, 0, 1));
       panels.forEach(function(panel) {
         panel.classList.toggle('tab-panel--active', panel.id === tabName);
       });
-      if (tabName === 'dashboard' && !dashLoaded) {
-        dashLoaded = true;
-        loadDashboard();
+
+      // Initialize tab content on first activation
+      if (!initialized[tabName]) {
+        initialized[tabName] = true;
+        initTab(tabName);
       }
     }
 
-    function loadDashboard() {
-      if (typeof window.TeacherDashboard !== 'undefined') {
-        window.TeacherDashboard.init(document.getElementById('dashboard-root'));
+    function initTab(tabName) {
+      switch (tabName) {
+        case 'dashboard':
+          if (typeof window.TeacherDashboard !== 'undefined') {
+            window.TeacherDashboard.init(document.getElementById('dashboard-root'));
+          }
+          break;
+        case 'playlists':
+          if (typeof window.LessonBuilder !== 'undefined') {
+            window.LessonBuilder.renderListView();
+          }
+          break;
+        case 'profile':
+          if (typeof window.TeacherProfile !== 'undefined') {
+            window.TeacherProfile.init(document.getElementById('profile-root'));
+          }
+          break;
       }
     }
 
@@ -124,11 +139,13 @@ $initials = mb_strtoupper(mb_substr($displayName, 0, 1));
     if (hash && document.getElementById(hash)) {
       activateTab(hash);
     } else {
-      // Default: dashboard
       activateTab('dashboard');
     }
   })();
   </script>
   <script src="/js/teacher-dashboard.js"></script>
+  <script src="/js/lesson-builder.js"></script>
+  <script src="/js/lesson-publish.js"></script>
+  <script src="/js/teacher-profile.js"></script>
 </body>
 </html>

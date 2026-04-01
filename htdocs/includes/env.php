@@ -30,6 +30,24 @@
  */
 
 declare(strict_types=1);
+// PHP 7.4 polyfills for PHP 8.0 string functions
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool {
+        return strncmp($haystack, $needle, strlen($needle)) === 0;
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool {
+        if ($needle === '') return true;
+        return substr($haystack, -strlen($needle)) === $needle;
+    }
+}
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool {
+        return strpos($haystack, $needle) !== false;
+    }
+}
+
 
 /**
  * Parse and load a .env file into $_ENV, $_SERVER, and putenv().
@@ -153,13 +171,12 @@ function env(string $key, mixed $default = null, bool $cast = true): mixed
     }
 
     if ($cast) {
-        return match (strtolower((string) $value)) {
-            'true',  '(true)'  => true,
-            'false', '(false)' => false,
-            'null',  '(null)'  => null,
-            'empty', '(empty)' => '',
-            default            => $value,
-        };
+        $lower = strtolower((string) $value);
+        if ($lower === 'true' || $lower === '(true)') return true;
+        if ($lower === 'false' || $lower === '(false)') return false;
+        if ($lower === 'null' || $lower === '(null)') return null;
+        if ($lower === 'empty' || $lower === '(empty)') return '';
+        return $value;
     }
 
     return $value;

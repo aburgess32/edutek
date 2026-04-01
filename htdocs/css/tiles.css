@@ -105,7 +105,7 @@
     overflow: hidden;
     text-decoration: none;
     color: var(--color-text-light);
-    min-height: 180px;
+    min-height: 240px;
     -webkit-box-flex: 1;
     -webkit-flex: 1 1 calc(50% - var(--tile-gap));
     flex: 1 1 calc(50% - var(--tile-gap));
@@ -131,7 +131,7 @@
     -webkit-justify-content: flex-end;
     justify-content: flex-end;
     padding: 20px;
-    min-height: 180px;
+    min-height: 240px;
     position: relative;
     z-index: 1;
 }
@@ -146,18 +146,13 @@
     font-size: 20px;
     font-weight: 700;
     margin: 0 0 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .seg-tile-desc {
     font-size: 14px;
-    opacity: 0.85;
+    opacity: 0.9;
     margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.4;
 }
 
 .seg-tile-subtitle {
@@ -219,7 +214,7 @@
     display: block;
 }
 
-/* Dark overlay on image tiles for text readability */
+/* Subtle overlay on image tiles — lets the scene show through */
 .seg-tile--has-image::after {
     content: '';
     position: absolute;
@@ -227,7 +222,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 100%);
+    background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0) 60%);
     z-index: 0;
     pointer-events: none;
 }
@@ -235,12 +230,13 @@
 .seg-tile--has-image .seg-tile-inner {
     z-index: 1;
     position: relative;
-    min-height: 200px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    min-height: 240px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.7);
 }
 
 .seg-tile--has-image .seg-tile-label {
-    font-size: 22px;
+    font-size: 24px;
+    font-weight: 800;
     letter-spacing: 0.01em;
 }
 
@@ -852,7 +848,7 @@
     }
 }
 
-/* Larger tablet (900-1199px) — 4 col segments, 4 col topics */
+/* Larger tablet (900-1199px) — 3 col segments, 4 col topics */
 @media (min-width: 900px) {
     .seg-grid {
         max-width: 1200px;
@@ -860,14 +856,14 @@
     }
 
     .seg-tile {
-        -webkit-flex: 1 1 calc(25% - var(--tile-gap));
-        flex: 1 1 calc(25% - var(--tile-gap));
-        max-width: calc(25% - var(--tile-gap) * 3 / 4);
-        min-height: 200px;
+        -webkit-flex: 1 1 calc(33.333% - var(--tile-gap));
+        flex: 1 1 calc(33.333% - var(--tile-gap));
+        max-width: calc(33.333% - var(--tile-gap) * 2 / 3);
+        min-height: 280px;
     }
 
     .seg-tile-inner {
-        min-height: 200px;
+        min-height: 280px;
     }
 
     .topic-grid {
@@ -898,21 +894,21 @@
     }
 }
 
-/* Desktop/projector (1200px+) — 5 col segments, 5 col topics */
+/* Desktop/projector (1200px+) — 3 col segments, 5 col topics */
 @media (min-width: 1200px) {
     .seg-tile {
-        -webkit-flex: 1 1 calc(20% - var(--tile-gap));
-        flex: 1 1 calc(20% - var(--tile-gap));
-        max-width: calc(20% - var(--tile-gap) * 4 / 5);
-        min-height: 220px;
+        -webkit-flex: 1 1 calc(33.333% - var(--tile-gap));
+        flex: 1 1 calc(33.333% - var(--tile-gap));
+        max-width: calc(33.333% - var(--tile-gap) * 2 / 3);
+        min-height: 300px;
     }
 
     .seg-tile-inner {
-        min-height: 220px;
+        min-height: 300px;
     }
 
     .seg-tile--has-image .seg-tile-label {
-        font-size: 24px;
+        font-size: 26px;
     }
 
     .topic-tile {

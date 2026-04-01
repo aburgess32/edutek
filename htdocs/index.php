@@ -76,6 +76,12 @@
                 $cwFolderName = basename(dirname($cwContentId));
                 $cwFileName   = basename($cwContentId);
 
+                // Parse full path: videos/{Category}/{Subcategory}/{video.mp4}
+                $cwParts       = explode('/', $cwContentId);
+                $cwCategoryRaw = $cwParts[1] ?? $cwFolderName;
+                $cwSubcatRaw   = $cwParts[2] ?? $cwFolderName;
+                $cwVideoName   = pathinfo($cwParts[3] ?? $cwFileName, PATHINFO_FILENAME);
+
                 $cwEncLink  = tileEncrypt($cwFolderPath);
                 $cwEncName  = tileEncrypt($cwFolderName);
                 $cwEncLink1 = tileEncrypt($cwContentId);
@@ -86,11 +92,10 @@
                         . '&' . $cwKeyVideolink1 . '=' . $cwEncLink1
                         . '&' . $cwKeyVideoname1 . '=' . $cwEncName1;
 
-                // Strip file extension from display title
-                $cwRawTitle = $cwItem['content_title'] ?: $cwFileName;
-                $cwDisplayTitle = htmlspecialchars(preg_replace('/\.(mp4|mov|wmv|flv|f4v|avi|webm|mkv)$/i', '', $cwRawTitle), ENT_QUOTES, 'UTF-8');
-                // Category = the folder name (subcategory or topic)
-                $cwCategory = htmlspecialchars($cwFolderName, ENT_QUOTES, 'UTF-8');
+                // Display labels for all three hierarchy levels
+                $cwCategoryLabel = htmlspecialchars($cwCategoryRaw, ENT_QUOTES, 'UTF-8');
+                $cwSubcatLabel   = htmlspecialchars($cwSubcatRaw, ENT_QUOTES, 'UTF-8');
+                $cwDisplayTitle  = htmlspecialchars($cwVideoName, ENT_QUOTES, 'UTF-8');
                 $cwPct   = $cwItem['progress_pct'];
             ?>
             <a class="continue-card" href="<?php echo $cwHref; ?>" role="listitem"
@@ -111,7 +116,8 @@
                     <div class="continue-card__progress" style="--pct: <?php echo $cwPct; ?>%"></div>
                 </div>
                 <div class="continue-card__info">
-                    <p class="continue-card__category"><?php echo $cwCategory; ?></p>
+                    <p class="continue-card__category"><?php echo $cwCategoryLabel; ?></p>
+                    <p class="continue-card__subcategory"><?php echo $cwSubcatLabel; ?></p>
                     <p class="continue-card__title"><?php echo $cwDisplayTitle; ?></p>
                 </div>
             </a>

@@ -278,6 +278,16 @@
     text-overflow: ellipsis;
 }
 
+.continue-card__subcategory {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #666);
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .continue-card__title {
     font-size: 0.8rem;
     font-weight: 500;

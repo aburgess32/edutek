@@ -49,12 +49,12 @@
       '</div>' +
       '<div class="mini-dash-section">' +
         '<div class="mini-dash-section-title">Recent Videos</div>' +
-        '<div class="mini-dash-placeholder">No videos watched yet</div>' +
+        '<div id="mini-dash-recent" class="mini-dash-placeholder">Loading&hellip;</div>' +
       '</div>' +
       '<div class="mini-dash-section" style="padding-top:4px;">' +
         '<div class="mini-dash-section-title">Screen Time</div>' +
-        '<div class="mini-dash-bar-label">Today: -- min</div>' +
-        '<div class="mini-dash-bar-track"><div class="mini-dash-bar-fill" style="width:0%;background:' + avatarColor + ';"></div></div>' +
+        '<div class="mini-dash-bar-label" id="mini-dash-screen-time">Total: -- min</div>' +
+        '<div class="mini-dash-bar-track"><div class="mini-dash-bar-fill" id="mini-dash-bar-fill" style="width:0%;background:' + avatarColor + ';"></div></div>' +
       '</div>' +
       '<div class="mini-dash-footer">' +
         '<a href="/logout.php" class="mini-dash-switch" style="text-decoration:none;display:block;text-align:center;">Switch User</a>' +
@@ -68,6 +68,8 @@
         closeMiniDash();
       }
     });
+
+    loadRecentVideos(avatarColor);
   }
 
   function toggleMiniDash() {
@@ -198,6 +200,79 @@
       wrap.classList.add('hidden');
     };
     input.focus();
+  }
+
+  function loadRecentVideos(color) {
+    fetch('/api/recent_videos.php')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var container = document.getElementById('mini-dash-recent');
+        if (!container) return;
+
+        var videos = data.videos || [];
+        if (videos.length === 0) {
+          container.innerHTML = 'No videos watched yet';
+          return;
+        }
+
+        container.className = 'mini-dash-video-list';
+        var html = '';
+        for (var i = 0; i < videos.length; i++) {
+          var v = videos[i];
+          var parts = parseContentId(v.content_id);
+          var title = v.content_title || parts.video;
+          // Strip file extension from title
+          title = title.replace(/\.(mp4|mov|wmv|flv|f4v|avi|webm|mkv)$/i, '');
+          var breadcrumb = escapeHtml(parts.category) + ' &rsaquo; ' + escapeHtml(parts.subcategory);
+
+          html += '<a class="mini-dash-video-item" href="/' + escapeHtml(v.url) + '">' +
+            '<div class="mini-dash-video-info">' +
+              '<div class="mini-dash-video-title">' + escapeHtml(title) + '</div>' +
+              '<div class="mini-dash-video-breadcrumb">' + breadcrumb + '</div>' +
+            '</div>' +
+            '<div class="mini-dash-video-progress-track">' +
+              '<div class="mini-dash-video-progress-fill" style="width:' + v.progress_pct + '%;background:' + color + ';"></div>' +
+            '</div>' +
+          '</a>';
+        }
+        container.innerHTML = html;
+
+        // Screen time
+        var seconds = data.screen_time_seconds || 0;
+        var label = document.getElementById('mini-dash-screen-time');
+        var fill = document.getElementById('mini-dash-bar-fill');
+        if (label) {
+          label.textContent = 'Total: ' + formatScreenTime(seconds);
+        }
+        if (fill) {
+          // Cap bar at 100% (60 min = full bar as a reference)
+          var pct = Math.min(100, Math.round((seconds / 3600) * 100));
+          fill.style.width = pct + '%';
+        }
+      })
+      .catch(function() {
+        var container = document.getElementById('mini-dash-recent');
+        if (container) container.innerHTML = 'No videos watched yet';
+      });
+  }
+
+  function parseContentId(contentId) {
+    // Format: videos/Category/Subcategory/filename.mp4
+    var parts = (contentId || '').split('/');
+    return {
+      category: parts[1] || '',
+      subcategory: parts[2] || '',
+      video: (parts[3] || '').replace(/\.[^.]+$/, '')
+    };
+  }
+
+  function formatScreenTime(seconds) {
+    if (seconds < 60) return seconds + ' sec';
+    var mins = Math.round(seconds / 60);
+    if (mins < 60) return mins + ' min';
+    var hrs = Math.floor(mins / 60);
+    var rem = mins % 60;
+    return hrs + 'h ' + rem + 'm';
   }
 
   function escapeHtml(str) {

@@ -5,7 +5,7 @@
  * Sets guest session and redirects to homepage.
  */
 
-declare(strict_types=1);
+
 
 include_once __DIR__ . '/includes/auth.php';
 

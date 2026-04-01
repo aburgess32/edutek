@@ -1057,3 +1057,124 @@
 
 /* Teacher form pages */
 .teacher-form-container { max-width: 400px; margin: 0 auto; padding: 24px 20px; }
+
+/* ========== LOGIN WELCOME PAGE (login.php) ========== */
+.login-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.login-logo {
+  margin-bottom: 24px;
+}
+
+.login-logo img {
+  width: 120px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 16px;
+}
+
+.login-heading {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 4px;
+}
+
+.login-sub {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 32px;
+}
+
+.login-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #1a1a2e;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-align: left;
+  min-height: 56px;
+}
+
+.login-option:active {
+  transform: scale(0.97);
+}
+
+.login-option:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.login-option i {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.login-option--primary {
+  background: linear-gradient(135deg, #00BCD4, #0097A7);
+  color: #fff;
+}
+
+.login-option--primary i {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.login-option--secondary i {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.login-option--teacher i {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.login-option--guest {
+  background: transparent;
+  box-shadow: none;
+  border: 1px dashed #ccc;
+  opacity: 0.7;
+}
+
+.login-option--guest i {
+  background: #F5F5F5;
+  color: #999;
+}
+
+.login-option-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.login-option-desc {
+  display: block;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.login-option--primary .login-option-desc {
+  opacity: 0.85;
+}

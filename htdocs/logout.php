@@ -5,7 +5,7 @@
  * Destroys the session, clears the cookie, redirects to login.
  */
 
-declare(strict_types=1);
+
 
 // Start session if not already
 if (session_status() === PHP_SESSION_NONE) {

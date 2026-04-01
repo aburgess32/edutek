@@ -6,7 +6,7 @@
  * Clicking a card shows a confirmation overlay, then logs in.
  */
 
-declare(strict_types=1);
+
 
 include_once __DIR__ . '/includes/auth.php';
 

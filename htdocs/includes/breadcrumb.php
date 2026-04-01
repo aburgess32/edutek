@@ -90,7 +90,14 @@ function findSegTopicByContent(array $segments, string $contentHint): ?array
             $cp = $topic['content_path'] ?? '';
             $cp = preg_replace('#^videos/#i', '', $cp);
             $cp = rtrim($cp, '/');
-            if ($cp !== '' && strcasecmp($cp, $needle) === 0) {
+            if ($cp === '') {
+                continue;
+            }
+            // Exact match OR needle starts with content_path (subfolder)
+            // e.g. content_path = "Primary Multiplication"
+            //      needle       = "Primary Multiplication/Multiplication Flash Cards"
+            if (strcasecmp($cp, $needle) === 0 ||
+                stripos($needle, $cp . '/') === 0) {
                 return [
                     'segKey'    => $segKey,
                     'topicSlug' => $topic['slug'] ?? '',

@@ -48,8 +48,9 @@
     transition: transform 0.2s;
 }
 
-/* Expanded state: rotate chevron to point down */
-.bc:not(.bc--collapsed) .bc__toggle-icon {
+/* Expanded state: chevron points right (default, no rotation) */
+/* Collapsed state: rotate chevron to point down */
+.bc--collapsed .bc__toggle-icon {
     transform: rotate(90deg);
 }
 

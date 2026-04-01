@@ -29,7 +29,7 @@
  * @version 1.0.0
  */
 
-declare(strict_types=1);
+// strict_types removed for PHP 7.4 compatibility
 // PHP 7.4 polyfills for PHP 8.0 string functions
 if (!function_exists('str_starts_with')) {
     function str_starts_with(string $haystack, string $needle): bool {
@@ -157,7 +157,7 @@ function parse_env_value(string $raw): string
  * @param  bool   $cast    Whether to cast 'true'/'false'/'null' strings.
  * @return mixed
  */
-function env(string $key, mixed $default = null, bool $cast = true): mixed
+function env(string $key, $default = null, bool $cast = true)
 {
     // Check $_ENV first (most reliable after load_env())
     if (array_key_exists($key, $_ENV)) {

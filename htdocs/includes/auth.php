@@ -10,27 +10,11 @@
  * @version 1.0.0
  */
 
-declare(strict_types=1);
+// Note: strict_types removed — this file is included from other files
 
-require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/security.php';
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Session Configuration
-// ──────────────────────────────────────────────────────────────────────────────
-
-if (session_status() === PHP_SESSION_NONE) {
-    $lifetime = 7 * 24 * 60 * 60; // 7 days
-    session_set_cookie_params([
-        'lifetime' => $lifetime,
-        'path'     => '/',
-        'secure'   => false, // XAMPP runs over HTTP
-        'httponly'  => true,
-        'samesite'  => 'Lax',
-    ]);
-    ini_set('session.gc_maxlifetime', (string) $lifetime);
-    session_start();
-}
+// Session is started by security.php — no need to start again
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PDO Database Connection

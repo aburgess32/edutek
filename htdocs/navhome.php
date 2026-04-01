@@ -36,13 +36,12 @@ function myFunction() {
 }
 </script>	
 </head>
-
+<?php include_once __DIR__ . '/includes/auth.php'; ?>
 <body class="fixed-nav sticky-footer" id="page-top"
   data-user-role="<?php echo htmlspecialchars($_SESSION['role'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
   data-avatar-name="<?php echo htmlspecialchars($_SESSION['avatar_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
   data-avatar-color="<?php echo htmlspecialchars($_SESSION['avatar_color'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
   data-real-name="<?php echo htmlspecialchars($_SESSION['display_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-<?php include_once __DIR__ . '/includes/auth.php'; ?>
 
 	<!-- Navbar-->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">

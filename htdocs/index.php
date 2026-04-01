@@ -1,10 +1,12 @@
+<?php
+    include_once "includes/auth.php";
+    include_once "includes/tiles.php";
+?>
   <link href="css/index.css" rel="stylesheet">
   <link href="css/tiles.css" rel="stylesheet">
   <link href="css/login.css" rel="stylesheet">
 <?php
     include_once "navhome.php";
-    include_once "includes/auth.php";
-    include_once "includes/tiles.php";
 
     $hostname = htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'localhost', ENT_QUOTES, 'UTF-8');
     $segments = getSegments();

@@ -3,13 +3,12 @@
  * FRE-12: Breadcrumb HTML template
  *
  * Expects $crumbs array from buildBreadcrumb().
- * Renders a fixed-bottom nav with toggle button.
- * No bar/background — floating text with chevron arrow separators.
+ * Renders a fixed-bottom nav with toggle button + mode cycle icon.
+ * Always renders the nav (toggle + mode icon) even with empty crumbs,
+ * so the layout mode toggle is accessible from every page.
  */
-if (empty($crumbs)) {
-    return;
-}
-$crumbCount = count($crumbs);
+$crumbCount = is_array($crumbs ?? null) ? count($crumbs) : 0;
+$hasCrumbs = $crumbCount > 0;
 ?>
 <nav class="bc" aria-label="You are here" style="pointer-events:none">
   <!-- Mode cycle button — hidden when bc is collapsed -->
@@ -33,6 +32,7 @@ $crumbCount = count($crumbs);
       <path d="M6 4l4 4-4 4"/>
     </svg>
   </button>
+  <?php if ($hasCrumbs): ?>
   <ol class="bc__list">
     <?php foreach ($crumbs as $i => $crumb):
         $isLast = ($i === $crumbCount - 1);
@@ -67,6 +67,7 @@ $crumbCount = count($crumbs);
       </li>
     <?php endforeach; ?>
   </ol>
+  <?php endif; ?>
 </nav>
 <script>
 try{if(localStorage.getItem('bc-collapsed')==='1'){var n=document.querySelector('.bc');if(n){n.classList.add('bc--collapsed');var t=n.querySelector('.bc__toggle');if(t)t.setAttribute('aria-expanded','false');}}}catch(e){}

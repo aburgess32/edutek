@@ -49,7 +49,7 @@ $teacherId = (int)($user['id'] ?? 0);
             data-tab="dashboard">Dashboard</button>
     <button class="teacher-tabs__btn"
             role="tab" aria-selected="false" aria-controls="playlists"
-            data-tab="playlists">Playlists</button>
+            data-tab="playlists">Lesson Plans</button>
     <button class="teacher-tabs__btn"
             role="tab" aria-selected="false" aria-controls="profile"
             data-tab="profile">Profile</button>

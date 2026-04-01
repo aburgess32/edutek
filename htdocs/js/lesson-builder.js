@@ -127,23 +127,23 @@
 
             // Header with New Playlist button
             var header = el('div', { className: 'lb-list-header' }, [
-                el('h2', { className: 'lb-title' }, 'Playlists'),
+                el('h2', { className: 'lb-title' }, 'Lesson Plans'),
                 el('button', {
                     className: 'lb-btn lb-btn-primary',
                     onClick: function () { openBuilder('new'); }
-                }, '+ New Playlist')
+                }, '+ New Lesson Plan')
             ]);
             container.appendChild(header);
 
             if (!plans || plans.length === 0) {
                 container.appendChild(el('div', { className: 'lb-empty-state' }, [
                     el('div', { className: 'lb-empty-icon', innerHTML: '&#128218;' }),
-                    el('h3', null, 'No Playlists Yet'),
-                    el('p', null, 'Create your first playlist to organize content for your students.'),
+                    el('h3', null, 'No Lesson Plans Yet'),
+                    el('p', null, 'Create your first lesson plan to organize content for your students.'),
                     el('button', {
                         className: 'lb-btn lb-btn-primary lb-btn-lg',
                         onClick: function () { openBuilder('new'); }
-                    }, 'Create Your First Playlist')
+                    }, 'Create Your First Lesson Plan')
                 ]));
                 return;
             }
@@ -173,7 +173,7 @@
             });
             container.appendChild(grid);
         }).catch(function () {
-            container.innerHTML = '<div class="lb-error">Failed to load playlists. Please try again.</div>';
+            container.innerHTML = '<div class="lb-error">Failed to load lesson plans. Please try again.</div>';
         });
     }
 
@@ -194,7 +194,7 @@
             state.currentPlan = plan;
             renderDetailView();
         }).catch(function () {
-            container.innerHTML = '<div class="lb-error">Failed to load playlist details.</div>';
+            container.innerHTML = '<div class="lb-error">Failed to load lesson plan details.</div>';
         });
     }
 
@@ -208,7 +208,7 @@
         container.appendChild(el('button', {
             className: 'lb-btn lb-btn-text lb-back-btn',
             onClick: renderListView
-        }, '\u2190 Back to Playlists'));
+        }, '\u2190 Back to Lesson Plans'));
 
         // Title (editable inline)
         var titleRow = el('div', { className: 'lb-detail-header' });
@@ -256,7 +256,7 @@
             el('button', {
                 className: 'lb-btn lb-btn-danger',
                 onClick: function () { confirmDeletePlan(plan.id); }
-            }, 'Delete Playlist')
+            }, 'Delete Lesson Plan')
         ]);
         container.appendChild(actions);
 
@@ -278,7 +278,7 @@
         var items = plan.content_ids || [];
         if (items.length === 0) {
             container.appendChild(el('div', { className: 'lb-empty-items' }, [
-                el('p', null, 'This playlist is empty.'),
+                el('p', null, 'This lesson plan is empty.'),
                 el('button', {
                     className: 'lb-btn lb-btn-primary',
                     onClick: function () { openBuilder('add'); }
@@ -360,8 +360,8 @@
     function confirmDeletePlan(planId) {
         var overlay = el('div', { className: 'lb-modal-overlay' });
         var modal = el('div', { className: 'lb-modal' }, [
-            el('h3', null, 'Delete Playlist?'),
-            el('p', null, 'This will permanently delete this playlist. This action cannot be undone.'),
+            el('h3', null, 'Delete Lesson Plan?'),
+            el('p', null, 'This will permanently delete this lesson plan. This action cannot be undone.'),
             el('div', { className: 'lb-modal-actions' }, [
                 el('button', {
                     className: 'lb-btn lb-btn-secondary',
@@ -478,7 +478,7 @@
         }, '\u2190 Back'));
 
         container.appendChild(el('h2', { className: 'lb-title' },
-            state.builderMode === 'new' ? 'Create New Playlist' : 'Add Content to Playlist'));
+            state.builderMode === 'new' ? 'Create New Lesson Plan' : 'Add Content to Lesson Plan'));
 
         // Search input
         var searchWrap = el('div', { className: 'lb-search-wrap' });
@@ -593,7 +593,7 @@
             card.appendChild(info);
 
             if (isInPlan) {
-                card.appendChild(el('span', { className: 'lb-in-plan-label' }, 'Already in playlist'));
+                card.appendChild(el('span', { className: 'lb-in-plan-label' }, 'Already in lesson plan'));
             }
 
             // Click card (not checkbox) → expand preview
@@ -675,7 +675,7 @@
                 ? state.currentPlan.content_ids.length : 0;
             var totalAfter = currentCount + state.selectedItems.length + 1;
             if (totalAfter > 50) {
-                alert('Maximum 50 items per playlist.');
+                alert('Maximum 50 items per lesson plan.');
                 return;
             }
             if (totalAfter >= 45) {
@@ -744,7 +744,7 @@
         });
         bar.appendChild(chips);
 
-        var btnLabel = state.builderMode === 'new' ? 'Save as Playlist' : 'Add to Playlist';
+        var btnLabel = state.builderMode === 'new' ? 'Save as Lesson Plan' : 'Add to Lesson Plan';
         bar.appendChild(el('button', {
             className: 'lb-btn lb-btn-primary lb-selection-save',
             onClick: function () {
@@ -765,14 +765,14 @@
         var nameInput = el('input', {
             className: 'lb-modal-input',
             type: 'text',
-            placeholder: 'Playlist name\u2026',
+            placeholder: 'Lesson plan name\u2026',
             maxlength: '255',
             autofocus: 'true'
         });
         var errorEl = el('div', { className: 'lb-modal-error' });
 
         var modal = el('div', { className: 'lb-modal' }, [
-            el('h3', null, 'Name Your Playlist'),
+            el('h3', null, 'Name Your Lesson Plan'),
             el('p', null, state.selectedItems.length + ' item' + (state.selectedItems.length !== 1 ? 's' : '') + ' selected'),
             nameInput,
             errorEl,
@@ -786,7 +786,7 @@
                     onClick: function () {
                         var title = nameInput.value.trim();
                         if (!title) {
-                            errorEl.textContent = 'Please enter a name for the playlist.';
+                            errorEl.textContent = 'Please enter a name for the lesson plan.';
                             return;
                         }
                         saveNewPlan(title, overlay);
@@ -812,11 +812,11 @@
             if (res.ok) {
                 renderListView();
             } else {
-                alert(res.error || 'Failed to create playlist');
+                alert(res.error || 'Failed to create lesson plan');
             }
         }).catch(function () {
             overlay.remove();
-            alert('Failed to create playlist. Please try again.');
+            alert('Failed to create lesson plan. Please try again.');
         });
     }
 
@@ -831,7 +831,7 @@
         var merged = existing.concat(newItems);
 
         if (merged.length > 50) {
-            alert('Cannot add items: playlist would exceed 50 item limit.');
+            alert('Cannot add items: lesson plan would exceed 50 item limit.');
             return;
         }
 

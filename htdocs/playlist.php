@@ -52,8 +52,8 @@ if (!$plan) {
 <div class="tiles-page">
     <div class="playlist-404">
         <div class="playlist-404__icon">📭</div>
-        <h1 class="playlist-404__title">Playlist Not Found</h1>
-        <p class="playlist-404__text">This playlist may have been removed or is no longer published.</p>
+        <h1 class="playlist-404__title">Lesson Plan Not Found</h1>
+        <p class="playlist-404__text">This lesson plan may have been removed or is no longer published.</p>
         <a href="index.php" class="playlist-404__btn">Back to Home</a>
     </div>
 </div>
@@ -137,7 +137,7 @@ $teacherName = htmlspecialchars($plan['teacher_name'] ?? 'Teacher', ENT_QUOTES, 
     <!-- Content Items -->
     <?php if (empty($contentIds)): ?>
     <div class="tiles-empty">
-        <p class="tiles-empty-text">This playlist has no content items.</p>
+        <p class="tiles-empty-text">This lesson plan has no content items.</p>
     </div>
     <?php else: ?>
     <div class="playlist-items">

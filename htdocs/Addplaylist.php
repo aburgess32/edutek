@@ -27,7 +27,7 @@
                             <div class="input-group-addon">
                                 <span class="fa fa-circle"></span>
                             </div>
-                            <input type="text" name="p_name" class="form-control" placeholder="Playlist Name">
+                            <input type="text" name="p_name" class="form-control" placeholder="Lesson Plan Name">
                         </div>
                     </div>
                 </div>

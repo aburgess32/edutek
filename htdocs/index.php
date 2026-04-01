@@ -63,9 +63,7 @@
             <div class="seg-tile-inner">
                 <p class="seg-tile-label"><?php echo $label; ?></p>
                 <p class="seg-tile-desc"><?php echo $desc; ?></p>
-                <?php if ($segKey === 'knowledge_power'): ?>
-                <p class="seg-tile-subtitle">Curated by your teacher</p>
-                <?php endif; ?>
+
             </div>
         </a>
         <?php endforeach; ?>

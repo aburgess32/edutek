@@ -167,10 +167,16 @@ function buildBreadcrumb(array $params, ?string $videoTitle = null, bool $isCont
         if ($topic !== '') {
             $topicData = findTopicBySlug($segTopics, $topic);
             if ($topicData !== null) {
+                // Build the proper topic link (encrypted tutorials.php for video topics, etc.)
+                $topicHref = null;
+                if ($isContentPage) {
+                    $hostname = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                    $topicHref = buildTopicHref($topicData, $hostname, $seg, $topic);
+                }
                 $crumbs[] = [
                     'label' => $topicData['label'] ?? $topic,
                     'color' => $topicData['color'] ?? $segData['color'] ?? null,
-                    'href'  => $isContentPage ? 'browse.php?seg=' . urlencode($seg) . '&topic=' . urlencode($topic) : null,
+                    'href'  => $topicHref,
                 ];
             }
         }

@@ -132,7 +132,10 @@ function getTileConfig(): array
 }
 
 /**
- * Get all segments sorted by sort_order.
+ * Get all segments sorted by sort_order, with published lesson plans injected.
+ *
+ * Published plans (lesson_plans with non-empty published_segments JSON)
+ * appear as playlist-type topics in their target segments.
  *
  * @return array Associative array of segment_key => segment_data.
  */
@@ -144,6 +147,53 @@ function getSegments(): array
     uasort($segments, function ($a, $b) {
         return ($a['sort_order'] ?? 99) - ($b['sort_order'] ?? 99);
     });
+
+    // Inject published lesson plans into their target segments
+    try {
+        $pdo = getDbConnection();
+        $publishedPlans = $pdo->query("
+            SELECT id, title, icon, color, content_ids, published_segments, sort_order
+            FROM lesson_plans
+            WHERE published_segments IS NOT NULL
+              AND JSON_LENGTH(published_segments) > 0
+            ORDER BY sort_order ASC
+        ")->fetchAll(\PDO::FETCH_ASSOC);
+    } catch (\PDOException $e) {
+        $publishedPlans = []; // graceful degradation pre-migration
+    }
+
+    $segPlanCount = [];
+    foreach ($publishedPlans as $plan) {
+        $segKeys = json_decode($plan['published_segments'], true) ?: [];
+        $items = json_decode($plan['content_ids'], true) ?: [];
+        if (count($items) === 0) {
+            continue;
+        }
+
+        foreach ($segKeys as $segKey) {
+            if (!isset($segments[$segKey])) {
+                continue;
+            }
+            // Cap at 30 published plans per segment on home page
+            if (!isset($segPlanCount[$segKey])) {
+                $segPlanCount[$segKey] = 0;
+            }
+            if ($segPlanCount[$segKey] >= 30) {
+                continue;
+            }
+            $segPlanCount[$segKey]++;
+            $segments[$segKey]['topics'][] = [
+                'slug'         => 'playlist-' . $plan['id'],
+                'label'        => $plan['title'],
+                'icon'         => $plan['icon'] ?? '📚',
+                'color'        => $plan['color'] ?? '#4ECDC4',
+                'type'         => 'playlist',
+                'content_path' => null,
+                'href'         => 'playlist.php?plan=' . $plan['id'],
+                'item_count'   => count($items),
+            ];
+        }
+    }
 
     return $segments;
 }

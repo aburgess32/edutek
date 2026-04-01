@@ -23,6 +23,40 @@ require_once __DIR__ . '/security.php';
 // Session is started by security.php — no need to start again
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Session Timeout (FRE-13)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Session timeout in seconds — 8 hours for teacher sessions */
+define('SESSION_TIMEOUT', 8 * 3600);
+
+if (!empty($_SESSION['user_id']) && !empty($_SESSION['last_activity'])) {
+    if ((time() - $_SESSION['last_activity']) > SESSION_TIMEOUT) {
+        // Session expired — destroy and redirect
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
+            );
+        }
+        session_destroy();
+        header('Location: /login.php?expired=1');
+        exit;
+    }
+}
+
+// Update last activity timestamp on every authenticated request
+if (!empty($_SESSION['user_id'])) {
+    $_SESSION['last_activity'] = time();
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Layout Mode
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -177,12 +211,13 @@ function loginUser(int $userId, string $displayName, string $avatarName, string 
 {
     session_regenerate_id(true);
 
-    $_SESSION['user_id']      = $userId;
-    $_SESSION['display_name'] = $displayName;
-    $_SESSION['avatar_name']  = $avatarName;
-    $_SESSION['avatar_color'] = $avatarColor;
-    $_SESSION['user_role']    = $role;
-    $_SESSION['age_range']    = $ageRange;
+    $_SESSION['user_id']       = $userId;
+    $_SESSION['display_name']  = $displayName;
+    $_SESSION['avatar_name']   = $avatarName;
+    $_SESSION['avatar_color']  = $avatarColor;
+    $_SESSION['user_role']     = $role;
+    $_SESSION['age_range']     = $ageRange;
+    $_SESSION['last_activity'] = time();
 }
 
 /**

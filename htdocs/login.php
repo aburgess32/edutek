@@ -40,6 +40,12 @@ if (isLoggedIn()) {
     <h1 class="login-heading">Start Learning</h1>
     <p class="login-sub">Choose how you want to begin</p>
 
+    <?php if (isset($_GET['expired'])): ?>
+    <div class="auth-error" style="margin: 0 auto 1.5rem; max-width: 400px; text-align: center;">
+        Your session expired. Please sign in again.
+    </div>
+    <?php endif; ?>
+
     <div class="login-options">
         <a href="register.php" class="login-option login-option--primary">
             <i class="fa fa-star"></i>

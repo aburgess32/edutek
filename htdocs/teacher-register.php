@@ -9,15 +9,18 @@
 
 include_once __DIR__ . '/includes/auth.php';
 
-// Already logged in? Go home
+$appConfig = require __DIR__ . '/config/app.php';
+
+// Already logged in? Go to teacher hub
 if (isLoggedIn()) {
-    header('Location: /');
+    header('Location: /teacher.php');
     exit;
 }
 
 $error = '';
 $formName  = '';
 $formEmail = '';
+$isFirst   = isset($_GET['first']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token           = filter_input(INPUT_POST, '_csrf_token', FILTER_DEFAULT) ?? '';
@@ -25,9 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formEmail       = trim(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL) ?? '');
     $password        = filter_input(INPUT_POST, 'password', FILTER_DEFAULT) ?? '';
     $passwordConfirm = filter_input(INPUT_POST, 'password_confirm', FILTER_DEFAULT) ?? '';
+    $passphrase      = filter_input(INPUT_POST, 'school_passphrase', FILTER_DEFAULT) ?? '';
 
     if (!csrf_verify($token)) {
         $error = 'Invalid form submission. Please try again.';
+    } elseif (rate_limit('teacher_register_' . $_SERVER['REMOTE_ADDR'], 5, 60)) {
+        $error = 'Too many registration attempts. Please wait a minute.';
+    } elseif ($passphrase !== $appConfig['teacher_passphrase']) {
+        $error = 'Incorrect school passphrase. Please ask your administrator.';
     } elseif (strlen($formName) < 2) {
         $error = 'Name must be at least 2 characters.';
     } elseif (!filter_var($formEmail, FILTER_VALIDATE_EMAIL)) {
@@ -49,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $userId = createTeacher($pdo, sanitize_name($formName), $formEmail, $password);
                 loginUser($userId, $formName, '', '#7C3AED', 'teacher');
                 updateLastActive($pdo, $userId);
-                header('Location: /');
+                header('Location: /teacher.php');
                 exit;
             } catch (PDOException $e) {
                 if ((int) $e->getCode() === 23000) {
@@ -80,7 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="auth-card">
         <h2 class="auth-title"><i class="fa fa-graduation-cap"></i> Teacher Registration</h2>
+        <?php if ($isFirst): ?>
+        <p class="auth-subtitle" style="color: var(--brand-green, #22c55e);">Welcome to EduPak! Create the first teacher account to get started.</p>
+        <?php else: ?>
         <p class="auth-subtitle">Create your teacher account</p>
+        <?php endif; ?>
 
         <?php if ($error): ?>
         <div class="auth-error"><?php echo $error; ?></div>
@@ -88,6 +100,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="post" action="teacher-register.php">
             <?php echo csrf_field(); ?>
+
+            <div class="auth-field">
+                <label for="school_passphrase">School Passphrase</label>
+                <input type="password" name="school_passphrase" id="school_passphrase"
+                       placeholder="Enter your school passphrase" required>
+            </div>
 
             <div class="auth-field">
                 <label for="display_name">Full Name</label>

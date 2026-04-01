@@ -103,9 +103,15 @@ function applyTestSchema(\PDO $pdo): void
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             display_name VARCHAR(100) NOT NULL,
+            email VARCHAR(255) DEFAULT NULL,
+            password_hash VARCHAR(255) DEFAULT NULL,
+            avatar_name VARCHAR(100) DEFAULT NULL,
+            avatar_color VARCHAR(20) DEFAULT NULL,
             user_type ENUM('kid', 'teen', 'adult', 'teacher') DEFAULT 'kid',
+            age_range VARCHAR(20) DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY idx_email (email)
         )
     ");
 

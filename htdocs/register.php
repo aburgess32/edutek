@@ -185,13 +185,23 @@ try {
 
             <!-- Step 4: Meet Your Avatar -->
             <div class="wizard-step" id="step-4">
-                <div class="avatar-reveal">
-                    <div class="avatar-reveal-badge" id="reveal-badge"></div>
-                    <h2 class="avatar-reveal-name" id="reveal-name"></h2>
-                    <p class="avatar-reveal-meaning" id="reveal-meaning"></p>
-                    <p class="auth-subtitle">Remember this name — it's yours!</p>
-                    <button type="submit" class="auth-btn auth-btn--primary">
-                        Start Learning <i class="fa fa-arrow-right"></i>
+                <div class="meet-screen" id="meet-screen">
+                    <div class="meet-avatar" id="meet-avatar-svg"></div>
+                    <h2 class="meet-heading">Meet your Avatar!</h2>
+                    <p class="meet-name" id="meet-name"></p>
+                    <p class="meet-real" id="meet-real"></p>
+                    <div class="meet-card">
+                        <p class="meet-card-title"><span id="meet-card-name"></span> will:</p>
+                        <ul class="meet-bullets">
+                            <li>Save your videos and progress</li>
+                            <li>Remember where you left off</li>
+                            <li>Be waiting for you next time</li>
+                        </ul>
+                        <p class="meet-no-pw">Just remember your Avatar Name — no password needed!</p>
+                    </div>
+                    <div class="meet-tag" id="meet-tag"></div>
+                    <button type="submit" class="auth-btn auth-btn--primary meet-btn" id="meet-start-btn" disabled>
+                        <span id="meet-countdown">Starting in 4...</span>
                     </button>
                 </div>
             </div>
@@ -246,18 +256,49 @@ try {
             var name    = chip.getAttribute('data-name');
             var color   = chip.getAttribute('data-color');
             var meaning = chip.getAttribute('data-meaning');
+            var realName = document.getElementById('display_name').value.trim();
 
             document.getElementById('avatar_name').value = name;
 
-            // Populate Step 4 reveal
-            var badge = document.getElementById('reveal-badge');
-            badge.textContent = name.charAt(0);
-            badge.style.background = color;
+            // Populate Step 4: Meet Your Avatar
+            var avatarSvg = document.getElementById('meet-avatar-svg');
+            if (typeof generateAvatar === 'function') {
+                avatarSvg.innerHTML = generateAvatar(name, 120, color);
+            }
 
-            document.getElementById('reveal-name').textContent = name;
-            document.getElementById('reveal-meaning').textContent = meaning ? '"' + meaning + '"' : '';
+            var meetName = document.getElementById('meet-name');
+            meetName.textContent = name;
+            meetName.style.color = color;
 
-            setTimeout(function() { showStep(4); }, 300);
+            document.getElementById('meet-real').textContent = realName;
+            document.getElementById('meet-card-name').textContent = name;
+            document.getElementById('meet-tag').textContent = 'Write it down: ' + name;
+            document.getElementById('meet-tag').style.background = color + '18';
+            document.getElementById('meet-tag').style.color = color;
+
+            // Set meet screen background tint
+            document.getElementById('meet-screen').style.background = 'linear-gradient(180deg, ' + color + '15 0%, #fff 60%)';
+
+            setTimeout(function() {
+                showStep(4);
+                // Start 4-second countdown
+                var btn = document.getElementById('meet-start-btn');
+                var countdown = document.getElementById('meet-countdown');
+                var seconds = 4;
+                btn.disabled = true;
+                countdown.textContent = 'Starting in ' + seconds + '...';
+                var timer = setInterval(function() {
+                    seconds--;
+                    if (seconds > 0) {
+                        countdown.textContent = 'Starting in ' + seconds + '...';
+                    } else {
+                        clearInterval(timer);
+                        countdown.textContent = 'Start Learning \u2192';
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    }
+                }, 1000);
+            }, 300);
         });
     });
 })();

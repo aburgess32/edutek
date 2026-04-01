@@ -184,16 +184,16 @@ foreach ($students as $s) {
             badge.textContent = name.charAt(0);
             badge.style.background = color;
 
-            overlay.classList.add('active');
+            overlay.classList.add('show');
         });
     });
 
     document.getElementById('confirm-cancel').addEventListener('click', function() {
-        overlay.classList.remove('active');
+        overlay.classList.remove('show');
     });
 
     overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) overlay.classList.remove('active');
+        if (e.target === overlay) overlay.classList.remove('show');
     });
 })();
 </script>

@@ -1324,3 +1324,9 @@
 .meet-btn:not([disabled]) {
   opacity: 1;
 }
+
+/* Find User page fixes */
+.user-card { cursor: pointer; }
+.user-card:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.user-card:active { transform: scale(0.97); }
+.user-card-grid { display: flex; flex-direction: column; gap: 10px; }

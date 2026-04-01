@@ -27,10 +27,27 @@ if (!isLoggedIn() || isGuest()) {
 
 $userId = (int) $_SESSION['user_id'];
 
+// Optional content type filter: videos (default), audiobooks, media (catch-all)
+$type = isset($_GET['type']) ? $_GET['type'] : 'videos';
+$allowedTypes = ['videos', 'audiobooks', 'media'];
+if (!in_array($type, $allowedTypes, true)) {
+    $type = 'videos';
+}
+
 try {
     $pdo = getDbConnection();
 
-    // Recent videos (all, regardless of progress)
+    // Build type filter clause
+    if ($type === 'media') {
+        // Media = anything NOT starting with videos/ or audiobooks/
+        $typeClause = "AND content_id NOT LIKE 'videos/%' AND content_id NOT LIKE 'audiobooks/%'";
+        $params = [':uid' => $userId];
+    } else {
+        $typeClause = "AND content_id LIKE :prefix";
+        $params = [':uid' => $userId, ':prefix' => $type . '/%'];
+    }
+
+    // Recent content (all, regardless of progress)
     $stmt = $pdo->prepare("
         SELECT
             content_id,
@@ -41,10 +58,11 @@ try {
         FROM watch_history
         WHERE user_id = :uid
           AND duration_seconds > 0
+          $typeClause
         ORDER BY last_watched DESC
         LIMIT 5
     ");
-    $stmt->execute([':uid' => $userId]);
+    $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Pre-compute encrypted param keys (same as index.php)
@@ -79,7 +97,7 @@ try {
         ];
     }
 
-    // Screen time: sum of (duration_seconds * progress ratio) across all history
+    // Screen time: sum across all history (not filtered by type)
     $stStmt = $pdo->prepare("
         SELECT COALESCE(SUM(
             CASE WHEN duration_seconds > 0

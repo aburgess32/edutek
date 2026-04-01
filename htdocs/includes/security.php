@@ -14,6 +14,10 @@ declare(strict_types=1);
 
 // Ensure sessions are started before using CSRF functions
 if (session_status() === PHP_SESSION_NONE) {
+    // Buffer output so session_start works even if HTML was already sent
+    if (!ob_get_level()) {
+        ob_start();
+    }
     session_start();
 }
 

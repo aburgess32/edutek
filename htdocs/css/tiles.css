@@ -99,13 +99,15 @@
 }
 
 .seg-tile {
-    display: block;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
     position: relative;
     border-radius: var(--tile-radius);
     overflow: hidden;
     text-decoration: none;
     color: var(--color-text-light);
-    min-height: 240px;
     -webkit-box-flex: 1;
     -webkit-flex: 1 1 calc(50% - var(--tile-gap));
     flex: 1 1 calc(50% - var(--tile-gap));
@@ -121,17 +123,13 @@
 }
 
 .seg-tile-inner {
-    display: -webkit-box;
     display: -webkit-flex;
     display: flex;
-    -webkit-box-orient: vertical;
     -webkit-flex-direction: column;
     flex-direction: column;
-    -webkit-box-pack: end;
-    -webkit-justify-content: flex-end;
-    justify-content: flex-end;
-    padding: 20px;
-    min-height: 240px;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 14px 16px;
     position: relative;
     z-index: 1;
 }
@@ -199,45 +197,49 @@
 
 /* Image-backed segment tiles */
 .seg-tile-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 65%;          /* ~3:2 aspect ratio */
+    overflow: hidden;
     z-index: 0;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 .seg-tile-bg img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
-/* Subtle overlay on image tiles — lets the scene show through */
+/* No overlay — let the full image show */
 .seg-tile--has-image::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0) 60%);
-    z-index: 0;
-    pointer-events: none;
+    display: none;
 }
 
+/* Text bar below the image with segment color */
 .seg-tile--has-image .seg-tile-inner {
     z-index: 1;
     position: relative;
-    min-height: 240px;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+    text-shadow: none;
+    padding: 14px 16px;
 }
 
 .seg-tile--has-image .seg-tile-label {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     letter-spacing: 0.01em;
+    margin: 0 0 2px;
+}
+
+.seg-tile--has-image .seg-tile-desc {
+    font-size: 13px;
+    opacity: 0.85;
 }
 
 /* Override light theme on image tiles — always white text */
@@ -859,11 +861,6 @@
         -webkit-flex: 1 1 calc(33.333% - var(--tile-gap));
         flex: 1 1 calc(33.333% - var(--tile-gap));
         max-width: calc(33.333% - var(--tile-gap) * 2 / 3);
-        min-height: 280px;
-    }
-
-    .seg-tile-inner {
-        min-height: 280px;
     }
 
     .topic-grid {
@@ -900,15 +897,10 @@
         -webkit-flex: 1 1 calc(33.333% - var(--tile-gap));
         flex: 1 1 calc(33.333% - var(--tile-gap));
         max-width: calc(33.333% - var(--tile-gap) * 2 / 3);
-        min-height: 300px;
-    }
-
-    .seg-tile-inner {
-        min-height: 300px;
     }
 
     .seg-tile--has-image .seg-tile-label {
-        font-size: 26px;
+        font-size: 22px;
     }
 
     .topic-tile {

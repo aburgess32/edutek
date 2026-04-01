@@ -68,21 +68,8 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.teacher-header__logout {
-  background: none;
-  border: 1.5px solid var(--teacher-border);
-  border-radius: var(--teacher-radius-sm);
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--teacher-muted);
-  cursor: pointer;
-  transition: all 150ms ease;
-  font-family: inherit;
-}
-.teacher-header__logout:hover {
-  border-color: #E63946;
-  color: #E63946;
+.teacher-menu--hub {
+  position: relative;
 }
 
 /* ========== TAB BAR ========== */

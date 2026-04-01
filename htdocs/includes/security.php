@@ -1,4 +1,4 @@
-<?php
+<?php ob_start(); // MUST be first line — legacy pages output HTML before session_start
 
 /**
  * EduPak Security Helpers
@@ -9,13 +9,6 @@
  * @package EduPak
  * @version 1.0.0
  */
-
-declare(strict_types=1);
-
-// Always buffer output — legacy pages emit HTML before session_start
-if (!ob_get_level()) {
-    ob_start();
-}
 
 // Ensure sessions are started before using CSRF functions
 if (session_status() === PHP_SESSION_NONE) {

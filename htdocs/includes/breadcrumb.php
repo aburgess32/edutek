@@ -69,6 +69,41 @@ function sanitizeBreadcrumbParam(string $input): string
 }
 
 /**
+ * Reverse-lookup: find the segment key and topic slug that own a given
+ * content path or folder name. Scans tiles.json content_path fields.
+ *
+ * @param  array  $segments  The segments array from tiles.json
+ * @param  string $contentHint  Folder name or path (e.g. "Primary Multiplication" or "videos/Primary Multiplication")
+ * @return array{segKey: string, topicSlug: string}|null
+ */
+function findSegTopicByContent(array $segments, string $contentHint): ?array
+{
+    if ($contentHint === '') {
+        return null;
+    }
+    // Normalize: strip leading "videos/" if present
+    $needle = preg_replace('#^videos/#i', '', $contentHint);
+    $needle = rtrim($needle, '/');
+
+    foreach ($segments as $segKey => $segData) {
+        foreach (($segData['topics'] ?? []) as $topic) {
+            $cp = $topic['content_path'] ?? '';
+            $cp = preg_replace('#^videos/#i', '', $cp);
+            $cp = rtrim($cp, '/');
+            if ($cp !== '' && strcasecmp($cp, $needle) === 0) {
+                return [
+                    'segKey'    => $segKey,
+                    'topicSlug' => $topic['slug'] ?? '',
+                    'segData'   => $segData,
+                    'topicData' => $topic,
+                ];
+            }
+        }
+    }
+    return null;
+}
+
+/**
  * Build the breadcrumb trail array (max 3 items).
  *
  * @param  array $params    Typically $_GET — expects 'seg', 'topic', optional video context
@@ -76,21 +111,35 @@ function sanitizeBreadcrumbParam(string $input): string
  * @param  bool  $isContentPage    Whether this is a video/content page (adds leaf crumb)
  * @return array            Array of crumb items: ['label', 'color', 'href']
  */
-function buildBreadcrumb(array $params, ?string $videoTitle = null, bool $isContentPage = false): array
+function buildBreadcrumb(array $params, ?string $videoTitle = null, bool $isContentPage = false, ?string $contentPath = null): array
 {
     $crumbs = [];
 
     $seg   = isset($params['seg'])   ? sanitizeBreadcrumbParam(trim($params['seg']))   : '';
     $topic = isset($params['topic']) ? sanitizeBreadcrumbParam(trim($params['topic'])) : '';
 
+    // Load tile config
+    $config = getTileConfig();
+    $segments = $config['segments'] ?? [];
+
+    // Fallback: if seg/topic missing, reverse-lookup from content path or video title
+    if ($seg === '') {
+        // Try content path first (e.g. "videos/Primary Multiplication"), then video title
+        $hints = array_filter([$contentPath, $videoTitle], function($v) { return $v !== null && $v !== ''; });
+        foreach ($hints as $hint) {
+            $match = findSegTopicByContent($segments, $hint);
+            if ($match !== null) {
+                $seg   = $match['segKey'];
+                $topic = $match['topicSlug'];
+                break;
+            }
+        }
+    }
+
     // Early exit: nothing to show
     if ($seg === '' && !$isContentPage) {
         return $crumbs;
     }
-
-    // Load tile config
-    $config = getTileConfig();
-    $segments = $config['segments'] ?? [];
 
     // Level 1: Category (segment)
     if ($seg !== '' && isset($segments[$seg])) {

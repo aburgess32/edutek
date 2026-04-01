@@ -203,7 +203,11 @@ foreach ($ff2 as $key => $value) {
 <?php
     // FRE-12: Breadcrumb — watch page shows full 3-level trail
     require_once 'includes/breadcrumb.php';
-    $crumbs = buildBreadcrumb($_GET, $file1b ?? $file1 ?? null, true);
+    // Pass $file (decrypted content path e.g. "videos/Primary Multiplication") for reverse-lookup fallback
+    // when seg/topic params are missing. $file1b is the video filename for the leaf crumb title.
+    $bcVideoTitle = $file1b ?? $file1 ?? null;
+    $bcContentPath = $file ?? null;
+    $crumbs = buildBreadcrumb($_GET, $bcVideoTitle, true, $bcContentPath);
     renderBreadcrumb($crumbs);
 ?>
 

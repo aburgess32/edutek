@@ -194,7 +194,7 @@ $(function(){
 <?php
     // FRE-12: Breadcrumb
     require_once 'includes/breadcrumb.php';
-    $crumbs = buildBreadcrumb($_GET, $file1 ?? null, true);
+    $crumbs = buildBreadcrumb($_GET, $file1 ?? null, true, $file ?? null);
     // If no seg context, show "Audiobooks" as the category
     if (empty($crumbs)) {
         $crumbs = [['label' => 'Audiobooks', 'color' => '#A78BFA', 'href' => 'audiobooks.php']];

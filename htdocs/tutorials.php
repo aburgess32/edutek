@@ -254,7 +254,8 @@
 <?php
     // FRE-12: Breadcrumb — tutorials page gets seg/topic from query params
     require_once 'includes/breadcrumb.php';
-    $crumbs = buildBreadcrumb($_GET, $decryption, true);
+    // $decryption = folder name (e.g. "Primary Multiplication"), used for both title and reverse-lookup
+    $crumbs = buildBreadcrumb($_GET, $decryption, true, $decryption);
     renderBreadcrumb($crumbs);
 
     include_once"footer.php";

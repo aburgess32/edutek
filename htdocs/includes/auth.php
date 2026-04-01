@@ -12,6 +12,7 @@
 
 // Note: strict_types removed — this file is included from other files
 
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/security.php';
 
 // Session is started by security.php — no need to start again

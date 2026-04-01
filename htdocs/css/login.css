@@ -2,8 +2,9 @@
 /* Adapted from the approved EduPak mockup */
 
 /* ========== RESET & BASE (login pages only) ========== */
-.login-page *, .login-page *::before, .login-page *::after { box-sizing: border-box; margin: 0; padding: 0; }
-.login-page {
+.login-page *, .login-page *::before, .login-page *::after,
+.auth-page *, .auth-page *::before, .auth-page *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.login-page, .auth-page {
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #F5F0EB;
   color: #1a1a2e;
@@ -11,10 +12,11 @@
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
-.login-page img { display: block; max-width: 100%; }
-.login-page button, .login-page input { font-family: inherit; border: none; outline: none; }
-.login-page button { cursor: pointer; -webkit-appearance: none; }
-.login-page input { -webkit-appearance: none; }
+.login-page img, .auth-page img { display: block; max-width: 100%; }
+.login-page button, .login-page input,
+.auth-page button, .auth-page input { font-family: inherit; border: none; outline: none; }
+.login-page button, .auth-page button { cursor: pointer; -webkit-appearance: none; }
+.login-page input, .auth-page input { -webkit-appearance: none; }
 
 /* ========== BRAND TOKENS ========== */
 :root {
@@ -1012,3 +1014,46 @@
 .wizard-step.active {
   display: block;
 }
+
+/* ========== ALIASES for backend PHP class names ========== */
+.auth-container { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
+.auth-card { background: var(--card-bg, #fff); border-radius: 16px; padding: 32px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; text-align: center; }
+.auth-title { font-size: 24px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+.auth-subtitle { font-size: 14px; color: #6B7280; margin-bottom: 20px; }
+.auth-back { display: inline-block; margin-bottom: 16px; color: var(--teal, #00BCD4); text-decoration: none; font-weight: 600; font-size: 14px; }
+.auth-back:hover { text-decoration: underline; }
+.auth-btn { display: block; width: 100%; padding: 14px 24px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; margin-bottom: 10px; min-height: 48px; transition: transform 0.15s, opacity 0.15s; }
+.auth-btn:active { transform: scale(0.97); }
+.auth-btn--primary { background: var(--teal, #00BCD4); color: #fff; }
+.auth-btn--secondary { background: transparent; border: 2px solid #ddd; color: #333; }
+.auth-btn--ghost { background: transparent; color: #999; font-size: 13px; }
+.auth-error { background: #FEE2E2; color: #DC2626; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+.auth-field { margin-bottom: 14px; text-align: left; }
+.auth-field label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+.auth-field input { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; background: #fff; transition: border-color 0.2s; }
+.auth-field input:focus { border-color: var(--teal, #00BCD4); outline: none; }
+
+/* Wizard progress dots */
+.wizard-progress { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+.wizard-dot { width: 10px; height: 10px; border-radius: 50%; background: #ddd; transition: background 0.3s; }
+.wizard-dot.active { background: var(--teal, #00BCD4); }
+
+/* Avatar chip (picker card) */
+.avatar-chip { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 8px; border-radius: 12px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; min-width: 90px; text-align: center; border: 2px solid transparent; }
+.avatar-chip:hover { transform: scale(1.03); }
+.avatar-chip.selected { border-color: var(--teal, #00BCD4); box-shadow: 0 0 0 3px rgba(0,188,212,0.3); transform: scale(1.05); }
+.avatar-chip.taken { opacity: 0.3; pointer-events: none; }
+.avatar-chip-name { font-size: 13px; font-weight: 700; margin-top: 6px; color: #333; }
+
+/* Age tile enhancements */
+.age-tile-label { font-size: 22px; font-weight: 800; }
+.age-tile-desc { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+
+/* Avatar reveal (Meet Your Avatar screen) */
+.avatar-reveal { text-align: center; padding: 40px 20px; }
+.avatar-reveal-badge { display: inline-block; padding: 8px 20px; border-radius: 20px; color: #fff; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+.avatar-reveal-name { font-size: 36px; font-weight: 900; margin-bottom: 4px; }
+.avatar-reveal-meaning { font-size: 14px; color: #666; font-style: italic; margin-bottom: 24px; }
+
+/* Teacher form pages */
+.teacher-form-container { max-width: 400px; margin: 0 auto; padding: 24px 20px; }

@@ -164,6 +164,7 @@
     position: absolute;
     bottom: 100%;
     left: 12px;
+    border-radius: 6px;
     margin-bottom: 4px;
 }
 .bc__mode:hover { color: rgba(0, 0, 0, 0.5); }

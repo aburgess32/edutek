@@ -274,3 +274,6 @@ foreach ($ff2 as $key => $value) {
 
     -->
 
+
+<script src="js/login.js"></script>
+<script src="js/avatar-bubble.js"></script>

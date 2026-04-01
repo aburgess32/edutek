@@ -16,6 +16,7 @@
   <link href="css/sb-admin.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
   <link href="css/HomeVideos.css" rel="stylesheet">
+  <link href="css/breadcrumb.css" rel="stylesheet">
   <style>
   .hidden{
 	  display:none;

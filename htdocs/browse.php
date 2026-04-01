@@ -46,7 +46,7 @@
             $topicLabel = htmlspecialchars($topic['label'] ?? '', ENT_QUOTES, 'UTF-8');
             $topicIcon = $topic['icon'] ?? '';
             $topicType = $topic['type'] ?? 'video';
-            $topicHref = htmlspecialchars(buildTopicHref($topic, $_SERVER['HTTP_HOST'] ?? 'localhost'), ENT_QUOTES, 'UTF-8');
+            $topicHref = htmlspecialchars(buildTopicHref($topic, $_SERVER['HTTP_HOST'] ?? 'localhost', $segKey), ENT_QUOTES, 'UTF-8');
             $badge = getContentTypeBadge($topicType);
 
             // Determine if this is a light-colored tile
@@ -82,5 +82,10 @@
 </div>
 
 <?php
+    // FRE-12: Breadcrumb
+    require_once 'includes/breadcrumb.php';
+    $crumbs = buildBreadcrumb($_GET);
+    renderBreadcrumb($crumbs);
+
     include_once "footer.php";
 ?>

@@ -142,6 +142,15 @@
         
         <?php
 
+        // FRE-12: Propagate breadcrumb context to watch.php links
+        $bcQuery = '';
+        if (isset($_GET['seg']) && $_GET['seg'] !== '') {
+            $bcQuery .= '&seg=' . urlencode($_GET['seg']);
+        }
+        if (isset($_GET['topic']) && $_GET['topic'] !== '') {
+            $bcQuery .= '&topic=' . urlencode($_GET['topic']);
+        }
+
         $dd2 = "videos/" . $decryption . "/";
         $length = strlen($dd2);
         $video = array('mp4','mov','wmv','flv','avi','WebM','mkv');
@@ -176,7 +185,7 @@
                                $iv
                            )));
                            echo'<div class="SavedWrapper">
-		<a href="watch.php?&' . $videolink1 . '=&' . $videoname1 . '=&' . $videolink . '=' . $value1 . '&' . $videoname . '=' . $videoname12 . '">';
+		<a href="watch.php?&' . $videolink1 . '=&' . $videoname1 . '=&' . $videolink . '=' . $value1 . '&' . $videoname . '=' . $videoname12 . $bcQuery . '">';
                                  $files = $value . "/";
                                    $files2 = (glob($files . "*", GLOB_BRACE));
                                    $length1 = strlen($files);
@@ -188,7 +197,7 @@
                     echo'</a>
 		<div class="rcontents">
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="watch.php?&' . $videolink1 . '=&' . $videoname1 . '=&' . $videolink . '=' . $value1 . '&' . $videoname . '=' . $videoname12 . '">
+			<a href="watch.php?&' . $videolink1 . '=&' . $videoname1 . '=&' . $videolink . '=' . $value1 . '&' . $videoname . '=' . $videoname12 . $bcQuery . '">
 				<p>
 					<b class="rtitle"><b>' . strtoupper(substr($value, $length)) . '</b></b>
 				</p>
@@ -209,7 +218,7 @@
                                 unlink($files22[$i]);
                         } else {
                               echo'
-				<a class="links" href="watch.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . '">
+				<a class="links" href="watch.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . $bcQuery . '">
 						
 					<b>' . substr($files22[$i], $length12) . '</b>
 				</a>&nbsp;&nbsp;';
@@ -243,5 +252,10 @@
         ?>
 
 <?php
+    // FRE-12: Breadcrumb — tutorials page gets seg/topic from query params
+    require_once 'includes/breadcrumb.php';
+    $crumbs = buildBreadcrumb($_GET, $decryption, true);
+    renderBreadcrumb($crumbs);
+
     include_once"footer.php";
 ?>

@@ -29,11 +29,19 @@ CREATE TABLE IF NOT EXISTS watch_history (
 );
 
 -- Saved lesson plans (Teacher Content Finder - Priority #5)
+-- Publish columns added by migration 0007
 CREATE TABLE IF NOT EXISTS lesson_plans (
     id INT AUTO_INCREMENT PRIMARY KEY,
     teacher_id INT,
     title VARCHAR(255) NOT NULL,
     content_ids JSON,
+    published_segments JSON DEFAULT NULL
+        COMMENT 'NULL or [] = private. Array of segment keys, e.g. ["knowledge_power","early_learners"]',
+    icon VARCHAR(10) DEFAULT '📚',
+    color VARCHAR(7) DEFAULT '#4ECDC4',
+    description VARCHAR(500) DEFAULT '',
+    sort_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
 );

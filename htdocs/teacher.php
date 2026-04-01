@@ -25,6 +25,7 @@ $teacherId = (int)($user['id'] ?? 0);
   <meta name="csrf-token" content="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
   <link rel="stylesheet" href="/css/teacher.css">
   <link rel="stylesheet" href="/css/playlist.css">
+  <link rel="stylesheet" href="/css/lesson-publish.css">
 </head>
 <body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>">
 

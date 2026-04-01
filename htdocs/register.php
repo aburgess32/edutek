@@ -86,6 +86,7 @@ try {
     <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <link href="css/login.css" rel="stylesheet">
+    <script src="js/login.js"></script>
 </head>
 <body class="auth-page">
 
@@ -152,17 +153,32 @@ try {
             <div class="wizard-step" id="step-3">
                 <h2 class="auth-title">Pick your avatar name</h2>
                 <p class="auth-subtitle">This is your unique identity on Edutek</p>
-                <div class="avatar-grid">
-                    <?php foreach ($availableAvatars as $av): ?>
+                <div class="avatar-grid" id="avatar-picker-grid">
+                    <?php
+                    $showAvatars = array_slice($availableAvatars, 0, 20);
+                    foreach ($showAvatars as $av): ?>
                     <div class="avatar-chip"
                          data-name="<?php echo htmlspecialchars($av['name'], ENT_QUOTES, 'UTF-8'); ?>"
                          data-color="<?php echo htmlspecialchars($av['color'], ENT_QUOTES, 'UTF-8'); ?>"
                          data-meaning="<?php echo htmlspecialchars($av['meaning'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                         style="background: <?php echo htmlspecialchars($av['color'], ENT_QUOTES, 'UTF-8'); ?>;">
-                        <?php echo htmlspecialchars($av['name'], ENT_QUOTES, 'UTF-8'); ?>
+                         style="background: <?php echo htmlspecialchars($av['color'], ENT_QUOTES, 'UTF-8'); ?>20; border: 2px solid <?php echo htmlspecialchars($av['color'], ENT_QUOTES, 'UTF-8'); ?>44;">
+                        <span class="avatar-chip-svg" id="av-<?php echo htmlspecialchars($av['name'], ENT_QUOTES, 'UTF-8'); ?>"></span>
+                        <span class="avatar-chip-name" style="color: <?php echo htmlspecialchars($av['color'], ENT_QUOTES, 'UTF-8'); ?>;"><?php echo htmlspecialchars($av['name'], ENT_QUOTES, 'UTF-8'); ?></span>
                     </div>
                     <?php endforeach; ?>
                 </div>
+                <script>
+                // Render creature avatars after DOM is ready
+                (function() {
+                    if (typeof generateAvatar !== 'function') return;
+                    var chips = document.querySelectorAll('.avatar-chip');
+                    for (var i = 0; i < chips.length; i++) {
+                        var name = chips[i].getAttribute('data-name');
+                        var svgEl = document.getElementById('av-' + name);
+                        if (svgEl) svgEl.innerHTML = generateAvatar(name, 48);
+                    }
+                })();
+                </script>
             </div>
 
             <!-- Step 4: Meet Your Avatar -->

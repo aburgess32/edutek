@@ -65,7 +65,9 @@
             $cwKeyVideoname1 = tileEncrypt('videoname1');
     ?>
     <section class="continue-row" aria-label="Continue Watching">
-        <h2 class="continue-row__heading">Continue Watching</h2>
+        <div class="continue-row__header">
+            <h2 class="continue-row__heading">Continue Watching</h2>
+        </div>
         <div class="continue-row__scroll" role="list">
             <?php foreach ($cwItems as $cwItem):
                 // Reconstruct watch.php URL params from content_id
@@ -84,15 +86,19 @@
                         . '&' . $cwKeyVideolink1 . '=' . $cwEncLink1
                         . '&' . $cwKeyVideoname1 . '=' . $cwEncName1;
 
-                $cwTitle = htmlspecialchars($cwItem['content_title'] ?: $cwFileName, ENT_QUOTES, 'UTF-8');
+                // Strip file extension from display title
+                $cwRawTitle = $cwItem['content_title'] ?: $cwFileName;
+                $cwDisplayTitle = htmlspecialchars(preg_replace('/\.(mp4|mov|wmv|flv|f4v|avi|webm|mkv)$/i', '', $cwRawTitle), ENT_QUOTES, 'UTF-8');
+                // Category = the folder name (subcategory or topic)
+                $cwCategory = htmlspecialchars($cwFolderName, ENT_QUOTES, 'UTF-8');
                 $cwPct   = $cwItem['progress_pct'];
             ?>
             <a class="continue-card" href="<?php echo $cwHref; ?>" role="listitem"
-               aria-label="Continue: <?php echo $cwTitle; ?> &ndash; <?php echo $cwPct; ?>% watched">
+               aria-label="Continue: <?php echo $cwDisplayTitle; ?> &ndash; <?php echo $cwPct; ?>% watched">
                 <div class="continue-card__thumb">
                     <?php if ($cwItem['thumb_ok']): ?>
                     <img src="<?php echo htmlspecialchars($cwItem['thumbnail_path'], ENT_QUOTES, 'UTF-8'); ?>"
-                         alt="<?php echo $cwTitle; ?> thumbnail"
+                         alt="<?php echo $cwDisplayTitle; ?> thumbnail"
                          loading="lazy" decoding="async">
                     <?php else: ?>
                     <div class="continue-card__placeholder">
@@ -104,7 +110,10 @@
                     <?php endif; ?>
                     <div class="continue-card__progress" style="--pct: <?php echo $cwPct; ?>%"></div>
                 </div>
-                <p class="continue-card__title"><?php echo $cwTitle; ?></p>
+                <div class="continue-card__info">
+                    <p class="continue-card__category"><?php echo $cwCategory; ?></p>
+                    <p class="continue-card__title"><?php echo $cwDisplayTitle; ?></p>
+                </div>
             </a>
             <?php endforeach; ?>
         </div>

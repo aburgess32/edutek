@@ -1,0 +1,135 @@
+/* ============================================================
+   Lesson Plan Publish UI — Teacher controls
+   ============================================================ */
+
+/* ---- Status Badge ---- */
+.publish-status {
+    margin-bottom: 1rem;
+}
+.publish-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.publish-badge--private {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+.publish-badge--published {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+/* ---- Section ---- */
+.publish-section {
+    margin-bottom: 1.25rem;
+}
+.publish-section__title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 0.5rem;
+}
+
+/* ---- Checkboxes ---- */
+.publish-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.publish-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+.publish-checkbox:active {
+    background: #F3F4F6;
+}
+.publish-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4ECDC4;
+    flex-shrink: 0;
+}
+.publish-checkbox__label {
+    font-size: 0.9rem;
+    color: #1a1a2e;
+}
+
+/* ---- Description ---- */
+.publish-desc {
+    width: 100%;
+    min-height: 60px;
+    padding: 0.5rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+.publish-desc:focus {
+    outline: none;
+    border-color: #4ECDC4;
+    box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+/* ---- Icon Picker ---- */
+.publish-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.publish-icon {
+    width: 40px;
+    height: 40px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: #F3F4F6;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s;
+}
+.publish-icon--active {
+    border-color: #4ECDC4;
+    background: #D1FAE5;
+}
+
+/* ---- Color Picker ---- */
+.publish-colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.publish-color {
+    width: 32px;
+    height: 32px;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+}
+.publish-color--active {
+    border-color: #1a1a2e;
+    transform: scale(1.15);
+}
+
+/* ---- Loading / Error ---- */
+.publish-loading,
+.publish-error {
+    font-size: 0.9rem;
+    color: #6B7280;
+    padding: 1rem 0;
+}
+.publish-error {
+    color: #DC2626;
+}

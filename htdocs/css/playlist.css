@@ -1,0 +1,210 @@
+/* ============================================================
+   Playlist Page — Student-facing lesson plan viewer
+   ============================================================ */
+
+/* ---- 404 State ---- */
+.playlist-404 {
+    text-align: center;
+    padding: 4rem 1rem;
+}
+.playlist-404__icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+.playlist-404__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 0.5rem;
+}
+.playlist-404__text {
+    color: #6B7280;
+    margin: 0 0 1.5rem;
+    font-size: 0.95rem;
+}
+.playlist-404__btn {
+    display: inline-block;
+    padding: 0.6rem 1.5rem;
+    background: #4ECDC4;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+.playlist-404__btn:active {
+    opacity: 0.8;
+}
+
+/* ---- Playlist Header ---- */
+.playlist-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    color: #fff;
+    position: relative;
+}
+.playlist-header__back {
+    color: #fff;
+    font-size: 1.2rem;
+    text-decoration: none;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    margin-top: 0.2rem;
+}
+.playlist-header__icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.playlist-header__info {
+    flex: 1;
+    min-width: 0;
+}
+.playlist-header__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    line-height: 1.2;
+}
+.playlist-header__desc {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+.playlist-header__meta {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.75;
+}
+
+/* ---- Item List ---- */
+.playlist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #1a1a2e;
+    transition: background 0.15s;
+}
+.playlist-item:active {
+    background: #f0f0f0;
+}
+.playlist-item--unavailable {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.playlist-item__num {
+    width: 28px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #9CA3AF;
+    flex-shrink: 0;
+}
+
+.playlist-item__thumb {
+    width: 80px;
+    height: 45px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+    background: #e5e7eb;
+}
+.playlist-item__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.playlist-item__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #9CA3AF;
+}
+.playlist-item__duration {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.playlist-item__info {
+    flex: 1;
+    min-width: 0;
+}
+.playlist-item__title {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.playlist-item__title--strike {
+    text-decoration: line-through;
+    color: #9CA3AF;
+}
+
+/* ---- Responsive ---- */
+@media (min-width: 600px) {
+    .playlist-header {
+        padding: 1.5rem;
+    }
+    .playlist-header__title {
+        font-size: 1.5rem;
+    }
+    .playlist-item__thumb {
+        width: 120px;
+        height: 68px;
+    }
+    .playlist-item__title {
+        font-size: 1rem;
+        white-space: normal;
+    }
+}
+
+/* ---- Layout mode overrides ---- */
+[data-mode="screen"] .playlist-header {
+    border-radius: 16px;
+    padding: 2rem;
+}
+[data-mode="screen"] .playlist-item {
+    background: #1a1a2e;
+    color: #fff;
+}
+[data-mode="screen"] .playlist-item:active {
+    background: #252540;
+}
+[data-mode="screen"] .playlist-404__title {
+    color: #fff;
+}

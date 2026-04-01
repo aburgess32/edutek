@@ -322,6 +322,10 @@
     "mixed": {
       "label": "Mixed",
       "color": "#6B7280"
+    },
+    "playlist": {
+      "label": "Playlist",
+      "color": "#8B5CF6"
     }
   },
   "featured": [

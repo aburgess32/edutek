@@ -82,26 +82,12 @@ function myFunction() {
         </li>
         <li class="nav-item">
           <?php if (isLoggedIn() && isTeacher()): ?>
-          <span class="nav-link nav-user-indicator teacher-dropdown" id="teacherDropdownHome">
+          <span class="nav-link nav-user-indicator teacher-menu" id="teacherMenuHome">
             <span class="nav-user-dot" style="background: #7C3AED;"></span>
-            <button type="button" class="teacher-dropdown__trigger" aria-expanded="false" aria-haspopup="true">
-              <?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?>
-              <svg class="teacher-dropdown__caret" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <div class="teacher-dropdown__menu" role="menu">
-              <a href="teacher.php" class="teacher-dropdown__item" role="menuitem">
-                <svg class="teacher-dropdown__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                Teacher Hub
-              </a>
-              <a href="teacher.php#profile" class="teacher-dropdown__item" role="menuitem">
-                <svg class="teacher-dropdown__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                My Profile
-              </a>
-              <div class="teacher-dropdown__divider"></div>
-              <a href="logout.php" class="teacher-dropdown__item teacher-dropdown__item--danger" role="menuitem">
-                <svg class="teacher-dropdown__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Sign Out
-              </a>
+            <span class="teacher-menu__name" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true"><?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?></span>
+            <div class="teacher-menu__popup" role="menu">
+              <a href="teacher.php" class="teacher-menu__item" role="menuitem">Teacher Hub</a>
+              <a href="logout.php" class="teacher-menu__item" role="menuitem">Sign Out</a>
             </div>
           </span>
           <?php elseif (isLoggedIn()): ?>
@@ -273,47 +259,54 @@ function myFunction() {
         resetTimer();
     })();
     </script>
-    <!-- Teacher profile dropdown toggle (FRE-13) -->
+    <!-- Teacher mini-menu toggle (FRE-13) -->
     <script>
     (function() {
-      var triggers = document.querySelectorAll('.teacher-dropdown__trigger');
-      if (!triggers.length) return;
+      var names = document.querySelectorAll('.teacher-menu__name');
+      if (!names.length) return;
 
-      triggers.forEach(function(trigger) {
-        var wrapper = trigger.closest('.teacher-dropdown');
-        var menu = wrapper.querySelector('.teacher-dropdown__menu');
+      names.forEach(function(name) {
+        var wrapper = name.closest('.teacher-menu');
 
-        trigger.addEventListener('click', function(e) {
+        name.addEventListener('click', function(e) {
           e.stopPropagation();
-          var isOpen = wrapper.classList.contains('teacher-dropdown--open');
+          var isOpen = wrapper.classList.contains('teacher-menu--open');
 
-          // Close all other dropdowns first
-          document.querySelectorAll('.teacher-dropdown--open').forEach(function(el) {
-            el.classList.remove('teacher-dropdown--open');
-            el.querySelector('.teacher-dropdown__trigger').setAttribute('aria-expanded', 'false');
+          // Close all other menus first
+          document.querySelectorAll('.teacher-menu--open').forEach(function(el) {
+            el.classList.remove('teacher-menu--open');
+            el.querySelector('.teacher-menu__name').setAttribute('aria-expanded', 'false');
           });
 
           if (!isOpen) {
-            wrapper.classList.add('teacher-dropdown--open');
-            trigger.setAttribute('aria-expanded', 'true');
+            wrapper.classList.add('teacher-menu--open');
+            name.setAttribute('aria-expanded', 'true');
+          }
+        });
+
+        // Allow Enter/Space to toggle
+        name.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            name.click();
           }
         });
       });
 
       // Close on outside click
       document.addEventListener('click', function() {
-        document.querySelectorAll('.teacher-dropdown--open').forEach(function(el) {
-          el.classList.remove('teacher-dropdown--open');
-          el.querySelector('.teacher-dropdown__trigger').setAttribute('aria-expanded', 'false');
+        document.querySelectorAll('.teacher-menu--open').forEach(function(el) {
+          el.classList.remove('teacher-menu--open');
+          el.querySelector('.teacher-menu__name').setAttribute('aria-expanded', 'false');
         });
       });
 
       // Close on Escape
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-          document.querySelectorAll('.teacher-dropdown--open').forEach(function(el) {
-            el.classList.remove('teacher-dropdown--open');
-            var btn = el.querySelector('.teacher-dropdown__trigger');
+          document.querySelectorAll('.teacher-menu--open').forEach(function(el) {
+            el.classList.remove('teacher-menu--open');
+            var btn = el.querySelector('.teacher-menu__name');
             btn.setAttribute('aria-expanded', 'false');
             btn.focus();
           });

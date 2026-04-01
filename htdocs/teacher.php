@@ -39,7 +39,13 @@ $teacherId = (int)($user['id'] ?? 0);
         <div class="teacher-header__role">Teacher</div>
       </div>
     </div>
-    <a href="/logout.php" class="teacher-header__logout">Sign Out</a>
+    <div class="teacher-menu teacher-menu--hub" id="teacherMenuHub">
+      <span class="teacher-menu__name teacher-menu__name--hub" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true"><?= $displayName ?></span>
+      <div class="teacher-menu__popup" role="menu">
+        <a href="/index.php" class="teacher-menu__item" role="menuitem">Browse Content</a>
+        <a href="/logout.php" class="teacher-menu__item" role="menuitem">Sign Out</a>
+      </div>
+    </div>
   </header>
 
   <!-- Tab Bar -->
@@ -143,6 +149,57 @@ $teacherId = (int)($user['id'] ?? 0);
     } else {
       activateTab('dashboard');
     }
+  })();
+  </script>
+  <!-- Teacher mini-menu toggle (FRE-13) -->
+  <script>
+  (function() {
+    var names = document.querySelectorAll('.teacher-menu__name');
+    if (!names.length) return;
+
+    names.forEach(function(name) {
+      var wrapper = name.closest('.teacher-menu');
+
+      name.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = wrapper.classList.contains('teacher-menu--open');
+
+        document.querySelectorAll('.teacher-menu--open').forEach(function(el) {
+          el.classList.remove('teacher-menu--open');
+          el.querySelector('.teacher-menu__name').setAttribute('aria-expanded', 'false');
+        });
+
+        if (!isOpen) {
+          wrapper.classList.add('teacher-menu--open');
+          name.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      name.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          name.click();
+        }
+      });
+    });
+
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.teacher-menu--open').forEach(function(el) {
+        el.classList.remove('teacher-menu--open');
+        el.querySelector('.teacher-menu__name').setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.teacher-menu--open').forEach(function(el) {
+          el.classList.remove('teacher-menu--open');
+          var btn = el.querySelector('.teacher-menu__name');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.focus();
+        });
+      }
+    });
   })();
   </script>
   <script src="/js/teacher-dashboard.js"></script>

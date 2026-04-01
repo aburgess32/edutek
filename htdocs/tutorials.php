@@ -1,89 +1,9 @@
 <?php ob_start(); ?>
-    <!-- Custom styles for this watch-->
-  <link href="css/saved.css" rel="stylesheet">
-<style type = "text/css">
-         #scroll {
-            display:block;
-            border: 1px solid red;
-            padding:5px;
-            margin-top:5px;
-            width:80%;
-            height:60%;
-            overflow:scroll;
-             text-align: left;
-         }
-         @media screen and (min-width: 992px){
-            #scroll {
-            display:block;
-            border: 1px solid red;
-            padding:5px;
-            margin-top:5px;
-            width:70%;
-            height:100px;
-            overflow:scroll;
-             text-align: left;
-         } 
-         }
-         @media screen and (max-width: 1366px) and (min-width: 1115px){
-             #scroll {
-            display:block;
-            border: 1px solid red;
-            padding:5px;
-            margin-top:5px;
-            width:50%;
-            height:100px;
-            overflow:scroll;
-             text-align: left;
-         }
-         }
-         @media only screen and (max-width: 600px) {
-             #scroll {
-            display:block;
-            border: 1px solid red;
-            padding:5%;
-            margin-top:5%;
-            margin-left:5%;
-            width:90%;
-            height:33%;
-            overflow:scroll;
-             text-align: left;
-         }
-         }
-         @media screen and (max-width: 873px) and (min-width: 770px){
-             #scroll {
-            display:block;
-            border: 1px solid red;
-            padding:5px;
-            margin-top:5px;
-            width:50%;
-            height:100px;
-            overflow:scroll;
-             text-align: left;
-         }
-         }
-         @media screen and (max-width: 1024px) and (min-width: 873px){
-             #scroll {
-            display:block;
-            border: 1px solid red;
-            padding:5px;
-            margin-top:5px;
-            width:70%;
-            height:60%;
-            overflow:scroll;
-             text-align: left;
-         } 
-         }
- .links{
-  background-color: #2596be;
-  color: #ffffff;
-  border-radius: 1px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  display:block;
-}
-      </style>
+  <link href="css/tutorials.css" rel="stylesheet">
 <?php
-    //nabvbar
-    include_once"navbar.php";
+    // navbar
+    include_once "navbar.php";
+
     $cipher = "BF-CBC";
     $iv_length = openssl_cipher_iv_length($cipher);
     $options = 0;
@@ -91,173 +11,138 @@
     $encryption_key = "hfjfydjnvhbjfi";
     $decryption_iv = "91011121";
     $decryption_key = "hfjfydjnvhbjfi";
-    //nabvbar
-    $encryption2 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(
-        "course",
-        $cipher,
-        $encryption_key,
-        $options,
-        $iv
-    )));
+
+    // Helper: encrypt a value for URL params
+    function encParam($val, $cipher, $key, $opts, $iv) {
+        return str_replace('=', '[equal]', base64_encode(openssl_encrypt($val, $cipher, $key, $opts, $iv)));
+    }
+
+    // Helper: turn a filename into a human-readable title
+    // Strips extension, replaces underscores/hyphens with spaces, title-cases
+    function prettyName($filename) {
+        $name = pathinfo($filename, PATHINFO_FILENAME);
+        $name = str_replace(['_', '-'], ' ', $name);
+        // Collapse multiple spaces
+        $name = preg_replace('/\s+/', ' ', trim($name));
+        return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
+    }
+
+    // Encrypted GET-param keys (same as before)
+    $encryption2 = encParam("course", $cipher, $encryption_key, $options, $iv);
+    $videolink1  = encParam("videolink1",  $cipher, $encryption_key, $options, $iv);
+    $videoname1  = encParam("videoname1",  $cipher, $encryption_key, $options, $iv);
+    $videolink   = encParam("videolink",   $cipher, $encryption_key, $options, $iv);
+    $videoname   = encParam("videoname",   $cipher, $encryption_key, $options, $iv);
+
     $file = $_GET[$encryption2];
     $decryption = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $file)), $cipher, $decryption_key, $options, $iv);
 
-        $videolink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(
-            "videolink1",
-            $cipher,
-            $encryption_key,
-            $options,
-            $iv
-        )));
-        $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(
-            "videoname1",
-            $cipher,
-            $encryption_key,
-            $options,
-            $iv
-        )));
-        $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt(
-            "videolink",
-            $cipher,
-            $encryption_key,
-            $options,
-            $iv
-        )));
-        $videoname = str_replace('=', '[equal]', base64_encode(openssl_encrypt(
-            "videoname",
-            $cipher,
-            $encryption_key,
-            $options,
-            $iv
-        )));
-    //$file = $_GET['course'];
-        ?>
-    
-        <!--contens are here-->
-        
-        <!--result found number-->
-    <div class="SaveWrapper">
-        <span class="fa fa-fw fa-bookmark"></span><?php echo $decryption;?> Tutorials
-    </div>
-        <!--//result found number-->
-        
-        <?php
+    // FRE-12: Propagate breadcrumb context
+    $bcQuery = '';
+    if (isset($_GET['seg'])   && $_GET['seg']   !== '') { $bcQuery .= '&seg='   . urlencode($_GET['seg']); }
+    if (isset($_GET['topic']) && $_GET['topic'] !== '') { $bcQuery .= '&topic=' . urlencode($_GET['topic']); }
 
-        // FRE-12: Propagate breadcrumb context to watch.php links
-        $bcQuery = '';
-        if (isset($_GET['seg']) && $_GET['seg'] !== '') {
-            $bcQuery .= '&seg=' . urlencode($_GET['seg']);
-        }
-        if (isset($_GET['topic']) && $_GET['topic'] !== '') {
-            $bcQuery .= '&topic=' . urlencode($_GET['topic']);
-        }
+    $dd2    = "videos/" . $decryption . "/";
+    $length = strlen($dd2);
+    $ff2    = glob($dd2 . "*");
+?>
 
-        $dd2 = "videos/" . $decryption . "/";
-        $length = strlen($dd2);
-        $video = array('mp4','mov','wmv','flv','avi','WebM','mkv');
-        $ff2 = (glob($dd2 . "*"));
-
-        foreach ($ff2 as $value) {
-            if (is_dir($value)) {
-                $f2a = (scandir($value));
-       //echo count($ff2);
-       //$folders = 0;
-                $files1 = 0;
-                foreach ($f2a as $vala) {
-                         $exta = pathinfo($vala, PATHINFO_EXTENSION);
-
-                    if ($exta == 'mp4' or $exta == 'flv' or $exta == 'mov' or $exta == 'avi' or $exta == 'f4v') {
-                        $files1++;
-                    }
-                }
-                if ($files1 > 0) {
-                           $videoname12 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(
-                               substr($value, $length),
-                               $cipher,
-                               $encryption_key,
-                               $options,
-                               $iv
-                           )));
-                           $value1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(
-                               $value,
-                               $cipher,
-                               $encryption_key,
-                               $options,
-                               $iv
-                           )));
-                           echo'<div class="SavedWrapper">
-		<a href="watch.php?&' . $videolink1 . '=&' . $videoname1 . '=&' . $videolink . '=' . $value1 . '&' . $videoname . '=' . $videoname12 . $bcQuery . '">';
-                                 $files = $value . "/";
-                                   $files2 = (glob($files . "*", GLOB_BRACE));
-                                   $length1 = strlen($files);
-                    if (file_exists($dd2 . substr($value, $length))) {
-                        echo'<img src="' . $dd2 . substr($value, $length) . '.jpg" class="rimage">';
-                    } else {
-                        echo'<img src="images/sample.png" class="rimage">';
-                    }
-                    echo'</a>
-		<div class="rcontents">
-			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="watch.php?&' . $videolink1 . '=&' . $videoname1 . '=&' . $videolink . '=' . $value1 . '&' . $videoname . '=' . $videoname12 . $bcQuery . '">
-				<p>
-					<b class="rtitle"><b>' . strtoupper(substr($value, $length)) . '</b></b>
-				</p>
-			</a>
-				<label class="rdesc" id="scroll">
-				<h6><B>TOPICS</B></h6>
-				';
-                       $files12 = $value . "/";
-                    $files22 = (glob($files12 . "*"));
-                    $length12 = strlen($files12);
-               //foreach($files22 as $value9 ){
-                    for ($i = 0; $i < count($files22); $i++) {
-                        $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($files12, $cipher, $encryption_key, $options, $iv)));
-                        $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(substr($value, $length), $cipher, $encryption_key, $options, $iv)));
-                        $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($files22[$i], $cipher, $encryption_key, $options, $iv)));
-                        $encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt(substr($files22[$i], $length12), $cipher, $encryption_key, $options, $iv)));
-                        if (stristr($files22[$i], "@eaDir") == true or stristr($files22[$i], ".DS_Store") == true or stristr($files22[$i], "Thumbs.db") == true) {
-                                unlink($files22[$i]);
-                        } else {
-                              echo'
-				<a class="links" href="watch.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . $bcQuery . '">
-						
-					<b>' . substr($files22[$i], $length12) . '</b>
-				</a>&nbsp;&nbsp;';
-                        }
-                     //}
-                    }
-                /*
-                if (unlink($filename)) {
-           echo 'The file ' . $filename . ' was deleted successfully!';
-                 }
-                $dd22 =$value."/";
-                $length2 = strlen($dd22);
-                $ff22 =(glob($dd22."*", GLOB_BRACE));
-                foreach($ff22 as $vala2 )
-               {
-              echo'<small>('.substr($vala2, ($length2)).')</small>';
-               <small>('.$files1.' Parts)</small>
-              }
-              <small>('.substr($value, $length).' Parts)</small>
-                */
-                    echo'
-					
-				</label>
-			
-		</div>
-	</div>';
-                } else {
-                }
-            }
-        }
-        ?>
+<!-- Page header -->
+<div class="tutorials-header">
+    <span class="fa fa-fw fa-bookmark"></span><?php echo htmlspecialchars($decryption); ?> Tutorials
+</div>
 
 <?php
-    // FRE-12: Breadcrumb — tutorials is a topic listing page (not a content page)
-    // Show: Category > Topic (2 levels). Topic is the current page, not a link.
+    $videoExts  = ['mp4','mov','wmv','flv','avi','webm','mkv','f4v'];
+    $sectionIdx = 0;
+
+    foreach ($ff2 as $value) {
+        if (!is_dir($value)) continue;
+
+        $folderName  = substr($value, $length);
+        $subFiles    = glob($value . "/*");
+        $length12    = strlen($value . "/");
+
+        // Filter to video files only
+        $videoFiles = [];
+        foreach ($subFiles as $sf) {
+            $ext = strtolower(pathinfo($sf, PATHINFO_EXTENSION));
+            if (in_array($ext, $videoExts)) {
+                $videoFiles[] = $sf;
+            }
+        }
+        if (count($videoFiles) === 0) continue;
+
+        $sectionIdx++;
+
+        // Encrypted params for the section-level link (plays first video)
+        $encFolderName = encParam($folderName, $cipher, $encryption_key, $options, $iv);
+        $encFolderPath = encParam($value,      $cipher, $encryption_key, $options, $iv);
+        $sectionHref = "watch.php?&{$videolink1}=&{$videoname1}=&{$videolink}={$encFolderPath}&{$videoname}={$encFolderName}{$bcQuery}";
+
+        // Thumbnail: look for <folder>.jpg next to the folder
+        $thumbPath = $dd2 . $folderName . '.jpg';
+        $thumbSrc  = file_exists($thumbPath) ? htmlspecialchars($thumbPath) : 'images/sample.png';
+?>
+
+<div class="tut-section<?php echo ($sectionIdx <= 2) ? ' open' : ''; ?>" id="tut-sec-<?php echo $sectionIdx; ?>">
+    <button class="tut-section-toggle" onclick="toggleSection(this)" aria-expanded="<?php echo ($sectionIdx <= 2) ? 'true' : 'false'; ?>">
+        <img src="<?php echo $thumbSrc; ?>" alt="" class="tut-thumb">
+        <div class="tut-section-info">
+            <p class="tut-section-title"><?php echo htmlspecialchars(prettyName($folderName)); ?></p>
+            <div class="tut-section-count"><?php echo count($videoFiles); ?> video<?php echo count($videoFiles) !== 1 ? 's' : ''; ?></div>
+        </div>
+        <span class="fa fa-chevron-down tut-chevron"></span>
+    </button>
+    <div class="tut-section-body">
+        <ul class="tut-video-list">
+<?php
+        $vidNum = 0;
+        foreach ($videoFiles as $vf) {
+            $vidNum++;
+            $baseName = substr($vf, $length12);
+            $ext      = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
+
+            $encFilePath = encParam($value . "/", $cipher, $encryption_key, $options, $iv);
+            $encFileName = encParam($folderName,   $cipher, $encryption_key, $options, $iv);
+            $encVidPath  = encParam($vf,           $cipher, $encryption_key, $options, $iv);
+            $encVidName  = encParam($baseName,     $cipher, $encryption_key, $options, $iv);
+            $vidHref = "watch.php?&{$videolink}={$encFilePath}&{$videoname}={$encFileName}&{$videolink1}={$encVidPath}&{$videoname1}={$encVidName}{$bcQuery}";
+?>
+            <li class="tut-video-item">
+                <span class="tut-vid-num"><?php echo $vidNum; ?></span>
+                <span class="tut-vid-icon"><i class="fa fa-play-circle"></i></span>
+                <a href="<?php echo $vidHref; ?>" class="tut-vid-name" title="<?php echo htmlspecialchars($baseName); ?>">
+                    <?php echo htmlspecialchars(prettyName($baseName)); ?>
+                </a>
+                <span class="tut-vid-ext"><?php echo $ext; ?></span>
+            </li>
+<?php   } ?>
+        </ul>
+    </div>
+</div>
+
+<?php } // end foreach
+
+    if ($sectionIdx === 0) {
+        echo '<div class="tut-empty">No tutorials found in this category.</div>';
+    }
+?>
+
+<script>
+function toggleSection(btn) {
+    var section = btn.closest('.tut-section');
+    section.classList.toggle('open');
+    var expanded = section.classList.contains('open');
+    btn.setAttribute('aria-expanded', expanded);
+}
+</script>
+
+<?php
+    // FRE-12: Breadcrumb
     require_once 'includes/breadcrumb.php';
     $crumbs = buildBreadcrumb($_GET, null, false, $decryption);
     renderBreadcrumb($crumbs);
 
-    include_once"footer.php";
+    include_once "footer.php";
 ?>

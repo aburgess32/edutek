@@ -1,7 +1,9 @@
   <link href="css/index.css" rel="stylesheet">
   <link href="css/tiles.css" rel="stylesheet">
+  <link href="css/login.css" rel="stylesheet">
 <?php
     include_once "navhome.php";
+    include_once "includes/auth.php";
     include_once "includes/tiles.php";
 
     $hostname = htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'localhost', ENT_QUOTES, 'UTF-8');
@@ -13,6 +15,12 @@
 ?>
 
 <div class="tiles-page">
+
+    <?php if (isGuest()): ?>
+    <div class="guest-banner">
+        Browsing as guest &mdash; <a href="login.php">Get Started</a> to save your progress
+    </div>
+    <?php endif; ?>
 
     <!-- Hero -->
     <div class="tiles-hero">

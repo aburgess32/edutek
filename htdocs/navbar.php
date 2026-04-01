@@ -17,6 +17,7 @@
   <link href="css/style.css" rel="stylesheet">
   <link href="css/HomeVideos.css" rel="stylesheet">
   <link href="css/breadcrumb.css" rel="stylesheet">
+  <link href="css/login.css" rel="stylesheet">
   <style>
   .hidden{
 	  display:none;
@@ -24,8 +25,12 @@
   </style>
 </head>
 
-<body class="fixed-nav sticky-footer" id="page-top">
-
+<body class="fixed-nav sticky-footer" id="page-top"
+  data-user-role="<?php echo htmlspecialchars($_SESSION['role'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+  data-avatar-name="<?php echo htmlspecialchars($_SESSION['avatar_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+  data-avatar-color="<?php echo htmlspecialchars($_SESSION['avatar_color'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+  data-real-name="<?php echo htmlspecialchars($_SESSION['display_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+<?php include_once __DIR__ . '/includes/auth.php'; ?>
 
 	<!-- Navbar-->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
@@ -62,6 +67,24 @@
             </div>
 		  </div>
           </form>
+        </li>
+        <li class="nav-item">
+          <?php if (isLoggedIn() && isTeacher()): ?>
+          <span class="nav-link nav-user-indicator">
+            <span class="nav-user-dot" style="background: #7C3AED;"></span>
+            <span class="nav-user-name"><?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?></span>
+            &middot; <a href="logout.php" style="color: #fbd6de;">Log Out</a>
+          </span>
+          <?php elseif (isLoggedIn()): ?>
+          <span class="nav-link nav-user-indicator">
+            <span class="nav-user-dot" style="background: <?php echo htmlspecialchars($_SESSION['avatar_color'] ?? '#FF6B35', ENT_QUOTES, 'UTF-8'); ?>;"></span>
+            <span class="nav-user-name"><?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?></span>
+          </span>
+          <?php else: ?>
+          <a class="nav-link" href="login.php" style="font-size: 13px;">
+            <i class="fa fa-fw fa-sign-in"></i> <span class="nav-link-text">Get Started</span>
+          </a>
+          <?php endif; ?>
         </li>
       </ul>
 		<!-----/theird ul navbar-->

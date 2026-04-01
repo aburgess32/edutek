@@ -21,3 +21,5 @@
 	
 	</div>
 		<!-----/Main Container-->
+	<script src="js/login.js"></script>
+	<script src="js/avatar-bubble.js"></script>

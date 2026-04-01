@@ -87,6 +87,7 @@ foreach ($students as $s) {
     <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <link href="css/login.css" rel="stylesheet">
+    <script src="js/login.js"></script>
 </head>
 <body class="auth-page">
 
@@ -136,7 +137,7 @@ foreach ($students as $s) {
                  data-name="<?php echo htmlspecialchars($s['avatar_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                  data-display="<?php echo htmlspecialchars($s['display_name'], ENT_QUOTES, 'UTF-8'); ?>"
                  data-color="<?php echo $color; ?>">
-                <div class="user-card-avatar" style="background: <?php echo $color; ?>;">
+                <div class="user-card-avatar" style="background: <?php echo $color; ?>;" data-avatar-name="<?php echo htmlspecialchars($s['avatar_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" data-avatar-color="<?php echo $color; ?>">
                     <?php echo htmlspecialchars($initial, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
                 <span class="user-card-name"><?php echo htmlspecialchars($s['avatar_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></span>
@@ -181,8 +182,13 @@ foreach ($students as $s) {
             document.getElementById('confirm-display').textContent = display;
 
             var badge = document.getElementById('confirm-badge');
-            badge.textContent = name.charAt(0);
-            badge.style.background = color;
+            if (typeof generateAvatar === 'function') {
+                badge.innerHTML = generateAvatar(name, 64, color);
+                badge.style.background = 'transparent';
+            } else {
+                badge.textContent = name.charAt(0);
+                badge.style.background = color;
+            }
 
             overlay.classList.add('show');
         });
@@ -195,6 +201,18 @@ foreach ($students as $s) {
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) overlay.classList.remove('show');
     });
+
+    // Render creature avatars on user cards
+    if (typeof generateAvatar === 'function') {
+        document.querySelectorAll('.user-card-avatar').forEach(function(el) {
+            var name = el.getAttribute('data-avatar-name');
+            var color = el.getAttribute('data-avatar-color');
+            if (name) {
+                el.innerHTML = generateAvatar(name, 48, color);
+                el.style.background = color + '22';
+            }
+        });
+    }
 })();
 </script>
 

@@ -150,12 +150,17 @@
 
             var grid = el('div', { className: 'lb-plan-grid' });
             plans.forEach(function (plan) {
+                var publishBadge = null;
+                if (typeof window.EduPakPublish !== 'undefined') {
+                    publishBadge = window.EduPakPublish.createStatusBadge(plan);
+                }
                 var card = el('div', {
                     className: 'lb-plan-card',
                     onClick: function () { openDetail(plan.id); }
                 }, [
                     el('div', { className: 'lb-plan-card-body' }, [
-                        el('h3', { className: 'lb-plan-card-title' }, plan.title),
+                        el('h3', { className: 'lb-plan-card-title' }, truncate(plan.title, 60)),
+                        publishBadge,
                         el('div', { className: 'lb-plan-card-meta' }, [
                             el('span', { className: 'lb-plan-card-count' }, plan.item_count + ' item' + (plan.item_count !== 1 ? 's' : '')),
                             el('span', { className: 'lb-plan-card-dot' }, '\u00B7'),
@@ -255,6 +260,20 @@
         ]);
         container.appendChild(actions);
 
+        // Publish panel (from lesson-publish.js)
+        if (typeof window.EduPakPublish !== 'undefined') {
+            var publishContainer = el('div', { className: 'lb-publish-section' });
+            window.EduPakPublish.renderPublishPanel(publishContainer, plan, function (updated) {
+                // Refresh plan data after publish changes
+                if (updated && updated.segments) {
+                    plan.published_segments = JSON.stringify(updated.segments);
+                }
+                if (updated && updated.icon) plan.icon = updated.icon;
+                if (updated && updated.color) plan.color = updated.color;
+            });
+            container.appendChild(publishContainer);
+        }
+
         // Content items list
         var items = plan.content_ids || [];
         if (items.length === 0) {
@@ -277,13 +296,15 @@
 
     function renderDetailItem(item, idx, total) {
         var title = (typeof item === 'object') ? item.title : String(item);
+        var isUnavailable = (typeof item === 'object') && item.unavailable;
+        var displayTitle = isUnavailable ? '[Removed content]' : truncate(title, 60);
         var row = el('div', {
-            className: 'lb-item-row',
+            className: 'lb-item-row' + (isUnavailable ? ' lb-item-row--unavailable' : ''),
             'data-index': String(idx)
         }, [
             el('div', { className: 'lb-item-drag', innerHTML: '&#9776;' }),
             el('div', { className: 'lb-item-thumb' }),
-            el('div', { className: 'lb-item-title' }, title),
+            el('div', { className: 'lb-item-title' }, displayTitle),
             el('div', { className: 'lb-item-arrows' }, [
                 idx > 0 ? el('button', {
                     className: 'lb-btn lb-btn-icon',
@@ -511,8 +532,10 @@
         }
 
         if (state.searchResults.length === 0) {
-            resultsEl.innerHTML = '<div class="lb-search-hint">No results found for "' +
-                escapeHtml(state.searchTerm) + '"</div>';
+            resultsEl.innerHTML = '<div class="lb-search-empty">' +
+                '<div class="lb-search-empty__icon">&#128270;</div>' +
+                '<div class="lb-search-empty__text">No content found. Try different keywords.</div>' +
+                '</div>';
             return;
         }
 

@@ -66,7 +66,17 @@ if (!$plan) {
 
 // ---------- Parse content items ----------
 
-$contentIds = json_decode($plan['content_ids'], true) ?: [];
+$rawContentIds = json_decode($plan['content_ids'], true) ?: [];
+
+// Normalize: content_ids may be [{id, title}, ...] objects or plain strings
+$contentIds = [];
+foreach ($rawContentIds as $item) {
+    if (is_array($item) && isset($item['id'])) {
+        $contentIds[] = $item['id'];
+    } elseif (is_string($item)) {
+        $contentIds[] = $item;
+    }
+}
 
 // Load content metadata for thumbnails/duration if available
 $contentMeta = [];

@@ -162,6 +162,7 @@ function getSegments(): array
         $publishedPlans = []; // graceful degradation pre-migration
     }
 
+    $segPlanCount = [];
     foreach ($publishedPlans as $plan) {
         $segKeys = json_decode($plan['published_segments'], true) ?: [];
         $items = json_decode($plan['content_ids'], true) ?: [];
@@ -173,6 +174,14 @@ function getSegments(): array
             if (!isset($segments[$segKey])) {
                 continue;
             }
+            // Cap at 30 published plans per segment on home page
+            if (!isset($segPlanCount[$segKey])) {
+                $segPlanCount[$segKey] = 0;
+            }
+            if ($segPlanCount[$segKey] >= 30) {
+                continue;
+            }
+            $segPlanCount[$segKey]++;
             $segments[$segKey]['topics'][] = [
                 'slug'         => 'playlist-' . $plan['id'],
                 'label'        => $plan['title'],

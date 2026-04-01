@@ -13,6 +13,7 @@ requireTeacher();
 
 $user = getCurrentUser();
 $displayName = htmlspecialchars($user['display_name'] ?? 'Teacher');
+$teacherEmail = htmlspecialchars($user['email'] ?? '');
 $initials = mb_strtoupper(mb_substr($displayName, 0, 1));
 $teacherId = (int)($user['id'] ?? 0);
 ?>
@@ -27,7 +28,7 @@ $teacherId = (int)($user['id'] ?? 0);
   <link rel="stylesheet" href="/css/playlist.css">
   <link rel="stylesheet" href="/css/lesson-publish.css">
 </head>
-<body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>">
+<body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>" data-teacher-email="<?= $teacherEmail ?>">
 
   <!-- Header -->
   <header class="teacher-header">
@@ -145,8 +146,8 @@ $teacherId = (int)($user['id'] ?? 0);
   })();
   </script>
   <script src="/js/teacher-dashboard.js"></script>
-  <script src="/js/lesson-builder.js"></script>
   <script src="/js/lesson-publish.js"></script>
+  <script src="/js/lesson-builder.js"></script>
   <script src="/js/teacher-profile.js"></script>
 </body>
 </html>

@@ -83,6 +83,7 @@ function handleList(PDO $pdo): void
             u.display_name AS creator_name,
             lp.title,
             lp.content_ids,
+            lp.published_segments,
             lp.created_at
         FROM lesson_plans lp
         LEFT JOIN users u ON u.id = lp.teacher_id
@@ -97,13 +98,14 @@ function handleList(PDO $pdo): void
             $contentIds = [];
         }
         $plans[] = [
-            'id'           => (int) $row['id'],
-            'teacher_id'   => (int) $row['teacher_id'],
-            'creator_name' => $row['creator_name'] ?? 'Unknown',
-            'title'        => $row['title'],
-            'content_ids'  => $contentIds,
-            'item_count'   => count($contentIds),
-            'created_at'   => $row['created_at'],
+            'id'                 => (int) $row['id'],
+            'teacher_id'         => (int) $row['teacher_id'],
+            'creator_name'       => $row['creator_name'] ?? 'Unknown',
+            'title'              => $row['title'],
+            'content_ids'        => $contentIds,
+            'item_count'         => count($contentIds),
+            'published_segments' => $row['published_segments'] ?? '[]',
+            'created_at'         => $row['created_at'],
         ];
     }
 
@@ -129,6 +131,10 @@ function handleDetail(PDO $pdo): void
             u.display_name AS creator_name,
             lp.title,
             lp.content_ids,
+            lp.published_segments,
+            lp.icon,
+            lp.color,
+            lp.description,
             lp.created_at
         FROM lesson_plans lp
         LEFT JOIN users u ON u.id = lp.teacher_id
@@ -149,13 +155,17 @@ function handleDetail(PDO $pdo): void
     }
 
     echo json_encode([
-        'id'           => (int) $row['id'],
-        'teacher_id'   => (int) $row['teacher_id'],
-        'creator_name' => $row['creator_name'] ?? 'Unknown',
-        'title'        => $row['title'],
-        'content_ids'  => $contentIds,
-        'item_count'   => count($contentIds),
-        'created_at'   => $row['created_at'],
+        'id'                 => (int) $row['id'],
+        'teacher_id'         => (int) $row['teacher_id'],
+        'creator_name'       => $row['creator_name'] ?? 'Unknown',
+        'title'              => $row['title'],
+        'content_ids'        => $contentIds,
+        'item_count'         => count($contentIds),
+        'published_segments' => $row['published_segments'] ?? '[]',
+        'icon'               => $row['icon'] ?? '',
+        'color'              => $row['color'] ?? '',
+        'description'        => $row['description'] ?? '',
+        'created_at'         => $row['created_at'],
     ]);
 }
 

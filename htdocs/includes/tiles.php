@@ -399,7 +399,7 @@ function getUncategorizedContent(): array
  * @param  string $slug Topic slug to search for.
  * @return array|null   Topic data array, or null if not found.
  */
-function findTopicBySlug(string $slug): ?array
+function findTopicBySlugGlobal(string $slug): ?array
 {
     $segments = getSegments();
     foreach ($segments as $seg) {
@@ -429,7 +429,7 @@ function getFeaturedContent(): array
     foreach ($featured as &$item) {
         // Resolve null hrefs from topic data
         if ($item['cta_href'] === null) {
-            $topic = findTopicBySlug($item['slug'] ?? '');
+            $topic = findTopicBySlugGlobal($item['slug'] ?? '');
             if ($topic) {
                 $item['cta_href'] = buildTopicHref(
                     $topic,
@@ -444,7 +444,7 @@ function getFeaturedContent(): array
 
         // Fallback bg_image: topic image → segment image → default header
         if (empty($item['bg_image']) || !file_exists(__DIR__ . '/../' . $item['bg_image'])) {
-            $topic = $topic ?? findTopicBySlug($item['slug'] ?? '');
+            $topic = $topic ?? findTopicBySlugGlobal($item['slug'] ?? '');
             $item['bg_image'] = ($topic['image'] ?? '') ?: 'assets/img/header.jpg';
         }
     }

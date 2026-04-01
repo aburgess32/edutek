@@ -15,16 +15,12 @@
   var displayName = body.getAttribute('data-display-name') || '';
   var miniDashOpen = false;
 
-  // Only run if the generateAvatar function exists
-  if (typeof generateAvatar !== 'function') {
-    // Inline a minimal version for pages that don't load login.js
-    // We load login.js on pages that need avatars, so this is just a safety net
-    return;
-  }
-
   if (role === 'student' && avatarName) {
-    initBubble();
-  } else if (role === 'guest') {
+    // Student bubble needs generateAvatar from login.js
+    if (typeof generateAvatar === 'function') {
+      initBubble();
+    }
+  } else if (role === 'guest' || role === '') {
     initResignInput();
   }
   // Teachers get nav indicator only (handled by PHP in navbar)

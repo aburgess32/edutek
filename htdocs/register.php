@@ -25,7 +25,8 @@ if (isLoggedIn()) {
 $error = '';
 
 // ── Handle POST (final registration) ──
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Only process if all three fields are present (final step submit)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['avatar_name'])) {
     $token     = filter_input(INPUT_POST, '_csrf_token', FILTER_DEFAULT) ?? '';
     $name      = trim(filter_input(INPUT_POST, 'display_name', FILTER_DEFAULT) ?? '');
     $ageRange  = filter_input(INPUT_POST, 'age_range', FILTER_DEFAULT) ?? '';

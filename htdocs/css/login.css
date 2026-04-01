@@ -1039,11 +1039,31 @@
 .wizard-dot.active { background: var(--teal, #00BCD4); }
 
 /* Avatar chip (picker card) */
-.avatar-chip { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 8px; border-radius: 12px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; min-width: 90px; text-align: center; border: 2px solid transparent; }
-.avatar-chip:hover { transform: scale(1.03); }
-.avatar-chip.selected { border-color: var(--teal, #00BCD4); box-shadow: 0 0 0 3px rgba(0,188,212,0.3); transform: scale(1.05); }
-.avatar-chip.taken { opacity: 0.3; pointer-events: none; }
-.avatar-chip-name { font-size: 13px; font-weight: 700; margin-top: 6px; color: #333; }
+.avatar-chip {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  padding: 14px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  -webkit-transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-align: center;
+}
+.avatar-chip:hover { -webkit-transform: scale(1.05); transform: scale(1.05); }
+.avatar-chip:active { -webkit-transform: scale(0.95); transform: scale(0.95); }
+.avatar-chip.selected {
+  border-color: var(--teal, #00BCD4) !important;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.4);
+  -webkit-transform: scale(1.08);
+  transform: scale(1.08);
+}
+.avatar-chip-svg { display: block; margin-bottom: 6px; }
+.avatar-chip-svg svg { display: block; }
+.avatar-chip-name { font-size: 13px; font-weight: 800; display: block; }
 
 /* Age tile enhancements */
 .age-tile-label { font-size: 22px; font-weight: 800; }

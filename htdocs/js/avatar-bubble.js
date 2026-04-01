@@ -109,28 +109,95 @@
     var val = input.value.trim();
     if (!val) return;
 
-    // POST to find-user.php to check if avatar name exists
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/find-user.php';
-    form.style.display = 'none';
+    var goBtn = document.getElementById('resign-go');
+    goBtn.textContent = '...';
+    goBtn.disabled = true;
 
-    var nameInput = document.createElement('input');
-    nameInput.name = 'resign_avatar_name';
-    nameInput.value = val;
-    form.appendChild(nameInput);
+    fetch('/api/avatar-lookup.php?name=' + encodeURIComponent(val))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.found) {
+          showInlineConfirm(wrap, data);
+        } else {
+          // Not found — go to find-user page
+          window.location.href = '/find-user.php';
+        }
+      })
+      .catch(function() {
+        window.location.href = '/find-user.php';
+      })
+      .finally(function() {
+        goBtn.textContent = 'Go';
+        goBtn.disabled = false;
+      });
+  }
 
-    // Add CSRF token if available
-    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
-    if (csrfMeta) {
-      var csrfInput = document.createElement('input');
-      csrfInput.name = '_csrf_token';
-      csrfInput.value = csrfMeta.getAttribute('content');
-      form.appendChild(csrfInput);
+  function showInlineConfirm(wrap, user) {
+    wrap.classList.add('resign-confirm-mode');
+
+    var avatarSvg = '';
+    if (typeof generateAvatar === 'function') {
+      avatarSvg = generateAvatar(user.avatar_name, 40, user.avatar_color);
+    } else {
+      avatarSvg = '<span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:' + user.avatar_color + ';color:#fff;font-weight:800;font-size:18px;">' + user.avatar_name.charAt(0) + '</span>';
     }
 
-    document.body.appendChild(form);
-    form.submit();
+    wrap.innerHTML =
+      '<div class="resign-confirm-avatar">' + avatarSvg + '</div>' +
+      '<div class="resign-confirm-info">' +
+        '<div class="resign-confirm-name" style="color:' + user.avatar_color + ';">' + escapeHtml(user.avatar_name) + '</div>' +
+        '<div class="resign-confirm-real">' + escapeHtml(user.display_name) + '</div>' +
+      '</div>' +
+      '<div class="resign-confirm-actions">' +
+        '<button class="resign-confirm-yes" id="resign-yes">That\'s me</button>' +
+        '<button class="resign-confirm-no" id="resign-no">&times;</button>' +
+      '</div>';
+
+    document.getElementById('resign-yes').onclick = function() {
+      this.textContent = '...';
+      this.disabled = true;
+      fetch('/api/avatar-lookup.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (resp.ok) {
+          window.location.reload();
+        } else {
+          alert(resp.error || 'Login failed');
+        }
+      })
+      .catch(function() {
+        alert('Something went wrong. Please try again.');
+      });
+    };
+
+    document.getElementById('resign-no').onclick = function() {
+      resetResignInput(wrap);
+    };
+  }
+
+  function resetResignInput(wrap) {
+    wrap.classList.remove('resign-confirm-mode');
+    wrap.innerHTML =
+      '<input type="text" class="resign-input" id="resign-input" placeholder="Avatar Name" maxlength="20" autocomplete="off">' +
+      '<button class="resign-go" id="resign-go">Go</button>' +
+      '<button class="resign-close" id="resign-close">&times;</button>';
+
+    var input = document.getElementById('resign-input');
+    var goBtn = document.getElementById('resign-go');
+    var closeBtn = document.getElementById('resign-close');
+
+    goBtn.onclick = function() { handleResignIn(input, wrap); };
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleResignIn(input, wrap);
+    });
+    closeBtn.onclick = function() {
+      wrap.classList.add('hidden');
+    };
+    input.focus();
   }
 
   function escapeHtml(str) {

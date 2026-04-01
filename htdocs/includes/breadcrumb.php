@@ -137,8 +137,12 @@ function buildBreadcrumb(array $params, ?string $videoTitle = null, bool $isCont
     }
 
     // Early exit: nothing to show
-    if ($seg === '' && !$isContentPage) {
-        return $crumbs;
+    if ($seg === '') {
+        // On content pages with no context at all, show just the leaf
+        // Otherwise, nothing to render
+        if (!$isContentPage) {
+            return $crumbs;
+        }
     }
 
     // Level 1: Category (segment)
@@ -148,6 +152,7 @@ function buildBreadcrumb(array $params, ?string $videoTitle = null, bool $isCont
         $crumbs[] = [
             'label' => $segData['label'] ?? $seg,
             'color' => $segData['color'] ?? null,
+            // Link back to browse if there are deeper levels (topic or content page)
             'href'  => ($topic !== '' || $isContentPage) ? 'browse.php?seg=' . urlencode($seg) : null,
         ];
 

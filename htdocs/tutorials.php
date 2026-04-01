@@ -252,10 +252,10 @@
         ?>
 
 <?php
-    // FRE-12: Breadcrumb — tutorials page gets seg/topic from query params
+    // FRE-12: Breadcrumb — tutorials is a topic listing page (not a content page)
+    // Show: Category > Topic (2 levels). Topic is the current page, not a link.
     require_once 'includes/breadcrumb.php';
-    // $decryption = folder name (e.g. "Primary Multiplication"), used for both title and reverse-lookup
-    $crumbs = buildBreadcrumb($_GET, $decryption, true, $decryption);
+    $crumbs = buildBreadcrumb($_GET, null, false, $decryption);
     renderBreadcrumb($crumbs);
 
     include_once"footer.php";

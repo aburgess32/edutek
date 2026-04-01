@@ -1,79 +1,63 @@
-# FRE-14 Pre-Dev Plan: Mode Switch (Kid/Group/Class/Projector)
+# FRE-14 Pre-Dev Plan: Layout Mode Toggle
 
 ## Scope Summary
 
-Three layout modes — **Kid**, **Group** (default), **Projector/Class** — controlled by CSS custom properties on `<body data-mode>`. Auto-detected from screen size on first load, persisted in a device-scoped cookie (30-day), manually overridable via a toggle in the header. No new DB tables.
+**Single icon button** sitting above the breadcrumb (same fixed-bottom-left zone) that cycles through three layouts: **Phone → Tablet → Screen**. The icon and the breadcrumb trail share the same collapse toggle — when breadcrumb is collapsed, the mode icon hides with it.
 
 ### Key Decisions (Locked)
-- **Device-scoped, not user-scoped** — a projector stays in projector mode regardless of who logs in
-- **CSS custom properties** (`--font-scale`, `--grid-cols-seg`, `--grid-cols-topic`, etc.) as single source of truth — no duplicate stylesheets
-- **No `init.php`** — mode resolver goes into `includes/config.php` (already loaded everywhere via `auth.php`) to avoid a new include chain
-- **Content filtering** — Kid mode limits to `early_learners` segment only; filtering is PHP-side in `tiles.php` helpers
-- **Projector mode** — black bg, white text, `1.5×` font, hidden breadcrumb, oversized controls
-- **Three modes only** — no assessment/exam mode for v1
-
-### Changes from Original Spec
-- ~~Separate `init.php` file~~ → integrate into existing `config.php` / `auth.php` include chain (simpler, already loaded)
-- ~~`api/set_mode.php` as standalone file~~ → `api/set-mode.php` (kebab-case, consistent with existing `api/avatar-lookup.php`)
-- ~~Auto-detect from User-Agent server-side~~ → JS-only auto-detect (UA sniffing is unreliable); PHP reads cookie/session
-- ~~Segment grid 4 cols in projector~~ → **3 cols** (spec says 4 but 3 is more readable on projector at distance)
-- ~~`--content-filter` CSS var~~ → removed (content filtering is PHP-side, not CSS-driven)
+- **Three modes only**: `phone`, `tablet`, `screen` (maps to projector/touch screen/classroom display)
+- **One button, cycles on tap**: phone → tablet → screen → phone...
+- **No auto-detect** — defaults to `phone`, user taps to change
+- **Device-scoped cookie** (30-day), not user-scoped
+- **CSS custom properties** drive font-scale, grid cols, tile gap, button sizes
+- **No content filtering by mode** — all segments visible in all modes (content filtering is a separate concern, role-based)
+- **No new PHP includes** — mode resolver added to `auth.php` (already loaded everywhere)
 
 ---
 
-## Architecture Overview
+## Architecture
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│  First page load (no cookie)                                    │
-│                                                                 │
-│  1. Inline <script> in <head> runs BEFORE first paint           │
-│     → reads screen dimensions                                   │
-│     → sets document.documentElement.dataset.mode                │
-│     → writes edupak_mode cookie (30-day)                        │
-│                                                                 │
-│  2. PHP reads cookie on NEXT request                            │
-│     → sets $_SESSION['mode']                                    │
-│     → outputs <body data-mode="...">                            │
-│     → filters content in tiles.php based on mode                │
-│                                                                 │
-│  Subsequent loads:                                              │
-│  PHP reads cookie → sets data-mode on <body> server-side        │
-│  JS inline script reads cookie → sets data-mode on <html>       │
-│  → No flash-of-wrong-mode (both HTML and BODY have the attr)    │
-├────────────────────────────────────────────────────────────────┤
-│  Manual override:                                               │
-│  User clicks mode button in header                              │
-│  → JS updates data-mode on <body> instantly                     │
-│  → JS writes cookie                                             │
-│  → JS POSTs to /api/set-mode.php (sync session)                │
-│  → CSS transitions smoothly between modes                       │
-└────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│  Fixed bottom-left corner (same zone as bc)   │
+│                                               │
+│  ┌──────┐                                     │
+│  │ 📱   │  ← mode icon (above bc toggle)      │
+│  ├──────┤                                     │
+│  │ ▸    │  ← existing bc toggle               │
+│  └──────┘                                     │
+│  Early Learners > Math > Fractions            │
+│                                               │
+│  Tap mode icon: cycles phone → tablet → screen│
+│  Cookie set immediately, fetch POST to sync   │
+│  session, CSS updates via data-mode on <body> │
+└──────────────────────────────────────────────┘
+
+When bc is collapsed:
+  ┌──────┐
+  │ ▾    │  ← only the bc toggle visible
+  └──────┘
+  (mode icon hidden along with bc trail)
 ```
 
-### Mode Resolution Order (PHP)
-1. `$_SESSION['mode']` (if set)
-2. `$_COOKIE['edupak_mode']` (promoted to session)
-3. Default: `'group'`
-
-JS auto-detect only fires when no cookie exists.
+### Mode Cookie Flow
+1. Page load → PHP reads `edupak_mode` cookie → sets `data-mode` on `<body>`
+2. No cookie → defaults to `phone`
+3. User taps icon → JS updates `data-mode`, writes cookie, POSTs to `/api/set-mode.php`
+4. Next page load → PHP reads cookie → correct mode from first paint
 
 ---
 
-## Codebase Audit: What Exists vs What's Needed
+## What Exists vs What's Needed
 
-| Component | Current State | Work Needed |
-|-----------|--------------|-------------|
-| CSS custom properties in `tiles.css` | `:root` has `--tile-radius`, `--tile-gap`, `--tile-min-touch`, colors — **no** `--font-scale`, `--grid-cols-*`, `--btn-min-h`, `--contrast-*`, `--breadcrumb-show` | Add mode-specific vars to `:root` + `[data-mode]` blocks |
-| `<body>` tag in `navbar.php` / `navhome.php` | Has `data-user-role`, `data-avatar-name`, etc. — **no** `data-mode` | Add `data-mode="<?= htmlspecialchars($mode) ?>"` |
-| Grid classes | `.seg-grid` / `.topic-grid` use hardcoded `flex: 1 1 calc(50%...)` with `@media` breakpoints | Refactor to use `--grid-cols-*` vars; mode overrides the vars |
-| `includes/config.php` | Loads env, defines DB/app constants — **no** session start, no mode logic | Add mode resolver after session is available (in `auth.php` instead, since it starts session) |
-| `includes/auth.php` | Starts session, includes `config.php`, `security.php` — **loaded by every page** | Add mode resolver here (after session_start, before any output) |
-| `breadcrumb.css` | `.bc { display: flex }` — **no** `--breadcrumb-show` var | Wire `display: var(--breadcrumb-show)` |
-| Content filtering | `tiles.php` has `getSegments()`, `getSegmentTopics()` — **no mode-based filtering** | Add `getFilteredSegments($mode)` wrapper |
-| `api/` directory | Has `avatar-lookup.php` only | Add `set-mode.php` |
-| Inline head script | Neither `navbar.php` nor `navhome.php` has auto-detect JS | Add inline `<script>` block in `<head>` of both |
-| Mode switcher UI | Does not exist | New HTML/CSS/JS in navbar area |
+| Component | Current State | Work |
+|-----------|--------------|------|
+| `breadcrumb.html.php` | Toggle button + trail, fixed bottom-left | Add mode icon above the toggle |
+| `breadcrumb.css` | Toggle + trail styles | Add mode icon styles |
+| `auth.php` | Starts session, loaded everywhere | Add 5-line mode resolver |
+| `tiles.css` | Hardcoded grid flex values + `@media` breakpoints | Add `[data-mode]` overrides |
+| `navbar.php` / `navhome.php` | `<body>` has `data-user-role` etc., no `data-mode` | Add `data-mode` attr |
+| `api/` | Has `avatar-lookup.php` | Add `set-mode.php` |
 
 ---
 
@@ -81,59 +65,56 @@ JS auto-detect only fires when no cookie exists.
 
 | File | Purpose |
 |------|---------|
-| `htdocs/css/mode.css` | All mode-specific CSS: custom property overrides, mode switcher styles, transitions |
-| `htdocs/api/set-mode.php` | POST endpoint — validates mode, sets session + cookie |
-| `htdocs/js/mode-detect.js` | **NOT a file** — inline `<script>` in `<head>` to avoid extra HTTP request (perf budget) |
-| `tests/e2e/fre14-mode-switch.spec.js` | Playwright tests for mode switching |
+| `htdocs/api/set-mode.php` | POST endpoint — validate mode, set session + cookie |
+| `tests/e2e/fre14-mode-switch.spec.js` | Playwright tests |
 
 ## Modified Files
 
 | File | Changes |
 |------|---------|
-| `htdocs/includes/auth.php` | Add mode resolver (read cookie/session, set `$mode` global) |
-| `htdocs/navbar.php` | Add `data-mode` to `<body>`, inline auto-detect `<script>`, mode switcher HTML, `<link>` to `mode.css` |
-| `htdocs/navhome.php` | Same as navbar.php (both are `<html>` shells) |
-| `htdocs/css/tiles.css` | Refactor grids to use CSS vars; remove hardcoded column counts from `@media` queries (mode overrides them) |
-| `htdocs/css/breadcrumb.css` | Wire `.bc { display: var(--breadcrumb-show, flex) }` |
-| `htdocs/includes/tiles.php` | Add `getFilteredSegments($mode)` — Kid mode returns only `early_learners` |
-| `htdocs/index.php` | Use `getFilteredSegments($mode)` instead of `getSegments()` |
-| `htdocs/browse.php` | Use `getFilteredSegments($mode)` for segment validation |
+| `htdocs/includes/auth.php` | Add mode resolver (~5 lines) |
+| `htdocs/includes/breadcrumb.html.php` | Add mode cycle icon above bc toggle |
+| `htdocs/css/breadcrumb.css` | Add mode icon styles (positioned above toggle) |
+| `htdocs/css/tiles.css` | Add `[data-mode="tablet"]` and `[data-mode="screen"]` grid overrides |
+| `htdocs/navbar.php` | Add `data-mode="<?= getMode() ?>"` to `<body>` |
+| `htdocs/navhome.php` | Same — add `data-mode` to `<body>` |
 
 ---
 
 ## Component Design
 
-### PHP: Mode Resolver (in `auth.php`, after session start)
+### PHP: Mode Resolver (append to `auth.php`)
 
 ```php
-// ── Mode Resolution ──────────────────────────────────────────
-$GLOBALS['edupak_mode'] = 'group'; // default
-$allowed_modes = ['kid', 'group', 'projector'];
+// ── Layout Mode ──────────────────────────────────────────────
+$GLOBALS['edupak_mode'] = 'phone';
+$_allowed_modes = ['phone', 'tablet', 'screen'];
 
-if (!empty($_SESSION['mode']) && in_array($_SESSION['mode'], $allowed_modes, true)) {
+if (!empty($_SESSION['mode']) && in_array($_SESSION['mode'], $_allowed_modes, true)) {
     $GLOBALS['edupak_mode'] = $_SESSION['mode'];
-} elseif (!empty($_COOKIE['edupak_mode']) && in_array($_COOKIE['edupak_mode'], $allowed_modes, true)) {
+} elseif (!empty($_COOKIE['edupak_mode']) && in_array($_COOKIE['edupak_mode'], $_allowed_modes, true)) {
     $GLOBALS['edupak_mode'] = $_COOKIE['edupak_mode'];
-    $_SESSION['mode'] = $GLOBALS['edupak_mode']; // promote to session
+    $_SESSION['mode'] = $GLOBALS['edupak_mode'];
 }
 
-/**
- * Get current display mode.
- * @return string 'kid'|'group'|'projector'
- */
 function getMode(): string {
-    return $GLOBALS['edupak_mode'] ?? 'group';
+    return $GLOBALS['edupak_mode'] ?? 'phone';
 }
 ```
 
-**Why `$GLOBALS` not a constant**: Mode can change mid-request if `set-mode.php` is called (though unlikely in normal flow). Using a function keeps it testable.
+### PHP: `<body>` Tag Update (navbar.php + navhome.php)
+
+```php
+<body class="fixed-nav sticky-footer" id="page-top"
+  data-mode="<?php echo htmlspecialchars(getMode(), ENT_QUOTES, 'UTF-8'); ?>"
+  data-user-role="..." ...>
+```
 
 ### PHP: `api/set-mode.php`
 
 ```php
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -143,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $mode = filter_input(INPUT_POST, 'mode', FILTER_SANITIZE_SPECIAL_CHARS);
-$allowed = ['kid', 'group', 'projector'];
+$allowed = ['phone', 'tablet', 'screen'];
 
 if (!in_array($mode, $allowed, true)) {
     http_response_code(400);
@@ -152,322 +133,157 @@ if (!in_array($mode, $allowed, true)) {
 }
 
 $_SESSION['mode'] = $mode;
-setcookie('edupak_mode', $mode, [
-    'expires'  => time() + 86400 * 30,
-    'path'     => '/',
-    'httponly'  => true,
-    'samesite'  => 'Lax',
-]);
-
+setcookie('edupak_mode', $mode, time() + 86400 * 30, '/', '', false, false);
 echo json_encode(['ok' => true, 'mode' => $mode]);
 ```
 
-### JS: Inline Auto-Detect (in `<head>`, before CSS paint)
+### HTML/JS: Mode Icon in `breadcrumb.html.php`
 
-```html
-<script>
-(function(){
-  var c = document.cookie.match(/edupak_mode=([^;]+)/);
-  if (c) { document.documentElement.dataset.mode = c[1]; return; }
-  var w = Math.max(screen.width, screen.height);
-  var s = Math.min(screen.width, screen.height);
-  var m = (w >= 1280 && s >= 720) ? 'projector'
-        : (s <= 414) ? 'kid'
-        : 'group';
-  document.documentElement.dataset.mode = m;
-  document.cookie = 'edupak_mode=' + m + ';path=/;max-age=' + (86400*30);
-})();
-</script>
-```
-
-**Note**: Spec used `<= 360` for kid threshold. Changed to `<= 414` — iPhone 6/7/8 Plus is 414px, and most kid devices are phones in this range. The 360 cutoff would miss common phones.
-
-**[ASSUMPTION]** 414px is the right kid threshold. Confirm against actual EduPak device inventory.
-
-### JS: Mode Toggle Handler
-
-```js
-document.querySelectorAll('.mode-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    var mode = this.dataset.mode;
-    document.body.dataset.mode = mode;
-    document.documentElement.dataset.mode = mode;
-    document.cookie = 'edupak_mode=' + mode + ';path=/;max-age=' + (86400*30);
-
-    // Sync session
-    var fd = new FormData();
-    fd.append('mode', mode);
-    fetch('/api/set-mode.php', { method: 'POST', body: fd })
-      .catch(function() {}); // swallow — cookie is already set
-
-    // Update aria-pressed
-    document.querySelectorAll('.mode-btn').forEach(function(b) {
-      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-    });
-  });
-});
-```
-
-### HTML: Mode Switcher (in navbar, right side)
-
-```html
-<div class="mode-switcher" role="group" aria-label="Display mode">
-  <button class="mode-btn" data-mode="kid"
-          aria-pressed="<?= getMode() === 'kid' ? 'true' : 'false' ?>">
-    <span class="mode-btn__icon">&#x1F476;</span>
-    <span class="mode-btn__label">Kid</span>
-  </button>
-  <button class="mode-btn" data-mode="group"
-          aria-pressed="<?= getMode() === 'group' ? 'true' : 'false' ?>">
-    <span class="mode-btn__icon">&#x1F465;</span>
-    <span class="mode-btn__label">Group</span>
-  </button>
-  <button class="mode-btn" data-mode="projector"
-          aria-pressed="<?= getMode() === 'projector' ? 'true' : 'false' ?>">
-    <span class="mode-btn__icon">&#x1F4FD;</span>
-    <span class="mode-btn__label">Class</span>
-  </button>
-</div>
-```
-
-**Mobile**: Collapse to a single icon button that opens a bottom sheet. Threshold: `@media (max-width: 576px)`.
-
-### CSS: `mode.css`
-
-```css
-/* ── Mode Custom Properties ─────────────────────────────────── */
-:root,
-[data-mode="group"] {
-  --font-scale:       1;
-  --grid-cols-seg:    2;
-  --grid-cols-topic:  2;
-  --tile-gap:         12px;
-  --btn-min-h:        44px;
-  --nav-show:         flex;
-  --contrast-bg:      #f5f5f5;
-  --contrast-text:    #1a1a1a;
-  --breadcrumb-show:  flex;
-  --player-ctrl-h:    44px;
-}
-
-[data-mode="kid"] {
-  --font-scale:       1.15;
-  --grid-cols-seg:    2;
-  --grid-cols-topic:  2;
-  --tile-gap:         14px;
-  --btn-min-h:        56px;
-  --player-ctrl-h:    56px;
-}
-
-[data-mode="projector"] {
-  --font-scale:       1.5;
-  --grid-cols-seg:    3;
-  --grid-cols-topic:  3;
-  --tile-gap:         24px;
-  --btn-min-h:        64px;
-  --contrast-bg:      #000000;
-  --contrast-text:    #ffffff;
-  --breadcrumb-show:  none;
-  --player-ctrl-h:    72px;
-}
-
-/* ── Apply properties ───────────────────────────────────────── */
-body {
-  font-size: calc(1rem * var(--font-scale, 1));
-  background: var(--contrast-bg, #f5f5f5);
-  color: var(--contrast-text, #1a1a1a);
-  transition: background 0.3s, color 0.3s;
-}
-
-/* ── Projector overrides ────────────────────────────────────── */
-[data-mode="projector"] .navbar {
-  background: #111 !important;
-  border-bottom: 1px solid #333;
-}
-
-[data-mode="projector"] .seg-tile,
-[data-mode="projector"] .topic-tile {
-  border: 2px solid rgba(255,255,255,0.2);
-}
-
-[data-mode="projector"] a,
-[data-mode="projector"] .nav-link {
-  color: #ffffff;
-}
-
-/* ── Mode Switcher ──────────────────────────────────────────── */
-.mode-switcher {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 8px;
-}
-
-.mode-btn {
-  all: unset;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.6);
-  transition: background 0.15s, color 0.15s;
-}
-
-.mode-btn:hover,
-.mode-btn:focus-visible {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
-
-.mode-btn[aria-pressed="true"] {
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-  font-weight: 600;
-}
-
-.mode-btn__icon {
-  font-size: 14px;
-  line-height: 1;
-}
-
-.mode-btn__label {
-  font-size: 11px;
-}
-
-/* Mobile: collapse mode switcher to icon-only trigger */
-@media (max-width: 576px) {
-  .mode-btn__label { display: none; }
-  .mode-btn { padding: 6px; }
-}
-
-/* ── Smooth transitions between modes ───────────────────────── */
-.seg-tile, .topic-tile, .btn, .name-card, .continue-card {
-  transition: min-height 0.2s, padding 0.2s;
-  min-height: var(--btn-min-h, 44px);
-}
-```
-
-### CSS: tiles.css Refactor (grid columns → CSS vars)
-
-**Before** (hardcoded):
-```css
-.seg-tile { flex: 1 1 calc(50% - var(--tile-gap)); }
-@media (min-width: 900px) { .seg-tile { flex: 1 1 calc(33.333% - var(--tile-gap)); } }
-```
-
-**After** (mode-driven):
-```css
-.seg-grid  { gap: var(--tile-gap); }
-.seg-tile  {
-  flex: 1 1 calc(100% / var(--grid-cols-seg) - var(--tile-gap));
-  max-width: calc(100% / var(--grid-cols-seg) - var(--tile-gap) * (var(--grid-cols-seg) - 1) / var(--grid-cols-seg));
-}
-```
-
-**Problem**: `calc()` with `var()` division is not supported in older WebViews. EduPak targets low-spec Android devices.
-
-**Safer approach**: Keep `@media` breakpoints for default Group mode, then let `[data-mode]` selectors override with explicit flex values:
-
-```css
-/* Group mode (default) — responsive breakpoints stay */
-.seg-tile { flex: 1 1 calc(50% - 12px); max-width: calc(50% - 6px); }
-@media (min-width: 900px) {
-  .seg-tile { flex: 1 1 calc(33.333% - 12px); max-width: calc(33.333% - 8px); }
-}
-
-/* Kid mode — always 2 cols, bigger gap */
-[data-mode="kid"] .seg-tile {
-  flex: 1 1 calc(50% - 14px);
-  max-width: calc(50% - 7px);
-}
-[data-mode="kid"] .topic-tile {
-  flex: 1 1 calc(50% - 14px);
-  max-width: calc(50% - 7px);
-}
-
-/* Projector — always 3 cols, big gap */
-[data-mode="projector"] .seg-tile {
-  flex: 1 1 calc(33.333% - 24px);
-  max-width: calc(33.333% - 16px);
-}
-[data-mode="projector"] .topic-tile {
-  flex: 1 1 calc(33.333% - 24px);
-  max-width: calc(33.333% - 16px);
-}
-```
-
-**This is the safer path for EduPak's device constraints.** The custom properties (`--font-scale`, `--contrast-bg`, etc.) still work everywhere — it's only the `calc(100% / var())` division that's risky.
-
-### PHP: Content Filtering in `tiles.php`
+Added directly above the existing `bc__toggle` button, inside the same `.bc` nav container:
 
 ```php
-/**
- * Get segments filtered by current display mode.
- *
- * Kid mode: only 'early_learners'
- * Group/Projector: all segments (teacher content filtered by role, not mode)
- *
- * @param string $mode 'kid'|'group'|'projector'
- * @return array Filtered segments
- */
-function getFilteredSegments(string $mode = 'group'): array {
-    $all = getSegments();
-    if ($mode === 'kid') {
-        return array_intersect_key($all, array_flip(['early_learners']));
-    }
-    return $all;
+<!-- Mode cycle button — hidden when bc is collapsed -->
+<button class="bc__mode" type="button"
+        aria-label="Switch layout mode"
+        style="pointer-events:auto"
+        onclick="(function(b){
+          var modes=['phone','tablet','screen'];
+          var icons={phone:'\u{1F4F1}',tablet:'\u{1F4CB}',screen:'\u{1F4FA}'};
+          var cur=document.body.dataset.mode||'phone';
+          var next=modes[(modes.indexOf(cur)+1)%3];
+          document.body.dataset.mode=next;
+          b.querySelector('.bc__mode-icon').textContent=icons[next];
+          document.cookie='edupak_mode='+next+';path=/;max-age='+(86400*30);
+          var fd=new FormData();fd.append('mode',next);
+          fetch('/api/set-mode.php',{method:'POST',body:fd}).catch(function(){});
+        })(this)">
+  <span class="bc__mode-icon"><?php
+    $modeIcons = ['phone' => "\u{1F4F1}", 'tablet' => "\u{1F4CB}", 'screen' => "\u{1F4FA}"];
+    echo $modeIcons[getMode()] ?? "\u{1F4F1}";
+  ?></span>
+</button>
+```
+
+**Icons**: 📱 Phone, 📋 Tablet, 📺 Screen — single emoji, no SVG needed.
+
+### CSS: Mode Icon + Layout Overrides
+
+Additions to `breadcrumb.css`:
+
+```css
+/* ── Mode cycle button (above bc toggle) ───────────────── */
+.bc__mode {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.3);
+    transition: color 0.15s;
+    pointer-events: auto;
+    position: absolute;
+    bottom: 100%;          /* sits directly above the toggle */
+    left: 12px;            /* aligned with bc padding */
+    margin-bottom: 4px;
+}
+.bc__mode:hover { color: rgba(0, 0, 0, 0.5); }
+
+/* Hidden when breadcrumb is collapsed */
+.bc--collapsed .bc__mode { display: none; }
+
+@media (pointer: coarse) {
+    .bc__mode { width: 28px; height: 28px; font-size: 16px; }
 }
 ```
 
-**Note**: The spec mentions filtering `adult` and `teacher` segments in Kid mode, but current data has no `adult`/`teacher` segments — only `early_learners`, `explorers`, `advanced`, `educators`, `knowledge_power`. Kid mode showing only `early_learners` is the simplest meaningful filter. If more granular content rating is needed later, add a `content_rating` column to `content_segments`.
+Additions to `tiles.css` (after existing `@media` breakpoints):
+
+```css
+/* ── Layout mode overrides ─────────────────────────────── */
+
+/* Tablet: 3-col segments, 3-col topics, slightly larger gap */
+[data-mode="tablet"] .seg-tile {
+    flex: 1 1 calc(33.333% - 14px);
+    max-width: calc(33.333% - 10px);
+}
+[data-mode="tablet"] .topic-tile {
+    flex: 1 1 calc(33.333% - 14px);
+    max-width: calc(33.333% - 10px);
+}
+[data-mode="tablet"] .seg-grid,
+[data-mode="tablet"] .topic-grid {
+    gap: 14px;
+}
+
+/* Screen: 4-col, large gap, bigger font, high-contrast */
+[data-mode="screen"] .seg-tile {
+    flex: 1 1 calc(25% - 24px);
+    max-width: calc(25% - 18px);
+}
+[data-mode="screen"] .topic-tile {
+    flex: 1 1 calc(25% - 24px);
+    max-width: calc(25% - 18px);
+}
+[data-mode="screen"] .seg-grid,
+[data-mode="screen"] .topic-grid {
+    gap: 24px;
+}
+[data-mode="screen"] body,
+body[data-mode="screen"] {
+    font-size: 1.35rem;
+    background: #000;
+    color: #fff;
+}
+[data-mode="screen"] .navbar {
+    background: #111 !important;
+}
+[data-mode="screen"] .seg-tile,
+[data-mode="screen"] .topic-tile {
+    border: 2px solid rgba(255,255,255,0.15);
+}
+[data-mode="screen"] .bc__toggle,
+[data-mode="screen"] .bc__mode,
+[data-mode="screen"] .bc__link,
+[data-mode="screen"] .bc__label {
+    color: rgba(255,255,255,0.4);
+}
+
+/* Phone: default — no overrides needed, existing styles apply */
+```
 
 ---
 
-## Mode Comparison Table
+## Mode Comparison
 
-| Property | Kid | Group (default) | Projector/Class |
-|----------|-----|-----------------|-----------------|
-| `--font-scale` | 1.15× | 1× | 1.5× |
-| Segment grid cols | 2 | 2 (phone) / 3 (wide) | 3 always |
-| Topic grid cols | 2 | 2 (phone) / 4 (wide) | 3 always |
-| `--tile-gap` | 14px | 12px | 24px |
-| `--btn-min-h` | 56px | 44px | 64px |
-| Breadcrumb | Visible | Visible | Hidden |
-| Background | #f5f5f5 | #f5f5f5 | #000000 |
-| Text color | #1a1a1a | #1a1a1a | #ffffff |
-| Content filter | `early_learners` only | All segments | All segments |
-| Navbar | Standard | Standard | Dark bg, high contrast |
-| Player controls | 56px height | 44px height | 72px height |
+| Property | Phone (default) | Tablet | Screen |
+|----------|----------------|--------|--------|
+| Seg grid cols | 2 | 3 | 4 |
+| Topic grid cols | 2 (phone) / 4 (wide via @media) | 3 | 4 |
+| Tile gap | 12px | 14px | 24px |
+| Font scale | 1rem (default) | 1rem | 1.35rem |
+| Background | #f5f5f5 | #f5f5f5 | #000 |
+| Text | dark | dark | white |
+| Navbar | default | default | dark |
+| Breadcrumb | visible | visible | visible |
+| Icon | 📱 | 📋 | 📺 |
 
 ---
 
-## Data Flow
-
-No new DB tables. Mode lives in:
-- **Cookie**: `edupak_mode` (30-day, device-scoped)
-- **Session**: `$_SESSION['mode']` (per login session)
-
-No migration needed.
-
----
-
-## Edge Cases & Failure Modes
+## Edge Cases
 
 | Case | Handling |
 |------|----------|
-| Cookie blocked by browser | `group` default on every load; JS auto-detect re-runs each time |
-| Unknown mode value in cookie (`projector2`) | PHP allowlist rejects → falls back to `group` |
-| Mode switch mid-video playback | CSS transitions only affect chrome; player iframe/element untouched |
-| Kid opens app on projector-size screen | Auto-detects `projector`; adult can tap Kid mode to switch |
-| Projector device used by kid account | Mode is device-scoped — stays projector. Student can manually switch. |
-| `set-mode.php` POST fails | JS swallows error; cookie already set so next load is correct |
-| No JS (feature phone) | PHP sets `data-mode` from cookie/session on `<body>`. CSS applies. Auto-detect doesn't fire — defaults to `group` (safe). |
-| Stale session after server restart | Cookie persists; PHP reads cookie and promotes to new session |
-| Mode switcher in collapsed mobile navbar | Mode buttons visible in collapsed hamburger menu. Alternative: show mode icon in the always-visible navbar area. |
-| `font-size: calc(1rem * 1.5)` on very old WebView | `calc()` with multiplication is well-supported (Android 5+). Safe. |
+| No cookie | Defaults to `phone` |
+| Invalid cookie value | PHP allowlist rejects → `phone` |
+| Cookie blocked | `phone` every load (no persistence, but functional) |
+| Mode tap while video playing | Grid/chrome updates; player untouched |
+| JS disabled | PHP sets `data-mode` from cookie on `<body>`; CSS applies; no cycle button (it won't fire) |
+| Breadcrumb collapsed | Mode icon hidden — expand breadcrumb to access it |
+| Screen mode on a phone | Works fine — user explicitly chose it, 4-col will just be dense/scrollable |
 
 ---
 
@@ -475,22 +291,18 @@ No migration needed.
 
 | # | Test | Expected |
 |---|------|----------|
-| T1 | Load on 1920×1080 (no cookie) | Auto-detects `projector`: dark bg, large text, 3-col grid |
-| T2 | Load on 375px phone (no cookie) | Auto-detects `kid`: 2-col, bigger buttons |
-| T3 | Load on 768px tablet (no cookie) | Auto-detects `group`: standard layout |
-| T4 | Click Kid mode button | `data-mode="kid"` on body; tiles enlarge; font scales up |
-| T5 | Click Projector mode button | Dark bg, white text, breadcrumb hidden, large controls |
-| T6 | Refresh after switching to Kid | Mode persists (cookie read by both JS and PHP) |
-| T7 | Switch user (login as different student) in Kid mode | Mode stays Kid (device-scoped) |
-| T8 | Kid mode: browse segments | Only `early_learners` segment shown |
-| T9 | Kid mode: direct URL to `browse.php?seg=advanced` | Redirects to `/` (segment not in filtered set) |
-| T10 | Projector mode: breadcrumb hidden | `.bc { display: none }` via `--breadcrumb-show` var |
-| T11 | Set cookie to `invalid_mode` manually | PHP rejects → falls back to `group` |
-| T12 | Mode switch while video playing | Player uninterrupted; surrounding UI updates |
-| T13 | `aria-pressed` on mode buttons | Screen reader announces current mode correctly |
-| T14 | Mobile (576px): mode switcher | Labels hidden, icon-only buttons |
-| T15 | JS disabled: load with existing cookie | PHP reads cookie → `data-mode` set server-side → CSS applies |
-| T16 | Projector → Kid → Group rapid switching | No layout jank, transitions smooth |
+| T1 | Fresh load, no cookie | `data-mode="phone"`, 2-col grid, 📱 icon |
+| T2 | Tap mode icon once | Switches to `tablet`, 3-col grid, 📋 icon |
+| T3 | Tap mode icon again | Switches to `screen`, 4-col grid, dark bg, 📺 icon |
+| T4 | Tap mode icon third time | Back to `phone` |
+| T5 | Refresh after switching to `tablet` | Mode persists (cookie), still `tablet` |
+| T6 | Switch user (new login) on same device | Mode stays (device-scoped cookie) |
+| T7 | Collapse breadcrumb | Mode icon disappears along with trail |
+| T8 | Expand breadcrumb | Mode icon reappears |
+| T9 | Screen mode: verify dark bg + white text | `background: #000`, `color: #fff` |
+| T10 | Screen mode: verify 4-col tiles | `.seg-tile` at 25% flex basis |
+| T11 | Set cookie to `bogus` | PHP falls back to `phone` |
+| T12 | JS disabled + cookie set to `tablet` | PHP outputs `data-mode="tablet"`, CSS applies 3-col |
 
 ---
 
@@ -498,42 +310,25 @@ No migration needed.
 
 | # | Task | Est | Depends |
 |---|------|-----|---------|
-| 1 | `mode.css`: all mode custom properties, switcher styles, projector overrides, transitions | 0.75d | — |
-| 2 | Mode resolver in `auth.php`: read cookie/session, set `$mode`, expose `getMode()` | 0.25d | — |
-| 3 | `api/set-mode.php`: POST endpoint, validate, set session + cookie | 0.25d | 2 |
-| 4 | Inline auto-detect `<script>` + `data-mode` attr in `navbar.php` + `navhome.php` | 0.5d | 2 |
-| 5 | Mode switcher HTML/JS in `navbar.php` + `navhome.php` | 0.5d | 1, 3, 4 |
-| 6 | `tiles.css` refactor: mode-specific grid overrides for `[data-mode]` selectors | 0.5d | 1 |
-| 7 | `breadcrumb.css`: wire `display: var(--breadcrumb-show)` | 0.15d | 1 |
-| 8 | `tiles.php`: add `getFilteredSegments($mode)` | 0.25d | 2 |
-| 9 | Update `index.php` + `browse.php` to use `getFilteredSegments()` | 0.25d | 8 |
-| 10 | Projector mode polish: navbar dark theme, tile borders, oversized player controls | 0.5d | 1, 6 |
-| 11 | Mobile mode switcher: icon-only collapse / bottom sheet | 0.25d | 5 |
-| 12 | Playwright tests (`fre14-mode-switch.spec.js`) | 0.75d | all |
-| **Total** | | **~4.9d** | |
-
-### Suggested Order
-1 → 2 → 3 → 4 → 5 → 6 → 7 (parallel with 8 → 9) → 10 → 11 → 12
-
-Tasks 1, 2, and 8 have no dependencies and can start in parallel.
+| 1 | Mode resolver in `auth.php` + `getMode()` | 0.25d | — |
+| 2 | `api/set-mode.php` endpoint | 0.25d | 1 |
+| 3 | `data-mode` attr on `<body>` in `navbar.php` + `navhome.php` | 0.15d | 1 |
+| 4 | Mode icon button in `breadcrumb.html.php` + cycle JS | 0.25d | 1, 3 |
+| 5 | Mode icon styles in `breadcrumb.css` (positioning, collapse hide) | 0.15d | 4 |
+| 6 | Layout overrides in `tiles.css` (`[data-mode]` selectors) | 0.5d | 3 |
+| 7 | Screen mode dark theme (navbar, tiles, breadcrumb text) | 0.25d | 6 |
+| 8 | Playwright tests | 0.5d | all |
+| **Total** | | **~2.3d** | |
 
 ---
 
-## Risks & Open Items
+## Risks
 
-### Risks
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Old Android WebView doesn't support `calc()` with CSS var division | Projector/Kid grids break | Use explicit flex values per `[data-mode]` selector (no `calc(100%/var())`) — **already planned above** |
-| Navbar duplication (`navbar.php` + `navhome.php`) makes changes error-prone | Miss adding mode switcher to one | Tasks 4 + 5 explicitly modify both files; consider extracting shared `<head>` partial in a follow-up |
-| Bootstrap CSS conflicts with `--contrast-bg` / body background overrides | Projector mode looks broken | Scope projector overrides with `[data-mode="projector"]` specificity; test on actual Bootstrap theme |
-| Cookie `httponly` flag blocks JS from reading it for auto-detect | Mode not detected by inline script | Set `httponly: false` on the mode cookie (it's not sensitive data) — OR let JS always write its own non-httponly cookie |
-
-### Open Items (Non-Blocking)
-1. **Kid threshold**: Spec says 360px, plan uses 414px. Confirm against EduPak device list.
-2. **Projector cols**: Spec says 4, plan uses 3 (more readable). Confirm with stakeholders.
-3. **Teacher tools visibility**: Spec says "hide teacher tools in kid + projector." Currently, teacher tools are role-gated via `isTeacher()`. Mode switch shouldn't change this — teacher role check is orthogonal. Verify this assumption.
-4. **`httponly` cookie conflict**: The inline JS script reads the cookie to set `data-mode`. If `set-mode.php` sets `httponly: true`, the JS read will fail on subsequent loads. **Fix**: Use `httponly: false` for `edupak_mode` since the value is non-sensitive (kid/group/projector).
+| Risk | Mitigation |
+|------|------------|
+| Emoji icons render inconsistently across old Android WebViews | Fallback: use single-character text (P / T / S) instead of emoji |
+| Screen mode dark bg clashes with Bootstrap inherited styles | Scope all dark overrides under `[data-mode="screen"]` with high specificity |
+| Mode icon not discoverable (no label) | Acceptable for v1 — it's a power-user control. Add tooltip via `title` attr. |
 
 ### Blocking Question
-**Does the mode cookie need to be `httponly`?** The inline auto-detect script reads it via `document.cookie`. If we set `httponly: true` in `set-mode.php`, the JS fallback breaks on the next page load. Recommend `httponly: false` since the value is just a display preference, not auth data.
+**Are the emoji icons (📱📋📺) fine, or should we use plain text labels (P / T / S) for max device compatibility?**

@@ -267,7 +267,7 @@
           <div class="playlist-item__info">
             <span class="playlist-item__title"><?php echo htmlspecialchars($otherName); ?></span>
             <div class="playlist-item__meta">
-              <span class="playlist-item__duration">--:--</span>
+              <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($value); ?>">--:--</span>
             </div>
           </div>
         </a>
@@ -367,5 +367,6 @@ if (!empty($filea)) {
 <?php endif; ?>
 <!-- FRE-41: Player Controls JS -->
 <script src="js/player-controls.js"></script>
+<script src="js/playlist-metadata.js"></script>
 <script src="js/login.js"></script>
 <script src="js/avatar-bubble.js"></script>

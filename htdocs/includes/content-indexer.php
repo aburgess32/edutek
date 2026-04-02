@@ -113,7 +113,7 @@ function findThumbnail(string $filePath, string $contentRoot): ?string
  * Index all content files in a directory tree and UPSERT into content_meta.
  *
  * Paths stored in content_meta are relative to htdocs so they are
- * web-accessible (e.g. "Videos/Math/Algebra/intro.mp4").
+ * web-accessible (e.g. "videos/Math/Algebra/intro.mp4").
  *
  * @param string $contentRoot Absolute path to the content directory
  * @return array{success: bool, total: int, new: int, updated: int, skipped: int, error?: string}
@@ -138,7 +138,7 @@ function indexContent(string $contentRoot): array
     $realContentRoot = realpath($contentRoot);
 
     // Determine the web-relative prefix.
-    // If the content dir is inside htdocs, strip htdocs path to get "Videos/..."
+    // If the content dir is inside htdocs, strip htdocs path to get "videos/..."
     $webPrefix = '';
     if ($htdocsRoot && $realContentRoot && strpos($realContentRoot, $htdocsRoot) === 0) {
         $webPrefix = ltrim(substr($realContentRoot, strlen($htdocsRoot)), '/');
@@ -207,7 +207,7 @@ function indexContent(string $contentRoot): array
         $category    = (count($parts) >= 2) ? $parts[0] : '';
         $subcategory = (count($parts) >= 3) ? $parts[1] : '';
 
-        // Build web-accessible path (e.g. "Videos/Math/Algebra/intro.mp4")
+        // Build web-accessible path (e.g. "videos/Math/Algebra/intro.mp4")
         $webPath = $webPrefix ? $webPrefix . '/' . $relativePath : $relativePath;
 
         // Content ID is the web-accessible relative path

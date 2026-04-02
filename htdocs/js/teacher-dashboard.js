@@ -677,4 +677,10 @@
 
   // Export
   window.TeacherDashboard = { init: init };
+
+  // Auto-initialize if dashboard-root exists (handles script load race condition)
+  var autoRoot = document.getElementById('dashboard-root');
+  if (autoRoot && autoRoot.closest('.tab-panel--active')) {
+    init(autoRoot);
+  }
 })();

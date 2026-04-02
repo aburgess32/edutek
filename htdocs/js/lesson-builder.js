@@ -22,7 +22,7 @@
         searchResults: [],      // search results from API
         searchTerm: '',
         builderMode: 'new',     // 'new' | 'add' (adding to existing plan)
-        expandedPreview: null,  // id of expanded preview card
+        matchType: '',          // 'exact', 'prefix', 'alias', 'fuzzy', 'soundex'
         csrfToken: '',
         dragState: null,        // drag-reorder state
         debounceTimer: null
@@ -480,13 +480,14 @@
         container.appendChild(el('h2', { className: 'lb-title' },
             state.builderMode === 'new' ? 'Create New Lesson Plan' : 'Add Content to Lesson Plan'));
 
-        // Search input
+        // Search input with typeahead
         var searchWrap = el('div', { className: 'lb-search-wrap' });
         var searchInput = el('input', {
             className: 'lb-search-input',
             type: 'search',
             placeholder: 'Search videos, topics, keywords\u2026',
-            autocomplete: 'off'
+            autocomplete: 'off',
+            'data-search-typeahead': ''
         });
         searchInput.addEventListener('input', function () {
             var term = searchInput.value.trim();
@@ -494,6 +495,7 @@
             clearTimeout(state.debounceTimer);
             if (term.length < 2) {
                 state.searchResults = [];
+                state.matchType = '';
                 renderSearchResults();
                 return;
             }
@@ -501,8 +503,31 @@
                 performSearch(term);
             }, 300);
         });
+        // Handle typeahead category selection — trigger filtered search
+        searchInput.addEventListener('typeahead:select-category', function (e) {
+            var cat = e.detail;
+            if (cat && cat.name) {
+                searchInput.value = cat.name;
+                state.searchTerm = cat.name;
+                performSearch(cat.name);
+            }
+        });
+        // Handle typeahead content selection — trigger full search with that term
+        searchInput.addEventListener('typeahead:select-content', function (e) {
+            var item = e.detail;
+            if (item && item.title) {
+                searchInput.value = item.title;
+                state.searchTerm = item.title;
+                performSearch(item.title);
+            }
+        });
         searchWrap.appendChild(searchInput);
         container.appendChild(searchWrap);
+
+        // Init typeahead on the new input
+        if (window.SearchTypeahead) {
+            window.SearchTypeahead.initInput(searchInput);
+        }
 
         // Results container
         container.appendChild(el('div', { id: 'lb-search-results', className: 'lb-search-results' }));
@@ -513,10 +538,13 @@
 
     function performSearch(term) {
         var resultsEl = document.getElementById('lb-search-results');
-        if (resultsEl) resultsEl.innerHTML = '<div class="lb-loading"><div class="lb-spinner"></div></div>';
+        if (resultsEl) resultsEl.innerHTML = '<div class="sr-loading"><div class="sr-spinner"></div> Searching\u2026</div>';
 
         searchApi(term).then(function (results) {
             state.searchResults = Array.isArray(results) ? results : [];
+            // Capture match type from first result (all share same type per query)
+            state.matchType = (state.searchResults.length > 0 && state.searchResults[0].match_type)
+                ? state.searchResults[0].match_type : '';
             renderSearchResults();
         });
     }
@@ -527,16 +555,27 @@
         resultsEl.innerHTML = '';
 
         if (state.searchTerm.length < 2) {
-            resultsEl.innerHTML = '<div class="lb-search-hint">Type at least 2 characters to search</div>';
+            resultsEl.innerHTML = '<div class="sr-hint">' +
+                '<div class="sr-hint__icon">&#128270;</div>' +
+                '<div class="sr-hint__text">Start typing to search content\u2026</div>' +
+                '</div>';
             return;
         }
 
         if (state.searchResults.length === 0) {
-            resultsEl.innerHTML = '<div class="lb-search-empty">' +
-                '<div class="lb-search-empty__icon">&#128270;</div>' +
-                '<div class="lb-search-empty__text">No content found. Try different keywords.</div>' +
+            resultsEl.innerHTML = '<div class="sr-empty">' +
+                '<div class="sr-empty__icon">&#128270;</div>' +
+                '<div class="sr-empty__text">No content found for \u2018' + escapeHtml(state.searchTerm) + '\u2019.</div>' +
+                '<div class="sr-empty__hint">Try a different spelling or browse by category.</div>' +
                 '</div>';
             return;
+        }
+
+        // Fuzzy/alias/soundex notice
+        if (state.matchType && state.matchType !== 'exact' && state.matchType !== 'prefix') {
+            var notice = el('div', { className: 'sr-fuzzy-notice' });
+            notice.innerHTML = 'Showing similar results for \u2018<strong>' + escapeHtml(state.searchTerm) + '</strong>\u2019';
+            resultsEl.appendChild(notice);
         }
 
         // Figure out which items are already in the current plan
@@ -548,6 +587,9 @@
             });
         }
 
+        // Visual card grid
+        var grid = el('div', { className: 'sr-grid' });
+
         state.searchResults.forEach(function (result) {
             var contentId = result.content_id || result.id || '';
             var isInPlan = existingIds[contentId];
@@ -555,110 +597,108 @@
                 return (s.id || s.content_id) === contentId;
             });
 
+            var cardClass = 'sr-card';
+            if (isSelected) cardClass += ' sr-card--selected';
+            if (isInPlan) cardClass += ' sr-card--in-plan';
+
             var card = el('div', {
-                className: 'lb-result-card' + (isSelected ? ' lb-selected' : '') + (isInPlan ? ' lb-in-plan' : ''),
-                'data-id': contentId
+                className: cardClass,
+                'data-id': contentId,
+                tabindex: '0',
+                role: 'button',
+                'aria-label': (result.title || contentId) + (isInPlan ? ' (already in lesson plan)' : '')
             });
 
-            // Checkbox
-            var checkbox = el('div', {
-                className: 'lb-result-checkbox' + (isSelected ? ' lb-checked' : ''),
-                onClick: function (e) {
-                    e.stopPropagation();
-                    toggleSelectItem(result);
-                }
-            }, isSelected ? '\u2713' : '');
-            card.appendChild(checkbox);
-
             // Thumbnail
-            var thumb = el('div', { className: 'lb-result-thumb' });
+            var thumb = el('div', { className: 'sr-card__thumb' });
             if (result.thumbnail_path) {
                 thumb.appendChild(el('img', {
                     src: result.thumbnail_path,
                     alt: '',
                     loading: 'lazy'
                 }));
+            } else {
+                var placeholder = getContentPlaceholder(result.content_type);
+                thumb.appendChild(el('span', {
+                    className: 'sr-card__thumb-placeholder',
+                    innerHTML: placeholder
+                }));
             }
             card.appendChild(thumb);
 
-            // Info
-            var info = el('div', { className: 'lb-result-info' }, [
-                el('div', { className: 'lb-result-title' }, result.title || contentId),
-                el('div', { className: 'lb-result-badges' }, [
-                    result.category ? el('span', { className: 'lb-badge lb-badge-category' }, result.category) : null,
-                    result.source ? el('span', { className: 'lb-badge lb-badge-source' }, result.source) : null,
-                    result.content_type ? el('span', { className: 'lb-badge lb-badge-type' }, result.content_type) : null
-                ])
+            // Info section
+            var breadcrumb = '';
+            if (result.category) {
+                breadcrumb = result.category;
+                if (result.subcategory) {
+                    breadcrumb += ' \u203A ' + result.subcategory;
+                }
+            }
+
+            var metaChildren = [];
+            if (result.content_type) {
+                metaChildren.push(el('span', {
+                    className: 'sr-card__type-badge sr-card__type-badge--' + result.content_type
+                }, result.content_type));
+            }
+            if (result.duration_seconds) {
+                metaChildren.push(el('span', { className: 'sr-card__duration' }, formatDuration(result.duration_seconds)));
+            }
+
+            var info = el('div', { className: 'sr-card__info' }, [
+                el('div', { className: 'sr-card__title' }, result.title || contentId),
+                breadcrumb ? el('div', { className: 'sr-card__breadcrumb' }, breadcrumb) : null,
+                metaChildren.length > 0 ? el('div', { className: 'sr-card__meta' }, metaChildren) : null
             ]);
             card.appendChild(info);
 
+            // Checkbox or in-plan label
             if (isInPlan) {
-                card.appendChild(el('span', { className: 'lb-in-plan-label' }, 'Already in lesson plan'));
+                card.appendChild(el('span', { className: 'sr-card__in-plan-label' }, 'In lesson plan'));
+            } else {
+                var checkbox = el('div', {
+                    className: 'sr-card__check' + (isSelected ? ' sr-card__check--checked' : ''),
+                    onClick: function (e) {
+                        e.stopPropagation();
+                        toggleSelectItem(result);
+                    },
+                    role: 'checkbox',
+                    'aria-checked': isSelected ? 'true' : 'false',
+                    'aria-label': 'Select ' + (result.title || '')
+                }, isSelected ? '\u2713' : '');
+                card.appendChild(checkbox);
             }
 
-            // Click card (not checkbox) → expand preview
+            // Click card to toggle selection (unless in plan)
             card.addEventListener('click', function () {
-                togglePreview(contentId, result, card);
+                if (!isInPlan) {
+                    toggleSelectItem(result);
+                }
             });
 
-            resultsEl.appendChild(card);
+            // Keyboard: Enter/Space to toggle
+            card.addEventListener('keydown', function (e) {
+                if ((e.key === 'Enter' || e.key === ' ') && !isInPlan) {
+                    e.preventDefault();
+                    toggleSelectItem(result);
+                }
+            });
 
-            // If this is the expanded preview, render it
-            if (state.expandedPreview === contentId) {
-                resultsEl.appendChild(renderPreviewPanel(result));
-            }
-        });
-    }
-
-    function togglePreview(contentId, result, card) {
-        if (state.expandedPreview === contentId) {
-            state.expandedPreview = null;
-        } else {
-            state.expandedPreview = contentId;
-        }
-        renderSearchResults();
-    }
-
-    function renderPreviewPanel(result) {
-        var contentId = result.content_id || result.id || '';
-        var isSelected = state.selectedItems.some(function (s) {
-            return (s.id || s.content_id) === contentId;
+            grid.appendChild(card);
         });
 
-        var panel = el('div', { className: 'lb-preview-panel' }, [
-            el('div', { className: 'lb-preview-thumb' }, result.thumbnail_path
-                ? [el('img', { src: result.thumbnail_path, alt: result.title || '' })]
-                : [el('div', { className: 'lb-preview-placeholder' })]
-            ),
-            el('div', { className: 'lb-preview-info' }, [
-                el('h3', null, result.title || contentId),
-                el('div', { className: 'lb-preview-meta' }, [
-                    result.category ? el('div', null, 'Category: ' + result.category) : null,
-                    result.subcategory ? el('div', null, 'Subcategory: ' + result.subcategory) : null,
-                    result.source ? el('div', null, 'Source: ' + result.source) : null,
-                    result.content_type ? el('div', null, 'Type: ' + result.content_type) : null,
-                    result.duration_seconds ? el('div', null, 'Duration: ' + formatDuration(result.duration_seconds)) : null
-                ]),
-                el('div', { className: 'lb-preview-actions' }, [
-                    el('button', {
-                        className: 'lb-btn ' + (isSelected ? 'lb-btn-secondary' : 'lb-btn-primary'),
-                        onClick: function () {
-                            toggleSelectItem(result);
-                            state.expandedPreview = null;
-                            renderSearchResults();
-                        }
-                    }, isSelected ? 'Deselect' : 'Select'),
-                    el('button', {
-                        className: 'lb-btn lb-btn-text',
-                        onClick: function () {
-                            state.expandedPreview = null;
-                            renderSearchResults();
-                        }
-                    }, 'Back to Results')
-                ])
-            ])
-        ]);
-        return panel;
+        resultsEl.appendChild(grid);
+    }
+
+    function getContentPlaceholder(contentType) {
+        var placeholders = {
+            video:       '&#127916;',
+            pdf:         '&#128196;',
+            audiobook:   '&#127911;',
+            interactive: '&#127918;',
+            tool:        '&#128295;'
+        };
+        return placeholders[contentType] || '&#128196;';
     }
 
     function toggleSelectItem(result) {

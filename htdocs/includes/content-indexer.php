@@ -131,20 +131,59 @@ function isFfmpegAvailable(): bool
 /**
  * Get the duration of a video file in seconds using ffprobe.
  *
+ * Uses proc_open with a manual timeout for cross-platform compatibility
+ * (the `timeout` shell command is Linux-only).
+ *
  * @param string $videoPath Absolute path to the video file
+ * @param int    $timeout   Max seconds to allow ffprobe to run
  * @return float Duration in seconds, or 0.0 on failure
  */
-function getVideoDuration(string $videoPath): float
+function getVideoDuration(string $videoPath, int $timeout = 10): float
 {
-    $output = [];
-    $code = -1;
     $cmd = sprintf(
-        'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 %s 2>/dev/null',
+        'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 %s 2>&1',
         escapeshellarg($videoPath)
     );
-    @exec($cmd, $output, $code);
-    if ($code === 0 && !empty($output[0])) {
-        return (float) $output[0];
+
+    $descriptors = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ];
+
+    $process = proc_open($cmd, $descriptors, $pipes);
+    if (!is_resource($process)) {
+        return 0.0;
+    }
+
+    fclose($pipes[0]);
+
+    $startTime = time();
+    $status = proc_get_status($process);
+
+    while ($status['running']) {
+        if (time() - $startTime > $timeout) {
+            foreach ($pipes as $pipe) {
+                if (is_resource($pipe)) {
+                    fclose($pipe);
+                }
+            }
+            proc_terminate($process, 9);
+            proc_close($process);
+            return 0.0;
+        }
+        usleep(100000); // 100ms
+        $status = proc_get_status($process);
+    }
+
+    $output = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = $status['exitcode'];
+    proc_close($process);
+
+    if ($exitCode === 0 && $output !== false && trim($output) !== '') {
+        return (float) trim($output);
     }
     return 0.0;
 }
@@ -155,11 +194,14 @@ function getVideoDuration(string $videoPath): float
  * Extracts a single frame at ~10% into the video (minimum 1 second),
  * scales to 320px width, and saves as a JPEG alongside the video.
  *
+ * Uses proc_open with a manual timeout instead of the `timeout` shell
+ * command, which is Linux-only (coreutils) and unavailable on macOS.
+ *
  * @param string $videoPath Absolute path to the video file
  * @param int    $timeout   Max seconds to allow ffmpeg to run
  * @return string|null Absolute path to the generated thumbnail, or null on failure
  */
-function generateThumbnail(string $videoPath, int $timeout = 5): ?string
+function generateThumbnail(string $videoPath, int $timeout = 15): ?string
 {
     if (!isFfmpegAvailable()) {
         return null;
@@ -181,27 +223,56 @@ function generateThumbnail(string $videoPath, int $timeout = 5): ?string
     $seekSec = ($duration > 10) ? max(1, (int) ($duration * 0.10)) : 1;
 
     $cmd = sprintf(
-        'timeout %d ffmpeg -ss %d -i %s -vframes 1 -q:v 2 -vf "scale=320:-1" %s -y 2>/dev/null',
-        $timeout,
+        'ffmpeg -ss %d -i %s -vframes 1 -q:v 2 -vf "scale=320:-1" %s -y 2>&1',
         $seekSec,
         escapeshellarg($videoPath),
         escapeshellarg($thumbPath)
     );
 
-    $output = [];
-    $code = -1;
-    @exec($cmd, $output, $code);
+    // Cross-platform timeout using proc_open
+    $descriptors = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ];
 
-    if ($code === 0 && file_exists($thumbPath)) {
-        return $thumbPath;
+    $process = proc_open($cmd, $descriptors, $pipes);
+    if (!is_resource($process)) {
+        return null;
     }
 
-    // Clean up partial file on failure
-    if (file_exists($thumbPath)) {
+    fclose($pipes[0]);
+
+    $startTime = time();
+    $status = proc_get_status($process);
+
+    while ($status['running']) {
+        if (time() - $startTime > $timeout) {
+            foreach ($pipes as $pipe) {
+                if (is_resource($pipe)) {
+                    fclose($pipe);
+                }
+            }
+            proc_terminate($process, 9);
+            proc_close($process);
+            @unlink($thumbPath);
+            return null;
+        }
+        usleep(100000); // 100ms
+        $status = proc_get_status($process);
+    }
+
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = $status['exitcode'];
+    proc_close($process);
+
+    if ($exitCode !== 0 || !file_exists($thumbPath) || filesize($thumbPath) < 100) {
         @unlink($thumbPath);
+        return null;
     }
 
-    return null;
+    return $thumbPath;
 }
 
 /**

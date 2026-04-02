@@ -67,6 +67,12 @@ function getContentMetaCount(): int
     }
 }
 
+// Maximum thumbnails to generate per auto-index run to avoid slow page loads.
+// Use the CLI script (scripts/generate-thumbnails.php) for bulk generation.
+if (!defined('MAX_THUMBNAILS_PER_RUN')) {
+    define('MAX_THUMBNAILS_PER_RUN', 10);
+}
+
 /**
  * Check whether content needs reindexing and trigger it if so.
  *
@@ -75,6 +81,8 @@ function getContentMetaCount(): int
  * 2. Compare file count in videos/ vs rows in content_meta.
  * 3. If counts differ, run the full indexer.
  * 4. On first run (empty DB + files exist), index immediately.
+ *
+ * Thumbnail generation is batched to MAX_THUMBNAILS_PER_RUN per run.
  */
 function checkAndReindex(): void
 {
@@ -135,7 +143,7 @@ function checkAndReindex(): void
     require_once __DIR__ . '/content-indexer.php';
 
     try {
-        $result = indexContent($contentRoot);
+        $result = indexContent($contentRoot, MAX_THUMBNAILS_PER_RUN);
 
         if (is_array($result) && isset($result['success']) && !$result['success']) {
             $errorMsg = $result['error'] ?? 'unknown error';

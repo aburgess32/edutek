@@ -110,15 +110,111 @@ function findThumbnail(string $filePath, string $contentRoot): ?string
 }
 
 /**
+ * Check whether ffmpeg is available on this system.
+ * Caches the result so the check only runs once per request.
+ *
+ * @return bool
+ */
+function isFfmpegAvailable(): bool
+{
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+    $output = [];
+    $code = -1;
+    @exec('ffmpeg -version 2>&1', $output, $code);
+    $available = ($code === 0);
+    return $available;
+}
+
+/**
+ * Get the duration of a video file in seconds using ffprobe.
+ *
+ * @param string $videoPath Absolute path to the video file
+ * @return float Duration in seconds, or 0.0 on failure
+ */
+function getVideoDuration(string $videoPath): float
+{
+    $output = [];
+    $code = -1;
+    $cmd = sprintf(
+        'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 %s 2>/dev/null',
+        escapeshellarg($videoPath)
+    );
+    @exec($cmd, $output, $code);
+    if ($code === 0 && !empty($output[0])) {
+        return (float) $output[0];
+    }
+    return 0.0;
+}
+
+/**
+ * Generate a thumbnail for a video file using ffmpeg.
+ *
+ * Extracts a single frame at ~10% into the video (minimum 1 second),
+ * scales to 320px width, and saves as a JPEG alongside the video.
+ *
+ * @param string $videoPath Absolute path to the video file
+ * @param int    $timeout   Max seconds to allow ffmpeg to run
+ * @return string|null Absolute path to the generated thumbnail, or null on failure
+ */
+function generateThumbnail(string $videoPath, int $timeout = 5): ?string
+{
+    if (!isFfmpegAvailable()) {
+        return null;
+    }
+
+    if (!file_exists($videoPath) || !is_readable($videoPath)) {
+        return null;
+    }
+
+    $thumbPath = preg_replace('/\.[^.]+$/', '.jpg', $videoPath);
+
+    // Already exists — skip
+    if (file_exists($thumbPath)) {
+        return $thumbPath;
+    }
+
+    // Determine seek position: 10% of duration, fallback to 1 second
+    $duration = getVideoDuration($videoPath);
+    $seekSec = ($duration > 10) ? max(1, (int) ($duration * 0.10)) : 1;
+
+    $cmd = sprintf(
+        'timeout %d ffmpeg -ss %d -i %s -vframes 1 -q:v 2 -vf "scale=320:-1" %s -y 2>/dev/null',
+        $timeout,
+        $seekSec,
+        escapeshellarg($videoPath),
+        escapeshellarg($thumbPath)
+    );
+
+    $output = [];
+    $code = -1;
+    @exec($cmd, $output, $code);
+
+    if ($code === 0 && file_exists($thumbPath)) {
+        return $thumbPath;
+    }
+
+    // Clean up partial file on failure
+    if (file_exists($thumbPath)) {
+        @unlink($thumbPath);
+    }
+
+    return null;
+}
+
+/**
  * Index all content files in a directory tree and UPSERT into content_meta.
  *
  * Paths stored in content_meta are relative to htdocs so they are
  * web-accessible (e.g. "videos/Math/Algebra/intro.mp4").
  *
  * @param string $contentRoot Absolute path to the content directory
- * @return array{success: bool, total: int, new: int, updated: int, skipped: int, error?: string}
+ * @param int    $maxThumbnails Maximum thumbnails to generate per run (0 = unlimited)
+ * @return array{success: bool, total: int, new: int, updated: int, skipped: int, thumbnails_generated: int, error?: string}
  */
-function indexContent(string $contentRoot): array
+function indexContent(string $contentRoot, int $maxThumbnails = 0): array
 {
     $contentRoot = rtrim($contentRoot, '/');
 
@@ -150,6 +246,10 @@ function indexContent(string $contentRoot): array
     $updatedCount = 0;
     $skippedCount = 0;
     $totalCount   = 0;
+    $thumbsGenerated = 0;
+
+    // Video extensions that support thumbnail generation
+    $videoExtensions = ['mp4', 'webm', 'mkv', 'avi'];
 
     // Prepare UPSERT statement
     $upsertStmt = $pdo->prepare("
@@ -220,6 +320,20 @@ function indexContent(string $contentRoot): array
         // Detect source
         $source = detectSource($relativePath);
 
+        // Generate thumbnail for video files if ffmpeg is available
+        if (in_array($extension, $videoExtensions, true)
+            && ($maxThumbnails === 0 || $thumbsGenerated < $maxThumbnails)
+        ) {
+            $thumbFile = preg_replace('/\.[^.]+$/', '.jpg', $fullPath);
+            $alreadyExists = file_exists($thumbFile);
+            if (!$alreadyExists) {
+                $generated = generateThumbnail($fullPath);
+                if ($generated !== null) {
+                    $thumbsGenerated++;
+                }
+            }
+        }
+
         // Find thumbnail — store as web-relative path
         $thumbnail = findThumbnail($fullPath, $contentRoot);
         if ($thumbnail !== null && $webPrefix) {
@@ -252,10 +366,11 @@ function indexContent(string $contentRoot): array
     }
 
     return [
-        'success' => true,
-        'total'   => $totalCount,
-        'new'     => $newCount,
-        'updated' => $updatedCount,
-        'skipped' => $skippedCount,
+        'success'              => true,
+        'total'                => $totalCount,
+        'new'                  => $newCount,
+        'updated'              => $updatedCount,
+        'skipped'              => $skippedCount,
+        'thumbnails_generated' => $thumbsGenerated,
     ];
 }

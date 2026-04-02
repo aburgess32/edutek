@@ -45,7 +45,7 @@
 
         // Generate thumbnail at 10s mark (fall back to 1s for short videos)
         $cmd = sprintf(
-            'ffmpeg -ss 10 -i %s -frames:v 1 -vf "scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2" -q:v 4 %s 2>/dev/null',
+            'ffmpeg -ss 10 -i %s -frames:v 1 -update 1 -vf "scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2" -q:v 4 %s 2>/dev/null',
             escapeshellarg($videoPath),
             escapeshellarg($thumbFile)
         );
@@ -54,7 +54,7 @@
         // If 10s failed (video shorter than 10s), try 1s
         if (!file_exists($thumbFile)) {
             $cmd = sprintf(
-                'ffmpeg -ss 1 -i %s -frames:v 1 -vf "scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2" -q:v 4 %s 2>/dev/null',
+                'ffmpeg -ss 1 -i %s -frames:v 1 -update 1 -vf "scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2" -q:v 4 %s 2>/dev/null',
                 escapeshellarg($videoPath),
                 escapeshellarg($thumbFile)
             );

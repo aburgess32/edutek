@@ -181,7 +181,7 @@ function generateThumbnail(string $videoPath, int $timeout = 5): ?string
     $seekSec = ($duration > 10) ? max(1, (int) ($duration * 0.10)) : 1;
 
     $cmd = sprintf(
-        'timeout %d ffmpeg -ss %d -i %s -vframes 1 -q:v 2 -vf "scale=320:-1" %s -y 2>/dev/null',
+        'timeout %d ffmpeg -ss %d -i %s -vframes 1 -update 1 -q:v 2 -vf "scale=320:-1" %s -y 2>/dev/null',
         $timeout,
         $seekSec,
         escapeshellarg($videoPath),

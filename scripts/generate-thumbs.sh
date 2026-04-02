@@ -86,7 +86,7 @@ if [ -d "$VIDEOS_DIR" ]; then
         fi
 
         # Extract and resize to JPG
-        if ffmpeg -y -ss "$timestamp" -i "$video_file" -vframes 1 -vf "scale=${SIZE%%x*}:${SIZE##*x}:force_original_aspect_ratio=increase,crop=${SIZE%%x*}:${SIZE##*x}" "$jpg_out" 2>/dev/null; then
+        if ffmpeg -y -ss "$timestamp" -i "$video_file" -vframes 1 -update 1 -vf "scale=${SIZE%%x*}:${SIZE##*x}:force_original_aspect_ratio=increase,crop=${SIZE%%x*}:${SIZE##*x}" "$jpg_out" 2>/dev/null; then
             # Convert to WebP if possible
             if ffmpeg -y -i "$jpg_out" -quality 80 "$webp_out" 2>/dev/null; then
                 echo "  -> $slug.webp + $slug.jpg"

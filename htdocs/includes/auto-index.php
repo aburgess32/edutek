@@ -110,30 +110,44 @@ function checkAndReindex(): void
     // Quick file count comparison
     $fileCount = countContentFiles($contentRoot);
 
-    // Update lock timestamp (create data dir if needed)
-    if (!is_dir($dataDir)) {
-        @mkdir($dataDir, 0755, true);
-    }
-    @file_put_contents($lockFile, (string) time());
-
-    // Only reindex if counts differ (or first run with files present)
+    // Counts match and not first run — write lock and skip
     if ($fileCount === $dbCount && !$isFirstRun) {
+        if (!is_dir($dataDir)) {
+            @mkdir($dataDir, 0755, true);
+        }
+        @file_put_contents($lockFile, (string) time());
         return;
     }
 
     // Nothing to index if no files exist
     if ($fileCount === 0) {
+        if (!is_dir($dataDir)) {
+            @mkdir($dataDir, 0755, true);
+        }
+        @file_put_contents($lockFile, (string) time());
         return;
     }
 
-    // Run the indexer
+    // Run the indexer inline — only executes when counts mismatch (rare),
+    // so the inline cost is acceptable. Running in register_shutdown_function
+    // caused silent failures on XAMPP/Apache where the PDO connection could
+    // be garbage-collected before the shutdown handler executed.
     require_once __DIR__ . '/content-indexer.php';
 
-    // Use register_shutdown_function to run after the response is sent
-    // so it doesn't block the page load. On XAMPP/Apache this still runs
-    // before the connection closes, but it only fires when counts mismatch
-    // (which should be rare).
-    register_shutdown_function(function () use ($contentRoot) {
-        indexContent($contentRoot);
-    });
+    try {
+        $result = indexContent($contentRoot);
+
+        if (is_array($result) && isset($result['success']) && !$result['success']) {
+            $errorMsg = $result['error'] ?? 'unknown error';
+            error_log("Auto-indexer failed: $errorMsg");
+        }
+    } catch (Exception $e) {
+        error_log('Auto-indexer error: ' . $e->getMessage());
+    }
+
+    // Write lock AFTER indexer completes so a failure allows retry on next load
+    if (!is_dir($dataDir)) {
+        @mkdir($dataDir, 0755, true);
+    }
+    @file_put_contents($lockFile, (string) time());
 }

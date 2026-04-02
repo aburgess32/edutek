@@ -65,12 +65,12 @@ $teacherId = (int)($user['id'] ?? 0);
   <!-- Tab Content -->
   <main class="teacher-content">
 
-    <!-- Dashboard Tab -->
+    <!-- Dashboard Tab (FRE-39) -->
     <section id="dashboard" class="tab-panel tab-panel--active" role="tabpanel">
       <div id="dashboard-root">
         <div class="dash-loading">
           <div class="dash-spinner"></div>
-          <div>Loading student data...</div>
+          <div>Loading dashboard...</div>
         </div>
       </div>
     </section>

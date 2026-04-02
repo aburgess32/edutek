@@ -52,6 +52,10 @@ htdocs/videos/
 htdocs/library/
 htdocs/images/
 
+# Auto-index runtime data (keep .gitkeep)
+htdocs/data/*
+!htdocs/data/.gitkeep
+
 # Auto-generated video thumbnails (cached by videoThumb())
 **/thumbs/
 *.mp4

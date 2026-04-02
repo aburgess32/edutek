@@ -113,54 +113,40 @@ try {
             break;
 
         case 'downloads':
-            // Check if download_log table exists
-            $tableCheck = $pdo->query(
-                "SELECT COUNT(*) FROM information_schema.TABLES
-                 WHERE TABLE_SCHEMA = '" . DB_NAME . "' AND TABLE_NAME = 'download_log'"
-            )->fetchColumn();
-
-            if (!$tableCheck) {
+            try {
+                $stmt = $pdo->query(
+                    "SELECT
+                        content_id,
+                        COALESCE(content_title, content_id) AS title,
+                        COALESCE(content_type, 'file') AS content_type,
+                        COUNT(*) AS downloads
+                     FROM download_log
+                     GROUP BY content_id
+                     ORDER BY downloads DESC
+                     LIMIT 10"
+                );
+                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            } catch (PDOException $e) {
                 echo json_encode([]);
-                break;
             }
-
-            $stmt = $pdo->query(
-                "SELECT
-                    content_id,
-                    COALESCE(content_title, content_id) AS title,
-                    COALESCE(content_type, 'file') AS content_type,
-                    COUNT(*) AS downloads
-                 FROM download_log
-                 GROUP BY content_id
-                 ORDER BY downloads DESC
-                 LIMIT 10"
-            );
-            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
             break;
 
         case 'search_queries':
-            // Check if search_log table exists
-            $tableCheck = $pdo->query(
-                "SELECT COUNT(*) FROM information_schema.TABLES
-                 WHERE TABLE_SCHEMA = '" . DB_NAME . "' AND TABLE_NAME = 'search_log'"
-            )->fetchColumn();
-
-            if (!$tableCheck) {
+            try {
+                $stmt = $pdo->query(
+                    "SELECT
+                        query,
+                        COUNT(*) AS searches,
+                        ROUND(AVG(result_count), 1) AS avg_results
+                     FROM search_log
+                     GROUP BY query
+                     ORDER BY searches DESC
+                     LIMIT 10"
+                );
+                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            } catch (PDOException $e) {
                 echo json_encode([]);
-                break;
             }
-
-            $stmt = $pdo->query(
-                "SELECT
-                    query,
-                    COUNT(*) AS searches,
-                    ROUND(AVG(result_count), 1) AS avg_results
-                 FROM search_log
-                 GROUP BY query
-                 ORDER BY searches DESC
-                 LIMIT 10"
-            );
-            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
             break;
 
         default:

@@ -117,7 +117,7 @@ try {
                              ELSE 0 END
                     ), 0) AS avg_completion
                  FROM watch_history wh
-                 LEFT JOIN content_meta cm ON cm.content_id = wh.content_id
+                 LEFT JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_0900_ai_ci = wh.content_id COLLATE utf8mb4_0900_ai_ci
                  GROUP BY wh.content_id
                  ORDER BY views DESC
                  LIMIT 5"
@@ -223,21 +223,21 @@ try {
                 ];
             }
 
-            // Most popular subject
-            $topSubject = $pdo->query(
-                "SELECT cm.subject, COUNT(*) AS cnt
+            // Most popular category
+            $topCategory = $pdo->query(
+                "SELECT cm.category, COUNT(*) AS cnt
                  FROM watch_history wh
-                 JOIN content_meta cm ON cm.content_id = wh.content_id
-                 WHERE cm.subject IS NOT NULL AND cm.subject != ''
-                 GROUP BY cm.subject
+                 JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_0900_ai_ci = wh.content_id COLLATE utf8mb4_0900_ai_ci
+                 WHERE cm.category IS NOT NULL AND cm.category != ''
+                 GROUP BY cm.category
                  ORDER BY cnt DESC
                  LIMIT 1"
             )->fetch(PDO::FETCH_ASSOC);
-            if ($topSubject) {
+            if ($topCategory) {
                 $insights[] = [
                     'priority' => 'low',
-                    'text'     => "\"" . $topSubject['subject'] . "\" is the most-watched subject with " .
-                                  $topSubject['cnt'] . " views.",
+                    'text'     => "\"" . $topCategory['category'] . "\" is the most-watched category with " .
+                                  $topCategory['cnt'] . " views.",
                 ];
             }
 
@@ -250,7 +250,7 @@ try {
                          ELSE 0 END) AS avg_pct
                  FROM watch_history wh
                  GROUP BY wh.content_id
-                 HAVING avg_pct < 30 AND COUNT(*) >= 3
+                 HAVING avg_pct < 30 AND COUNT(*) >= 2
                  ORDER BY avg_pct ASC
                  LIMIT 1"
             )->fetch(PDO::FETCH_ASSOC);

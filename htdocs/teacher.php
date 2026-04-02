@@ -226,7 +226,7 @@ $teacherId = (int)($user['id'] ?? 0);
     if (!btn || !status) return;
 
     btn.addEventListener('click', function() {
-      if (!confirm('This will scan the Videos folder and update the content database. Continue?')) {
+      if (!confirm('This will scan the videos folder and update the content database. Continue?')) {
         return;
       }
 

@@ -42,7 +42,7 @@ define('LOG_PATH', dirname(__DIR__, 2) . '/logs');
 // Site
 // ──────────────────────────────────────────────────────────
 define('SITE_TITLE', env('SITE_TITLE', 'EduPak Learning Hub'));
-define('CONTENT_PATH', env('CONTENT_PATH', '/content/'));
+define('CONTENT_PATH', env('CONTENT_PATH', __DIR__ . '/../Videos/'));
 
 // ──────────────────────────────────────────────────────────
 // PHP Error Display (based on APP_DEBUG)

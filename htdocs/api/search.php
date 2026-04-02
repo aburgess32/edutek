@@ -187,6 +187,18 @@ try {
         ];
     }
 
+    // Log the search query for dashboard analytics (FRE-39)
+    try {
+        $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)');
+        $logStmt->execute([
+            $_SESSION['user_id'] ?? null,
+            mb_substr($query, 0, 255),
+            count($items)
+        ]);
+    } catch (PDOException $e) {
+        // Silent fail — don't break search for logging
+    }
+
     echo json_encode([
         'results' => $items,
         'total'   => count($items),

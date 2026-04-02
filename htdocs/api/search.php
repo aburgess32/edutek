@@ -1,6 +1,6 @@
 <?php
 /**
- * Enhanced Search API (FRE-13)
+ * Enhanced Search API (FRE-40)
  *
  * GET — returns JSON array of content matching a search term.
  *
@@ -8,12 +8,13 @@
  *   q    — search term (required, min 2 chars for results)
  *   type — optional content_type filter (video, audiobook, pdf, interactive, tool)
  *
- * For terms >= 3 chars: FULLTEXT MATCH...AGAINST in BOOLEAN MODE on
- *   (title, category, subcategory, source)
- * For terms 2 chars: LIKE fallback on all four columns
- * For terms < 2 chars: returns empty array
+ * Search strategy (waterfall):
+ *   1. FULLTEXT MATCH...AGAINST in BOOLEAN MODE (exact/prefix) → match_type 'exact'
+ *   2. Alias lookup from search_aliases table → match_type 'alias'
+ *   3. SOUNDEX fallback → match_type 'soundex'
+ *   4. Levenshtein on LIKE '%first-3-chars%' set → match_type 'fuzzy'
  *
- * Results ordered by relevance (FULLTEXT score) descending, limit 50.
+ * Results ordered by relevance, limit 50.
  */
 
 include_once __DIR__ . '/../includes/auth.php';
@@ -53,15 +54,16 @@ try {
         $params[':type_filter'] = $typeFilter;
     }
 
+    $results = [];
+    $matchType = 'exact';
+
     if (mb_strlen($query) >= 3) {
-        // FULLTEXT search in BOOLEAN MODE
-        // Append wildcard (*) to each word for prefix matching
+        // 1) FULLTEXT search in BOOLEAN MODE
         $words = preg_split('/\s+/', $query);
         $booleanTerms = [];
         foreach ($words as $word) {
             $word = trim($word);
             if ($word !== '') {
-                // Strip non-alphanumeric for safety, keep unicode letters
                 $clean = preg_replace('/[^\p{L}\p{N}]/u', '', $word);
                 if ($clean !== '') {
                     $booleanTerms[] = '+' . $clean . '*';
@@ -88,8 +90,42 @@ try {
             LIMIT 50
         ";
 
-        $params[':q_score'] = $booleanQuery;
-        $params[':q_match'] = $booleanQuery;
+        $ftParams = array_merge($params, [
+            ':q_score' => $booleanQuery,
+            ':q_match' => $booleanQuery,
+        ]);
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($ftParams);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $matchType = 'exact';
+
+        // 2) Alias fallback if no FULLTEXT results
+        if (empty($results)) {
+            $aliasResults = searchByAliases($pdo, $query, $typeClause, $params);
+            if (!empty($aliasResults)) {
+                $results = $aliasResults;
+                $matchType = 'alias';
+            }
+        }
+
+        // 3) SOUNDEX fallback
+        if (empty($results)) {
+            $soundexResults = searchBySoundex($pdo, $query, $typeClause, $params);
+            if (!empty($soundexResults)) {
+                $results = $soundexResults;
+                $matchType = 'soundex';
+            }
+        }
+
+        // 4) Levenshtein fallback on LIKE prefix set
+        if (empty($results)) {
+            $fuzzyResults = searchByLevenshtein($pdo, $query, $typeClause, $params);
+            if (!empty($fuzzyResults)) {
+                $results = $fuzzyResults;
+                $matchType = 'fuzzy';
+            }
+        }
     } else {
         // LIKE fallback for 2-char terms
         $likeParam = '%' . $query . '%';
@@ -117,17 +153,20 @@ try {
             LIMIT 50
         ";
 
-        $params[':like_title']       = $likeParam;
-        $params[':like_category']    = $likeParam;
-        $params[':like_subcategory'] = $likeParam;
-        $params[':like_source']      = $likeParam;
+        $likeParams = array_merge($params, [
+            ':like_title'       => $likeParam,
+            ':like_category'    => $likeParam,
+            ':like_subcategory' => $likeParam,
+            ':like_source'      => $likeParam,
+        ]);
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($likeParams);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $matchType = 'prefix';
     }
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Clean up: remove the relevance score from output, cast numeric fields
+    // Format output
     $output = [];
     foreach ($results as $row) {
         $output[] = [
@@ -139,6 +178,7 @@ try {
             'content_type'     => $row['content_type'],
             'duration_seconds' => $row['duration_seconds'] !== null ? (int) $row['duration_seconds'] : null,
             'thumbnail_path'   => $row['thumbnail_path'],
+            'match_type'       => $matchType,
         ];
     }
 
@@ -146,4 +186,170 @@ try {
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Search failed']);
+}
+
+/**
+ * Search using the search_aliases synonym table.
+ * Looks up the query in both the term and aliases columns,
+ * then searches content_meta for the canonical term + all aliases.
+ */
+function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
+    $queryLower = mb_strtolower(trim($query));
+
+    // Find matching alias rows: query matches the term or appears in aliases
+    $aliasSql = "
+        SELECT term, aliases FROM search_aliases
+        WHERE LOWER(term) = :term_exact
+           OR LOWER(aliases) LIKE :term_like
+        LIMIT 5
+    ";
+    $aliasStmt = $pdo->prepare($aliasSql);
+    $aliasStmt->execute([
+        ':term_exact' => $queryLower,
+        ':term_like'  => '%' . $queryLower . '%',
+    ]);
+    $aliasRows = $aliasStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($aliasRows)) {
+        return [];
+    }
+
+    // Collect all search terms from matched aliases
+    $searchTerms = [];
+    foreach ($aliasRows as $row) {
+        $searchTerms[] = $row['term'];
+        $aliases = array_map('trim', explode(',', $row['aliases']));
+        foreach ($aliases as $alias) {
+            if ($alias !== '') {
+                $searchTerms[] = $alias;
+            }
+        }
+    }
+    $searchTerms = array_unique($searchTerms);
+
+    // Build LIKE OR conditions for each term
+    $conditions = [];
+    $params = $baseParams;
+    $i = 0;
+    foreach ($searchTerms as $term) {
+        $paramName = ':alias_' . $i;
+        $likeVal = '%' . $term . '%';
+        $conditions[] = "(cm.title LIKE {$paramName} OR cm.category LIKE {$paramName} OR cm.subcategory LIKE {$paramName} OR cm.source LIKE {$paramName})";
+        $params[$paramName] = $likeVal;
+        $i++;
+    }
+
+    $whereClause = implode(' OR ', $conditions);
+    $sql = "
+        SELECT
+            cm.content_id, cm.title, cm.category, cm.subcategory, cm.source,
+            cm.content_type, cm.duration_seconds, cm.thumbnail_path,
+            0 AS relevance
+        FROM content_meta cm
+        WHERE ({$whereClause})
+        {$typeClause}
+        ORDER BY cm.title ASC
+        LIMIT 50
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * SOUNDEX-based fallback: matches where the SOUNDEX of title or category
+ * matches the SOUNDEX of the query.
+ */
+function searchBySoundex(PDO $pdo, $query, $typeClause, $baseParams) {
+    $sql = "
+        SELECT
+            cm.content_id, cm.title, cm.category, cm.subcategory, cm.source,
+            cm.content_type, cm.duration_seconds, cm.thumbnail_path,
+            0 AS relevance
+        FROM content_meta cm
+        WHERE SOUNDEX(cm.title) = SOUNDEX(:q_title)
+           OR SOUNDEX(cm.category) = SOUNDEX(:q_cat)
+           OR SOUNDEX(cm.subcategory) = SOUNDEX(:q_subcat)
+        {$typeClause}
+        ORDER BY cm.title ASC
+        LIMIT 50
+    ";
+
+    $params = array_merge($baseParams, [
+        ':q_title'  => $query,
+        ':q_cat'    => $query,
+        ':q_subcat' => $query,
+    ]);
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Levenshtein-based fallback: fetches a broad LIKE set using the first 3 chars,
+ * then re-ranks in PHP using levenshtein() distance.
+ */
+function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
+    $prefix = mb_substr($query, 0, 3);
+    $likeVal = '%' . $prefix . '%';
+
+    $sql = "
+        SELECT
+            cm.content_id, cm.title, cm.category, cm.subcategory, cm.source,
+            cm.content_type, cm.duration_seconds, cm.thumbnail_path,
+            0 AS relevance
+        FROM content_meta cm
+        WHERE (
+            cm.title LIKE :lev_title
+            OR cm.category LIKE :lev_cat
+            OR cm.subcategory LIKE :lev_subcat
+        )
+        {$typeClause}
+        LIMIT 200
+    ";
+
+    $params = array_merge($baseParams, [
+        ':lev_title'  => $likeVal,
+        ':lev_cat'    => $likeVal,
+        ':lev_subcat' => $likeVal,
+    ]);
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($candidates)) {
+        return [];
+    }
+
+    // Score each candidate by Levenshtein distance against the query
+    $queryLower = mb_strtolower($query);
+    $scored = [];
+    foreach ($candidates as $row) {
+        $titleDist = levenshtein($queryLower, mb_strtolower(mb_substr($row['title'], 0, 50)));
+        $catDist = levenshtein($queryLower, mb_strtolower(mb_substr($row['category'] ?? '', 0, 50)));
+        $minDist = min($titleDist, $catDist);
+
+        // Only include results within a reasonable edit distance (max 3)
+        if ($minDist <= 3) {
+            $row['_lev_distance'] = $minDist;
+            $scored[] = $row;
+        }
+    }
+
+    // Sort by distance ascending
+    usort($scored, function ($a, $b) {
+        return $a['_lev_distance'] - $b['_lev_distance'];
+    });
+
+    // Strip internal scoring field, limit to 50
+    $output = [];
+    foreach (array_slice($scored, 0, 50) as $row) {
+        unset($row['_lev_distance']);
+        $output[] = $row;
+    }
+
+    return $output;
 }

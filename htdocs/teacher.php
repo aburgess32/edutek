@@ -27,6 +27,7 @@ $teacherId = (int)($user['id'] ?? 0);
   <link rel="stylesheet" href="/css/teacher.css">
   <link rel="stylesheet" href="/css/playlist.css">
   <link rel="stylesheet" href="/css/lesson-publish.css">
+  <link rel="stylesheet" href="/css/search-results.css">
 </head>
 <body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>" data-teacher-email="<?= $teacherEmail ?>">
 
@@ -202,6 +203,7 @@ $teacherId = (int)($user['id'] ?? 0);
     });
   })();
   </script>
+  <script src="/js/search-typeahead.js"></script>
   <script src="/js/teacher-dashboard.js"></script>
   <script src="/js/lesson-publish.js"></script>
   <script src="/js/lesson-builder.js"></script>

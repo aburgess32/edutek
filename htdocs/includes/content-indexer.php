@@ -152,14 +152,15 @@ function getVideoDuration(string $videoPath): float
 /**
  * Generate a thumbnail for a video file using ffmpeg.
  *
- * Extracts a single frame at ~10% into the video (minimum 1 second),
+ * Extracts a single frame at 6 seconds into the video,
  * scales to 320px width, and saves as a JPEG alongside the video.
+ * Uses proc_open for cross-platform timeout support (macOS + Linux).
  *
  * @param string $videoPath Absolute path to the video file
  * @param int    $timeout   Max seconds to allow ffmpeg to run
  * @return string|null Absolute path to the generated thumbnail, or null on failure
  */
-function generateThumbnail(string $videoPath, int $timeout = 5): ?string
+function generateThumbnail(string $videoPath, int $timeout = 15): ?string
 {
     if (!isFfmpegAvailable()) {
         return null;
@@ -171,37 +172,60 @@ function generateThumbnail(string $videoPath, int $timeout = 5): ?string
 
     $thumbPath = preg_replace('/\.[^.]+$/', '.jpg', $videoPath);
 
-    // Already exists — skip
     if (file_exists($thumbPath)) {
         return $thumbPath;
     }
 
-    // Determine seek position: 10% of duration, fallback to 1 second
-    $duration = getVideoDuration($videoPath);
-    $seekSec = ($duration > 10) ? max(1, (int) ($duration * 0.10)) : 1;
+    $seekSec = 6;
 
     $cmd = sprintf(
-        'timeout %d ffmpeg -ss %d -i %s -vframes 1 -update 1 -q:v 2 -vf "scale=320:-1" %s -y 2>/dev/null',
-        $timeout,
+        'ffmpeg -ss %d -i %s -vframes 1 -update 1 -q:v 2 -vf "scale=320:-1" %s -y 2>&1',
         $seekSec,
         escapeshellarg($videoPath),
         escapeshellarg($thumbPath)
     );
 
-    $output = [];
-    $code = -1;
-    @exec($cmd, $output, $code);
+    $descriptors = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w'],
+    ];
 
-    if ($code === 0 && file_exists($thumbPath)) {
-        return $thumbPath;
+    $process = proc_open($cmd, $descriptors, $pipes);
+    if (!is_resource($process)) {
+        return null;
     }
 
-    // Clean up partial file on failure
-    if (file_exists($thumbPath)) {
+    fclose($pipes[0]);
+
+    $startTime = time();
+    $status = proc_get_status($process);
+
+    while ($status['running']) {
+        if (time() - $startTime > $timeout) {
+            foreach ($pipes as $pipe) {
+                if (is_resource($pipe)) fclose($pipe);
+            }
+            proc_terminate($process, 9);
+            proc_close($process);
+            @unlink($thumbPath);
+            return null;
+        }
+        usleep(100000);
+        $status = proc_get_status($process);
+    }
+
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $exitCode = $status['exitcode'];
+    proc_close($process);
+
+    if ($exitCode !== 0 || !file_exists($thumbPath) || filesize($thumbPath) < 100) {
         @unlink($thumbPath);
+        return null;
     }
 
-    return null;
+    return $thumbPath;
 }
 
 /**

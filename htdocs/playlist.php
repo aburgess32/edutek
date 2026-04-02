@@ -84,7 +84,7 @@ if (!empty($contentIds)) {
     try {
         $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
         $metaStmt = $pdo->prepare("
-            SELECT content_id, content_title, thumbnail_path, duration_seconds
+            SELECT content_id, title, thumbnail_path, duration_seconds
             FROM content_meta
             WHERE content_id IN ({$placeholders})
         ");
@@ -154,7 +154,7 @@ $teacherName = htmlspecialchars($plan['teacher_name'] ?? 'Teacher', ENT_QUOTES, 
 
             // Use content_meta title if available, else derive from filename
             $itemTitle = $available
-                ? htmlspecialchars($meta['content_title'] ?? $videoName, ENT_QUOTES, 'UTF-8')
+                ? htmlspecialchars($meta['title'] ?? $videoName, ENT_QUOTES, 'UTF-8')
                 : htmlspecialchars($videoName ?: $contentId, ENT_QUOTES, 'UTF-8');
 
             // Build watch.php link

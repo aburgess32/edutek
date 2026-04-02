@@ -1,294 +1,842 @@
-.Wwrapper{
-	width:70%;
-	margin-bottom:1%;
+/* ============================
+   WATCH PAGE — Design Tokens
+   ============================ */
+:root {
+  --wp-bg: #f7f6f2;
+  --wp-surface: #ffffff;
+  --wp-text: #28251d;
+  --wp-text-muted: #7a7974;
+  --wp-text-faint: #bab9b4;
+  --wp-accent: #01696f;
+  --wp-accent-hover: #0c4e54;
+  --wp-accent-highlight: rgba(1, 105, 111, 0.1);
+  --wp-success: #437a22;
+  --wp-border: #e6e4df;
+  --wp-divider: #dcd9d5;
+  --wp-controls-bg: #1a1a1a;
+  --wp-controls-text: #e0e0e0;
+  --wp-radius-sm: 6px;
+  --wp-radius-md: 8px;
+  --wp-radius-pill: 20px;
+  --wp-shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --wp-shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+  --wp-shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
+  --wp-transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  --wp-font-display: 'Plus Jakarta Sans', 'Helvetica Neue', sans-serif;
+  --wp-font-body: 'Plus Jakarta Sans', 'Helvetica Neue', sans-serif;
 }
 
-.WSWrapper{
-	width:100%;
-	height:auto;
-	float:right;
+/* ============================
+   WATCH PAGE — Grid Layout
+   ============================ */
+.watchpage {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--wp-bg);
+  min-height: calc(100vh - 56px);
 }
 
-.Swrapper{
-	width:29%;
-	height:auto;
-	margin-top:-38%;
-	float:right;
-	overflow:auto;
-	 font-family:  sans-serif;
+.watch-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  align-items: start;
 }
 
-.footp{
-	font-size:15px;
-	color:black;
+/* ============================
+   PLAYER COLUMN (Left)
+   ============================ */
+.player-col {
+  min-width: 0;
 }
 
-.Wvideo{
-	width:90%;
-	height:auto;
-	margin-left:5%;
-	margin-top:2%;
+/* Breadcrumb (watch-page specific) */
+.wp-breadcrumb {
+  margin-bottom: 16px;
 }
 
-.Wtitle{
-	margin:1%;
-	font-weight:bold;
-	text-align:center;
-	font-size:15px;
-	
-	
+.wp-breadcrumb ol {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+  font-family: var(--wp-font-body);
 }
 
-.Contents{
-	width:80%;
-	height:auto;
-	color:black;
-	
+.wp-breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
- a .Contents:hover{
-	opacity:0.8;
+.wp-breadcrumb li + li::before {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--wp-text-muted);
+  border-top: 1.5px solid var(--wp-text-muted);
+  transform: rotate(45deg);
+  flex-shrink: 0;
 }
 
-/* Extra Small Devices, Phones */
-@media screen and (width <= 600px) {
-.Wwrapper{
-	width:100%;
-	margin-top:10%;
-	height:auto;
-	position: fixed;
-	
+.wp-breadcrumb a {
+  color: var(--wp-accent);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 13px;
 }
 
-.Swrapper{
-	width:100%;
-	height:auto;
-	margin-top:100%;
+.wp-breadcrumb a:hover {
+  text-decoration: underline;
 }
 
-.WSWrapper{
-	width:100%;
-	height:auto;
-	
+.wp-breadcrumb .wp-bc-current {
+  color: var(--wp-text-muted);
 }
 
-.footp{
-	font-size:15px;
-	height:auto;
-	width:100%;
-	color:black;
+/* Player Card */
+.player-card {
+  background: var(--wp-surface);
+  border-radius: var(--wp-radius-md);
+  box-shadow: var(--wp-shadow-md);
+  overflow: hidden;
 }
 
-.Contents{
-	width:100%;
-	height:auto;
-	float:left;
+/* Video Area */
+.player-card__video-wrap {
+  position: relative;
+  border-radius: var(--wp-radius-md) var(--wp-radius-md) 0 0;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
 }
 
-.Wtitle{
-	margin:1%;
-	font-weight:bold;
-	letter-spacing:1px;
-	float:justify;
-	font-size:15px;
-	
+.player-card__video-wrap .Wvideo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  margin: 0;
 }
 
-.Wvideo{
-	width:100%;
-	height:auto;
-	margin-left:0;
-	margin-top:0;
+/* Keyboard shortcut hint */
+.player-shortcut-hint {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 5;
 }
 
-h3{
-	float:justify;
-	font-size:10px;
-	margin:auto;
-}
-	
-}
-
-@media screen and (width >= 992px){
-.Wwrapper{
-	width:70%;
-	margin-bottom:1%;
-}
-
-.WSWrapper{
-	width:100%;
-	height:auto;
-	float:right;
+.shortcut-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+  cursor: pointer;
 }
 
-.Swrapper{
-	width:29%;
-	height:auto;
-	margin-top:-38%;
-	float:right;
-	overflow:auto;
+.shortcut-btn:hover {
+  background: rgba(0,0,0,0.7);
 }
 
-.Wvideo{
-	width:90%;
-	height:auto;
-	margin-left:5%;
-	margin-top:2%;
+.shortcut-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: rgba(20, 20, 20, 0.95);
+  color: #fff;
+  border-radius: var(--wp-radius-md);
+  padding: 16px;
+  width: 220px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 200ms, transform 200ms;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--wp-shadow-lg);
+  font-family: var(--wp-font-body);
 }
 
-.Wtitle{
-	margin:1%;
-	font-weight:bold;
-	text-align:center;
-	font-size:15px;
-	
+.player-shortcut-hint:hover .shortcut-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
-.Contents{
-	width:80%;
-	height:auto;
-	
-	
+.shortcut-tooltip h4 {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  margin-top: 0;
 }
 
-	
+.shortcut-tooltip ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* min-width: 1366px */
-@media screen and (width <= 873px) and (width >= 770px){
-.Wwrapper{
-	width:70%;
-	margin-top:3%;
-	margin-left:5%;
+.shortcut-tooltip li {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.WSWrapper{
-	width:100%;
-	height:auto;
-	float:right;
+.shortcut-tooltip kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 5px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--wp-font-body);
 }
 
-.Swrapper{
-	width:29%;
-	height:auto;
-	margin-top:-30%;
-	float:right;
-	overflow:auto;
+/* Title Bar */
+.player-card__title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  gap: 16px;
 }
 
-.Wvideo{
-	width:80%;
-	height:120%;
-	
+.player-card__title {
+  font-family: var(--wp-font-display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--wp-text);
+  margin: 0;
 }
 
-.Wtitle{
-	margin:1%;
-	font-weight:bold;
-	float:left;
-	font-size:15px;
-	width:80%;
-	
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--wp-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--wp-radius-pill);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--wp-font-body);
+  transition: background var(--wp-transition);
 }
 
-.Contents{
-	width:80%;
-	height:auto;
-	
-	
+.btn-download:hover {
+  background: var(--wp-accent-hover);
+  color: #fff;
 }
 
-	/* ,(max-width: 1024px) */
+.btn-download svg {
+  flex-shrink: 0;
+  display: inline;
 }
 
-@media screen and (width <= 1366px) and (width >= 1115px){
-.Wwrapper{
-	width:70%;
-	margin-top:-7%;
-	margin-left:5%;
+/* ============================
+   CUSTOM CONTROLS BAR
+   ============================ */
+.player-controls {
+  background: var(--wp-controls-bg);
+  padding: 12px 16px;
+  border-radius: 0 0 var(--wp-radius-md) var(--wp-radius-md);
 }
 
-.WSWrapper{
-	width:100%;
-	height:auto;
-	float:right;
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.Swrapper{
-	width:29%;
-	height:auto;
-	margin-top:-40%;
-	float:right;
-	overflow:auto;
+.ctrl-btn {
+  color: var(--wp-controls-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-shrink: 0;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--wp-font-body);
+  transition: color var(--wp-transition), background var(--wp-transition);
 }
 
-.Wvideo{
-	width:80%;
-	height:120%;
-	
+.ctrl-btn:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
 }
 
-.Wtitle{
-	margin:1%;
-	font-weight:bold;
-	float:left;
-	font-size:15px;
-	width:80%;
-	
+.ctrl-btn--active {
+  color: var(--wp-accent);
 }
 
-.Contents{
-	width:80%;
-	height:auto;
-	
-	
+.ctrl-time {
+  color: #ccc;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--wp-font-body);
 }
 
-	
+/* Progress bar */
+.ctrl-progress {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  cursor: pointer;
+  position: relative;
 }
 
-@media screen and (width <= 1024px) and (width >= 873px){
-.Wwrapper{
-	width:70%;
-	margin-top:1%;
-	margin-left:5%;
+.ctrl-progress__track {
+  position: relative;
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  overflow: visible;
+  transition: height 100ms;
 }
 
-.WSWrapper{
-	width:100%;
-	height:auto;
-	float:right;
+.ctrl-progress:hover .ctrl-progress__track {
+  height: 6px;
 }
 
-.Swrapper{
-	width:29%;
-	height:auto;
-	margin-top:-30%;
-	float:right;
-	overflow:auto;
+.ctrl-progress__buffered {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
 }
 
-.Wvideo{
-	width:80%;
-	height:auto;
-	
+.ctrl-progress__filled {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--wp-accent);
+  border-radius: 2px;
+  pointer-events: none;
 }
 
-.Wtitle{
-	margin:1%;
-	font-weight:bold;
-	float:left;
-	font-size:15px;
-	width:80%;
-	
+.ctrl-progress__loop-region {
+  position: absolute;
+  top: -3px;
+  height: calc(100% + 6px);
+  background: rgba(1, 105, 111, 0.25);
+  border: 1px solid rgba(1, 105, 111, 0.4);
+  border-radius: 3px;
+  pointer-events: none;
+  display: none;
 }
 
-.Contents{
-	width:80%;
-	height:auto;
-	
-	
+.ctrl-progress__loop-region.active {
+  display: block;
 }
 
-	
+.ctrl-progress__thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: var(--wp-accent);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity var(--wp-transition);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+.ctrl-progress:hover .ctrl-progress__thumb {
+  opacity: 1;
+}
+
+/* Speed dropdown */
+.ctrl-speed-wrap {
+  position: relative;
+}
+
+.ctrl-speed {
+  font-variant-numeric: tabular-nums;
+}
+
+.speed-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  border-radius: var(--wp-radius-md);
+  box-shadow: var(--wp-shadow-lg);
+  overflow: hidden;
+  width: 80px;
+  display: none;
+  z-index: 20;
+}
+
+.speed-menu.open {
+  display: block;
+}
+
+.speed-menu__item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ccc;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--wp-font-body);
+  transition: background var(--wp-transition), color var(--wp-transition);
+}
+
+.speed-menu__item:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.speed-menu__item--active {
+  color: #fff;
+  background: var(--wp-accent);
+}
+
+.speed-menu__item--active:hover {
+  background: var(--wp-accent-hover);
+}
+
+/* Font size toggles */
+.ctrl-fontsize {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.ctrl-btn--small {
+  font-size: 11px;
+}
+
+.ctrl-btn--large {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Loop label */
+.loop-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Volume */
+.ctrl-volume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctrl-volume__slider {
+  width: 60px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.ctrl-volume__track {
+  position: relative;
+  height: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+}
+
+.ctrl-volume__filled {
+  height: 100%;
+  background: #fff;
+  border-radius: 2px;
+  transition: width 50ms linear;
+}
+
+/* CC tooltip */
+.ctrl-cc-wrap {
+  position: relative;
+}
+
+.ctrl-cc-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 20, 0.95);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: var(--wp-radius-sm);
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.ctrl-cc-wrap:hover .ctrl-cc-tooltip {
+  opacity: 1;
+}
+
+/* ============================
+   PLAYLIST SIDEBAR (Right)
+   ============================ */
+.playlist-sidebar {
+  background: var(--wp-surface);
+  border-radius: var(--wp-radius-md);
+  box-shadow: var(--wp-shadow-md);
+  overflow: hidden;
+  position: sticky;
+  top: 80px;
+}
+
+.playlist-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--wp-border);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.playlist-header__title {
+  font-family: var(--wp-font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--wp-text);
+  margin: 0;
+}
+
+.playlist-header__count {
+  font-size: 13px;
+  color: var(--wp-text-muted);
+  font-weight: 500;
+}
+
+.playlist-items {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+/* Playlist item */
+.playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--wp-radius-sm);
+  cursor: pointer;
+  position: relative;
+  border-left: 3px solid transparent;
+  transition: background var(--wp-transition);
+  text-decoration: none;
+  color: var(--wp-text);
+}
+
+.playlist-item:hover {
+  background: var(--wp-bg);
+  color: var(--wp-text);
+}
+
+.playlist-item--active {
+  background: var(--wp-accent-highlight);
+  border-left-color: var(--wp-accent);
+}
+
+.playlist-item--active:hover {
+  background: var(--wp-accent-highlight);
+}
+
+/* Now playing badge */
+.playlist-item__indicator {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+}
+
+.now-playing-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--wp-accent);
+  background: rgba(1, 105, 111, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Playlist thumbnails */
+.playlist-item__thumb {
+  width: 100px;
+  height: 56px;
+  border-radius: var(--wp-radius-sm);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #89CFF0, #2B8FC2);
+}
+
+.playlist-item__thumb--blue {
+  background: linear-gradient(135deg, #6DB3F2, #1E6F99);
+}
+
+.playlist-item__thumb--green {
+  background: linear-gradient(135deg, #7BC8A4, #2E8B57);
+}
+
+.playlist-item__thumb--orange {
+  background: linear-gradient(135deg, #FFB347, #E67E22);
+}
+
+.playlist-item__thumb--purple {
+  background: linear-gradient(135deg, #B39DDB, #7E57C2);
+}
+
+.playlist-item__thumb--teal {
+  background: linear-gradient(135deg, #80CBC4, #00897B);
+}
+
+.playlist-item__play-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--wp-transition);
+}
+
+.playlist-item:hover .playlist-item__play-icon,
+.playlist-item--active .playlist-item__play-icon {
+  opacity: 1;
+}
+
+.playlist-item__play-icon svg {
+  display: inline;
+}
+
+/* Playlist item info */
+.playlist-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.playlist-item__title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--wp-font-body);
+  color: var(--wp-text);
+}
+
+.playlist-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.playlist-item__duration {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--wp-text-muted);
+  background: var(--wp-bg);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.playlist-item__status {
+  display: flex;
+  align-items: center;
+}
+
+.playlist-item__status svg {
+  display: inline;
+}
+
+/* ============================
+   SCROLLBAR
+   ============================ */
+.playlist-items::-webkit-scrollbar {
+  width: 4px;
+}
+
+.playlist-items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.playlist-items::-webkit-scrollbar-thumb {
+  background: var(--wp-divider);
+  border-radius: 2px;
+}
+
+.playlist-items::-webkit-scrollbar-thumb:hover {
+  background: var(--wp-text-faint);
+}
+
+/* ============================
+   FOOTER (override for watch page)
+   ============================ */
+.watchpage .sticky-footer {
+  background: var(--wp-bg);
+  border-top: 1px solid var(--wp-divider);
+  padding: 24px;
+  text-align: center;
+  color: var(--wp-text-muted);
+  font-size: 13px;
+}
+
+/* ============================
+   RESPONSIVE — Tablet (769-1024)
+   ============================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .watch-grid {
+    grid-template-columns: 1fr 280px;
+  }
+
+  .playlist-item__thumb {
+    width: 80px;
+    height: 45px;
+  }
+}
+
+/* ============================
+   RESPONSIVE — Mobile (≤768px)
+   ============================ */
+@media (max-width: 768px) {
+  .watchpage {
+    padding: 12px;
+  }
+
+  .watch-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .player-col {
+    position: sticky;
+    top: 56px;
+    z-index: 10;
+    background: var(--wp-bg);
+    padding-bottom: 8px;
+  }
+
+  .player-card__title-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .player-card__title {
+    font-size: 15px;
+  }
+
+  /* Controls: hide less-used items */
+  .ctrl-fontsize,
+  .ctrl-volume__slider {
+    display: none;
+  }
+
+  .controls-row {
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .ctrl-time {
+    font-size: 11px;
+  }
+
+  /* Playlist: vertical stack on mobile */
+  .playlist-sidebar {
+    position: static;
+    border-radius: var(--wp-radius-md);
+  }
+
+  .playlist-items {
+    max-height: none;
+  }
+
+  .playlist-item {
+    padding: 10px;
+  }
+
+  .playlist-item__thumb {
+    width: 80px;
+    height: 45px;
+  }
+
+  .wp-breadcrumb {
+    margin-bottom: 8px;
+  }
+
+  .wp-breadcrumb ol {
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+}
+
+/* ============================
+   HIDE old classes that may linger
+   ============================ */
+.Swrapper, .WSWrapper, .Wwrapper, .footp, .Wtitle, .Contents {
+  /* Reset any old styles that might conflict */
+  float: none;
+  margin-top: 0;
+  position: static;
 }

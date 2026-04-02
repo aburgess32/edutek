@@ -73,16 +73,6 @@ $teacherId = (int)($user['id'] ?? 0);
           <div>Loading student data...</div>
         </div>
       </div>
-      <!-- Content Utilities -->
-      <div class="teacher-utilities">
-        <button type="button" id="reindex-btn" class="teacher-utilities__btn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.76-4.24L10 6h6V0l-2.35 2.35z" fill="currentColor"/>
-          </svg>
-          Reindex Content
-        </button>
-        <span id="reindex-status" class="teacher-utilities__status"></span>
-      </div>
     </section>
 
     <!-- Playlists Tab -->
@@ -218,54 +208,5 @@ $teacherId = (int)($user['id'] ?? 0);
   <script src="/js/lesson-publish.js"></script>
   <script src="/js/lesson-builder.js"></script>
   <script src="/js/teacher-profile.js"></script>
-  <!-- Reindex Content (FRE-40) -->
-  <script>
-  (function() {
-    var btn = document.getElementById('reindex-btn');
-    var status = document.getElementById('reindex-status');
-    if (!btn || !status) return;
-
-    btn.addEventListener('click', function() {
-      if (!confirm('This will scan the videos folder and update the content database. Continue?')) {
-        return;
-      }
-
-      btn.disabled = true;
-      btn.classList.add('teacher-utilities__btn--loading');
-      status.textContent = 'Scanning files\u2026';
-      status.className = 'teacher-utilities__status';
-
-      var csrfToken = document.querySelector('meta[name="csrf-token"]');
-      var token = csrfToken ? csrfToken.getAttribute('content') : '';
-
-      fetch('/api/reindex.php', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-Token': token,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: '_csrf_token=' + encodeURIComponent(token)
-      })
-      .then(function(res) { return res.json().then(function(d) { return {ok: res.ok, data: d}; }); })
-      .then(function(res) {
-        if (res.ok && res.data.success) {
-          status.textContent = 'Indexed ' + res.data.total + ' items (' + res.data.new + ' new, ' + res.data.updated + ' updated)';
-          status.classList.add('teacher-utilities__status--success');
-        } else {
-          status.textContent = res.data.error || 'Reindex failed';
-          status.classList.add('teacher-utilities__status--error');
-        }
-      })
-      .catch(function() {
-        status.textContent = 'Network error — could not reach server';
-        status.classList.add('teacher-utilities__status--error');
-      })
-      .finally(function() {
-        btn.disabled = false;
-        btn.classList.remove('teacher-utilities__btn--loading');
-      });
-    });
-  })();
-  </script>
 </body>
 </html>

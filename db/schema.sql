@@ -64,7 +64,10 @@ CREATE TABLE IF NOT EXISTS content_meta (
     INDEX idx_language     (language),
 
     -- Full-text index for search across title, category, subcategory, source
-    FULLTEXT ft_search (title, category, subcategory, source)
+    FULLTEXT ft_search (title, category, subcategory, source),
+
+    -- Title-only full-text index for title-priority ranking
+    FULLTEXT ft_title (title)
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

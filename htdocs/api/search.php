@@ -14,7 +14,7 @@
  *   3. SOUNDEX fallback → match_type 'soundex'
  *   4. Levenshtein on LIKE '%first-3-chars%' set → match_type 'fuzzy'
  *
- * Results ordered by relevance, limit 50.
+ * Results ordered by relevance (title matches boosted 2x), limit 20.
  */
 
 include_once __DIR__ . '/../includes/auth.php';
@@ -82,17 +82,20 @@ try {
                 cm.content_type,
                 cm.duration_seconds,
                 cm.thumbnail_path,
-                MATCH(cm.title, cm.category, cm.subcategory, cm.source) AGAINST(:q_score IN BOOLEAN MODE) AS relevance
+                cm.file_path,
+                MATCH(cm.title, cm.category, cm.subcategory, cm.source) AGAINST(:q_score IN BOOLEAN MODE) AS relevance,
+                MATCH(cm.title) AGAINST(:q_title IN BOOLEAN MODE) AS title_relevance
             FROM content_meta cm
             WHERE MATCH(cm.title, cm.category, cm.subcategory, cm.source) AGAINST(:q_match IN BOOLEAN MODE)
             {$typeClause}
-            ORDER BY relevance DESC
-            LIMIT 50
+            ORDER BY (relevance + title_relevance * 2) DESC
+            LIMIT 20
         ";
 
         $ftParams = array_merge($params, [
             ':q_score' => $booleanQuery,
             ':q_match' => $booleanQuery,
+            ':q_title' => $booleanQuery,
         ]);
 
         $stmt = $pdo->prepare($sql);
@@ -140,6 +143,7 @@ try {
                 cm.content_type,
                 cm.duration_seconds,
                 cm.thumbnail_path,
+                cm.file_path,
                 0 AS relevance
             FROM content_meta cm
             WHERE (
@@ -150,7 +154,7 @@ try {
             )
             {$typeClause}
             ORDER BY cm.title ASC
-            LIMIT 50
+            LIMIT 20
         ";
 
         $likeParams = array_merge($params, [
@@ -167,9 +171,9 @@ try {
     }
 
     // Format output
-    $output = [];
+    $items = [];
     foreach ($results as $row) {
-        $output[] = [
+        $items[] = [
             'content_id'       => $row['content_id'],
             'title'            => $row['title'],
             'category'         => $row['category'],
@@ -178,11 +182,16 @@ try {
             'content_type'     => $row['content_type'],
             'duration_seconds' => $row['duration_seconds'] !== null ? (int) $row['duration_seconds'] : null,
             'thumbnail_path'   => $row['thumbnail_path'],
+            'file_path'        => $row['file_path'] ?? null,
             'match_type'       => $matchType,
         ];
     }
 
-    echo json_encode($output);
+    echo json_encode([
+        'results' => $items,
+        'total'   => count($items),
+        'query'   => $query,
+    ]);
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Search failed']);
@@ -243,13 +252,13 @@ function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
     $sql = "
         SELECT
             cm.content_id, cm.title, cm.category, cm.subcategory, cm.source,
-            cm.content_type, cm.duration_seconds, cm.thumbnail_path,
+            cm.content_type, cm.duration_seconds, cm.thumbnail_path, cm.file_path,
             0 AS relevance
         FROM content_meta cm
         WHERE ({$whereClause})
         {$typeClause}
         ORDER BY cm.title ASC
-        LIMIT 50
+        LIMIT 20
     ";
 
     $stmt = $pdo->prepare($sql);
@@ -265,7 +274,7 @@ function searchBySoundex(PDO $pdo, $query, $typeClause, $baseParams) {
     $sql = "
         SELECT
             cm.content_id, cm.title, cm.category, cm.subcategory, cm.source,
-            cm.content_type, cm.duration_seconds, cm.thumbnail_path,
+            cm.content_type, cm.duration_seconds, cm.thumbnail_path, cm.file_path,
             0 AS relevance
         FROM content_meta cm
         WHERE SOUNDEX(cm.title) = SOUNDEX(:q_title)
@@ -273,7 +282,7 @@ function searchBySoundex(PDO $pdo, $query, $typeClause, $baseParams) {
            OR SOUNDEX(cm.subcategory) = SOUNDEX(:q_subcat)
         {$typeClause}
         ORDER BY cm.title ASC
-        LIMIT 50
+        LIMIT 20
     ";
 
     $params = array_merge($baseParams, [
@@ -298,7 +307,7 @@ function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
     $sql = "
         SELECT
             cm.content_id, cm.title, cm.category, cm.subcategory, cm.source,
-            cm.content_type, cm.duration_seconds, cm.thumbnail_path,
+            cm.content_type, cm.duration_seconds, cm.thumbnail_path, cm.file_path,
             0 AS relevance
         FROM content_meta cm
         WHERE (
@@ -344,9 +353,9 @@ function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
         return $a['_lev_distance'] - $b['_lev_distance'];
     });
 
-    // Strip internal scoring field, limit to 50
+    // Strip internal scoring field, limit to 20
     $output = [];
-    foreach (array_slice($scored, 0, 50) as $row) {
+    foreach (array_slice($scored, 0, 20) as $row) {
         unset($row['_lev_distance']);
         $output[] = $row;
     }

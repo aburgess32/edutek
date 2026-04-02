@@ -70,7 +70,14 @@
     function searchApi(term) {
         return fetch('/api/search.php?q=' + encodeURIComponent(term))
             .then(function (r) { return r.json(); })
-            .catch(function () { return []; });
+            .then(function (data) {
+                // Support both old array format and new {results, total, query} format
+                if (Array.isArray(data)) {
+                    return { results: data, total: data.length, query: term };
+                }
+                return data;
+            })
+            .catch(function () { return { results: [], total: 0, query: term }; });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -540,13 +547,48 @@
         var resultsEl = document.getElementById('lb-search-results');
         if (resultsEl) resultsEl.innerHTML = '<div class="sr-loading"><div class="sr-spinner"></div> Searching\u2026</div>';
 
-        searchApi(term).then(function (results) {
-            state.searchResults = Array.isArray(results) ? results : [];
+        searchApi(term).then(function (data) {
+            state.searchResults = Array.isArray(data.results) ? data.results : [];
+            state.searchTotal = data.total || state.searchResults.length;
+            state.searchQuery = data.query || term;
             // Capture match type from first result (all share same type per query)
             state.matchType = (state.searchResults.length > 0 && state.searchResults[0].match_type)
                 ? state.searchResults[0].match_type : '';
             renderSearchResults();
         });
+    }
+
+    // Category color map for placeholders
+    var categoryColors = {
+        'Science':     '#3b82f6',
+        'Math':        '#ef4444',
+        'History':     '#f59e0b',
+        'English':     '#8b5cf6',
+        'Art':         '#ec4899',
+        'Music':       '#06b6d4',
+        'Technology':  '#10b981',
+        'Health':      '#f97316',
+        'Geography':   '#6366f1',
+        'Language':    '#14b8a6'
+    };
+
+    function getCategoryColor(category) {
+        if (!category) return '#6b7280';
+        // Check exact match first
+        if (categoryColors[category]) return categoryColors[category];
+        // Check partial match
+        var lower = category.toLowerCase();
+        var keys = Object.keys(categoryColors);
+        for (var i = 0; i < keys.length; i++) {
+            if (lower.indexOf(keys[i].toLowerCase()) !== -1) return categoryColors[keys[i]];
+        }
+        // Hash-based fallback color
+        var hash = 0;
+        for (var j = 0; j < category.length; j++) {
+            hash = category.charCodeAt(j) + ((hash << 5) - hash);
+        }
+        var hue = Math.abs(hash) % 360;
+        return 'hsl(' + hue + ', 55%, 50%)';
     }
 
     function renderSearchResults() {
@@ -570,6 +612,12 @@
                 '</div>';
             return;
         }
+
+        // Result count
+        var countText = 'Showing ' + state.searchResults.length + ' result' +
+            (state.searchResults.length !== 1 ? 's' : '') +
+            ' for \u2018' + escapeHtml(state.searchQuery || state.searchTerm) + '\u2019';
+        resultsEl.appendChild(el('div', { className: 'sr-result-count' }, countText));
 
         // Fuzzy/alias/soundex notice
         if (state.matchType && state.matchType !== 'exact' && state.matchType !== 'prefix') {
@@ -606,10 +654,10 @@
                 'data-id': contentId,
                 tabindex: '0',
                 role: 'button',
-                'aria-label': (result.title || contentId) + (isInPlan ? ' (already in lesson plan)' : '')
+                'aria-label': 'Preview ' + (result.title || contentId) + (isInPlan ? ' (already in lesson plan)' : '')
             });
 
-            // Thumbnail
+            // Thumbnail — category-colored placeholders
             var thumb = el('div', { className: 'sr-card__thumb' });
             if (result.thumbnail_path) {
                 thumb.appendChild(el('img', {
@@ -618,11 +666,12 @@
                     loading: 'lazy'
                 }));
             } else {
-                var placeholder = getContentPlaceholder(result.content_type);
-                thumb.appendChild(el('span', {
-                    className: 'sr-card__thumb-placeholder',
-                    innerHTML: placeholder
-                }));
+                var catColor = getCategoryColor(result.category);
+                var catInitial = (result.category || 'V').charAt(0).toUpperCase();
+                var placeholder = el('div', { className: 'sr-card__thumb-cat' });
+                placeholder.style.backgroundColor = catColor;
+                placeholder.textContent = catInitial;
+                thumb.appendChild(placeholder);
             }
             card.appendChild(thumb);
 
@@ -652,33 +701,35 @@
             ]);
             card.appendChild(info);
 
-            // Checkbox or in-plan label
+            // Action area: quick-add button or in-plan label
             if (isInPlan) {
-                card.appendChild(el('span', { className: 'sr-card__in-plan-label' }, 'In lesson plan'));
+                card.appendChild(el('span', { className: 'sr-card__in-plan-label' }, 'In plan'));
             } else {
-                var checkbox = el('div', {
-                    className: 'sr-card__check' + (isSelected ? ' sr-card__check--checked' : ''),
+                var addBtn = el('button', {
+                    className: 'sr-card__add-btn' + (isSelected ? ' sr-card__add-btn--added' : ''),
                     onClick: function (e) {
                         e.stopPropagation();
                         toggleSelectItem(result);
                     },
-                    role: 'checkbox',
-                    'aria-checked': isSelected ? 'true' : 'false',
-                    'aria-label': 'Select ' + (result.title || '')
-                }, isSelected ? '\u2713' : '');
-                card.appendChild(checkbox);
+                    title: isSelected ? 'Remove from selection' : 'Quick add to lesson plan',
+                    'aria-label': isSelected ? 'Remove ' + (result.title || '') : 'Add ' + (result.title || '')
+                }, isSelected ? '\u2713' : '+');
+                card.appendChild(addBtn);
             }
 
-            // Click card to toggle selection (unless in plan)
-            card.addEventListener('click', function () {
-                if (!isInPlan) {
-                    toggleSelectItem(result);
-                }
+            // Click card body to open preview modal
+            card.addEventListener('click', function (e) {
+                // Don't open preview if clicking the add button
+                if (e.target.closest('.sr-card__add-btn') || e.target.closest('.sr-card__in-plan-label')) return;
+                openPreviewModal(result, isInPlan);
             });
 
-            // Keyboard: Enter/Space to toggle
+            // Keyboard: Enter to preview, Space to quick-add
             card.addEventListener('keydown', function (e) {
-                if ((e.key === 'Enter' || e.key === ' ') && !isInPlan) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    openPreviewModal(result, isInPlan);
+                } else if (e.key === ' ' && !isInPlan) {
                     e.preventDefault();
                     toggleSelectItem(result);
                 }
@@ -688,6 +739,141 @@
         });
 
         resultsEl.appendChild(grid);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // VIDEO PREVIEW MODAL
+    // ─────────────────────────────────────────────────────────────────────────
+    function openPreviewModal(result, isInPlan) {
+        var contentId = result.content_id || result.id || '';
+
+        // Create overlay
+        var overlay = el('div', { className: 'sr-preview-overlay' });
+
+        // Build modal
+        var modal = el('div', { className: 'sr-preview-modal' });
+
+        // Close button
+        var closeBtn = el('button', {
+            className: 'sr-preview-close',
+            onClick: function () { closePreview(); },
+            'aria-label': 'Close preview',
+            title: 'Close'
+        }, '\u2715');
+        modal.appendChild(closeBtn);
+
+        // Video player section
+        var playerSection = el('div', { className: 'sr-preview-player' });
+        var videoEl = null;
+
+        if (result.content_type === 'video' && result.file_path) {
+            videoEl = document.createElement('video');
+            videoEl.className = 'sr-preview-video';
+            videoEl.controls = true;
+            videoEl.preload = 'metadata';
+            videoEl.setAttribute('controlsList', 'nodownload');
+            videoEl.src = '/' + result.file_path.replace(/^\/+/, '');
+            playerSection.appendChild(videoEl);
+
+            // Playback speed controls
+            var speedBar = el('div', { className: 'sr-preview-speeds' });
+            ['0.5', '1', '1.5', '2'].forEach(function (speed) {
+                var btn = el('button', {
+                    className: 'sr-preview-speed-btn' + (speed === '1' ? ' sr-preview-speed-btn--active' : ''),
+                    onClick: function () {
+                        if (videoEl) videoEl.playbackRate = parseFloat(speed);
+                        speedBar.querySelectorAll('.sr-preview-speed-btn').forEach(function (b) {
+                            b.classList.remove('sr-preview-speed-btn--active');
+                        });
+                        btn.classList.add('sr-preview-speed-btn--active');
+                    }
+                }, speed + 'x');
+                speedBar.appendChild(btn);
+            });
+            playerSection.appendChild(speedBar);
+        } else {
+            // Non-video or no file path — show placeholder
+            var catColor = getCategoryColor(result.category);
+            var pholder = el('div', { className: 'sr-preview-placeholder' });
+            pholder.style.backgroundColor = catColor;
+            pholder.innerHTML = getContentPlaceholder(result.content_type);
+            playerSection.appendChild(pholder);
+        }
+        modal.appendChild(playerSection);
+
+        // Info panel
+        var breadcrumb = '';
+        if (result.category) {
+            breadcrumb = result.category;
+            if (result.subcategory) breadcrumb += ' \u203A ' + result.subcategory;
+        }
+
+        var infoPanel = el('div', { className: 'sr-preview-info' }, [
+            el('h2', { className: 'sr-preview-title' }, result.title || contentId),
+            breadcrumb ? el('div', { className: 'sr-preview-breadcrumb' }, breadcrumb) : null,
+            result.content_type ? el('span', {
+                className: 'sr-card__type-badge sr-card__type-badge--' + result.content_type
+            }, result.content_type) : null,
+            result.duration_seconds ? el('div', { className: 'sr-preview-duration' }, 'Duration: ' + formatDuration(result.duration_seconds)) : null,
+            result.file_path ? el('div', { className: 'sr-preview-filepath' }, result.file_path) : null
+        ]);
+        modal.appendChild(infoPanel);
+
+        // Action buttons
+        var actions = el('div', { className: 'sr-preview-actions' });
+        if (!isInPlan) {
+            var isSelected = state.selectedItems.some(function (s) {
+                return (s.id || s.content_id) === contentId;
+            });
+            actions.appendChild(el('button', {
+                className: 'lb-btn lb-btn-primary sr-preview-add-btn',
+                onClick: function () {
+                    if (!isSelected) {
+                        toggleSelectItem(result);
+                    }
+                    closePreview();
+                }
+            }, 'Add to Lesson Plan'));
+        } else {
+            actions.appendChild(el('div', { className: 'sr-preview-in-plan' }, 'Already in lesson plan'));
+        }
+        actions.appendChild(el('button', {
+            className: 'lb-btn lb-btn-secondary',
+            onClick: function () { closePreview(); }
+        }, 'Close'));
+        modal.appendChild(actions);
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Animate in
+        requestAnimationFrame(function () {
+            overlay.classList.add('sr-preview-overlay--visible');
+        });
+
+        // Close handlers
+        function closePreview() {
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.src = '';
+            }
+            overlay.classList.remove('sr-preview-overlay--visible');
+            setTimeout(function () { overlay.remove(); }, 200);
+        }
+
+        // Click outside modal to close
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closePreview();
+        });
+
+        // Escape key to close
+        function onEsc(e) {
+            if (e.key === 'Escape') {
+                closePreview();
+                document.removeEventListener('keydown', onEsc);
+            }
+        }
+        document.addEventListener('keydown', onEsc);
     }
 
     function getContentPlaceholder(contentType) {

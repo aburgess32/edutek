@@ -222,30 +222,53 @@
   color: var(--teacher-muted, #5a5a6e);
 }
 
-/* Card action area (checkbox) */
-.sr-card__check {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--teacher-border, #e8e4df);
+/* Category-colored placeholder thumbnails */
+.sr-card__thumb-cat {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 26px;
+  font-weight: 800;
   color: #fff;
+  border-radius: 8px;
+}
+
+/* Quick-add button */
+.sr-card__add-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--teacher-border, #e8e4df);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--teacher-muted, #5a5a6e);
   transition: all 150ms ease;
   cursor: pointer;
   align-self: center;
+  padding: 0;
+  line-height: 1;
 }
 
-.sr-card__check:hover {
+.sr-card__add-btn:hover {
   border-color: var(--accent, #4ECDC4);
+  color: var(--accent, #4ECDC4);
+  background: rgba(78, 205, 196, 0.08);
 }
 
-.sr-card__check--checked {
+.sr-card__add-btn--added {
   background: var(--accent, #4ECDC4);
   border-color: var(--accent, #4ECDC4);
+  color: #fff;
+  font-size: 16px;
 }
 
 .sr-card__in-plan-label {
@@ -318,6 +341,14 @@
   to { transform: rotate(360deg); }
 }
 
+/* ========== RESULT COUNT ========== */
+.sr-result-count {
+  font-size: 13px;
+  color: var(--teacher-muted, #5a5a6e);
+  padding: 8px 0;
+  margin-bottom: 4px;
+}
+
 /* ========== SEARCH HINT (empty input state) ========== */
 .sr-hint {
   display: flex;
@@ -336,4 +367,187 @@
 
 .sr-hint__text {
   font-size: 15px;
+}
+
+/* ========== VIDEO PREVIEW MODAL ========== */
+.sr-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.sr-preview-overlay--visible {
+  opacity: 1;
+}
+
+.sr-preview-modal {
+  background: var(--teacher-card, #fff);
+  border-radius: var(--teacher-radius-sm, 10px);
+  max-width: 800px;
+  width: 80%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+}
+
+@media (max-width: 768px) {
+  .sr-preview-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+.sr-preview-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease;
+}
+
+.sr-preview-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Player section */
+.sr-preview-player {
+  position: relative;
+  background: #000;
+  border-radius: var(--teacher-radius-sm, 10px) var(--teacher-radius-sm, 10px) 0 0;
+  overflow: hidden;
+}
+
+.sr-preview-video {
+  display: block;
+  width: 100%;
+  max-height: 450px;
+  background: #000;
+}
+
+@media (max-width: 768px) {
+  .sr-preview-video {
+    max-height: 260px;
+  }
+}
+
+.sr-preview-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  font-size: 64px;
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: var(--teacher-radius-sm, 10px) var(--teacher-radius-sm, 10px) 0 0;
+}
+
+/* Playback speed controls */
+.sr-preview-speeds {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.85);
+  justify-content: center;
+}
+
+.sr-preview-speed-btn {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+}
+
+.sr-preview-speed-btn:hover {
+  border-color: var(--accent, #4ECDC4);
+  color: var(--accent, #4ECDC4);
+}
+
+.sr-preview-speed-btn--active {
+  background: var(--accent, #4ECDC4);
+  border-color: var(--accent, #4ECDC4);
+  color: #fff;
+}
+
+/* Info panel */
+.sr-preview-info {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sr-preview-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--teacher-text, #1a1a2e);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.sr-preview-breadcrumb {
+  font-size: 14px;
+  color: var(--teacher-muted, #5a5a6e);
+}
+
+.sr-preview-duration {
+  font-size: 13px;
+  color: var(--teacher-muted, #5a5a6e);
+}
+
+.sr-preview-filepath {
+  font-size: 12px;
+  color: var(--teacher-muted, #5a5a6e);
+  opacity: 0.7;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+/* Action buttons */
+.sr-preview-actions {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 20px;
+  flex-wrap: wrap;
+}
+
+.sr-preview-add-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.sr-preview-in-plan {
+  font-size: 14px;
+  color: var(--accent-dark, #3bb5ad);
+  font-weight: 600;
+  padding: 10px 0;
 }

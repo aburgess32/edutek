@@ -117,8 +117,8 @@ try {
                 $stmt = $pdo->query(
                     "SELECT
                         content_id,
-                        COALESCE(content_title, content_id) AS title,
-                        COALESCE(content_type, 'file') AS content_type,
+                        COALESCE(MAX(content_title), content_id) AS title,
+                        COALESCE(MAX(content_type), 'file') AS content_type,
                         COUNT(*) AS downloads
                      FROM download_log
                      GROUP BY content_id
@@ -157,5 +157,5 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database error']);
+    echo json_encode(['error' => 'Database error', 'detail' => $e->getMessage()]);
 }

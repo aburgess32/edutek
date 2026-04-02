@@ -108,8 +108,8 @@ try {
             $stmt = $pdo->query(
                 "SELECT
                     wh.content_id,
-                    COALESCE(wh.content_title, cm.title, wh.content_id) AS title,
-                    COALESCE(cm.content_type, wh.content_type, 'video') AS content_type,
+                    COALESCE(MAX(wh.content_title), MAX(cm.title), wh.content_id) AS title,
+                    COALESCE(MAX(cm.content_type), MAX(wh.content_type), 'video') AS content_type,
                     COUNT(*) AS views,
                     COALESCE(AVG(
                         CASE WHEN wh.duration_seconds > 0
@@ -153,7 +153,7 @@ try {
             $stmt = $pdo->query(
                 "SELECT
                     DATE(last_watched) AS watch_date,
-                    DAYNAME(DATE(last_watched)) AS day_name,
+                    DAYNAME(MIN(last_watched)) AS day_name,
                     SUM(LEAST(progress_seconds, duration_seconds)) AS total_seconds,
                     COUNT(DISTINCT user_id) AS unique_users
                  FROM watch_history
@@ -244,7 +244,8 @@ try {
             // Low completion content
             $lowCompletion = $pdo->query(
                 "SELECT
-                    COALESCE(wh.content_title, wh.content_id) AS title,
+                    wh.content_id,
+                    COALESCE(MAX(wh.content_title), wh.content_id) AS title,
                     AVG(CASE WHEN wh.duration_seconds > 0
                          THEN LEAST(wh.progress_seconds * 100.0 / wh.duration_seconds, 100)
                          ELSE 0 END) AS avg_pct

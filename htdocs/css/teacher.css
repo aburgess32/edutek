@@ -2471,3 +2471,35 @@
     gap: 12px;
   }
 }
+
+/* ========== FRE-47: Dashboard Scope Filter ========== */
+.dash-scope-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 8px 14px;
+  background: var(--teacher-card);
+  border-radius: var(--teacher-radius-sm);
+  border: 1px solid var(--teacher-border);
+}
+.dash-scope-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--teacher-muted);
+  white-space: nowrap;
+}
+.dash-scope-select {
+  padding: 6px 10px;
+  border: 1px solid var(--teacher-border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  background: var(--teacher-bg);
+  color: var(--teacher-text);
+  cursor: pointer;
+}
+.dash-scope-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}

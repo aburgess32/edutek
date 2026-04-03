@@ -30,35 +30,56 @@ $action = $_GET['action'] ?? '';
 
 try {
     $pdo = getDbConnection();
+    $teacherId = (int) ($_SESSION['user_id'] ?? 0);
+
+    // ── FRE-47: Scope filter — "all", "mine", or group ID ──
+    $scope = $_GET['scope'] ?? 'all';
+    $scopeJoin = '';
+    $scopeWhere = '';
+    $scopeStudentWhere = '';
+    $scopeParams = [];
+
+    if ($scope === 'mine') {
+        // Only students assigned to this teacher
+        $scopeJoin = ' JOIN teacher_students ts_scope ON ts_scope.student_id = wh.user_id AND ts_scope.teacher_id = ' . $teacherId;
+        $scopeWhere = ' AND wh.user_id IN (SELECT student_id FROM teacher_students WHERE teacher_id = ' . $teacherId . ')';
+        $scopeStudentWhere = ' AND u.id IN (SELECT student_id FROM teacher_students WHERE teacher_id = ' . $teacherId . ')';
+    } elseif (is_numeric($scope) && (int) $scope > 0) {
+        // Only students in a specific group
+        $groupId = (int) $scope;
+        $scopeWhere = ' AND wh.user_id IN (SELECT sgm.student_id FROM student_group_members sgm JOIN student_groups sg ON sg.id = sgm.group_id WHERE sg.id = ' . $groupId . ' AND sg.teacher_id = ' . $teacherId . ')';
+        $scopeStudentWhere = ' AND u.id IN (SELECT sgm.student_id FROM student_group_members sgm JOIN student_groups sg ON sg.id = sgm.group_id WHERE sg.id = ' . $groupId . ' AND sg.teacher_id = ' . $teacherId . ')';
+    }
+    // else scope === 'all' → no filter (current behavior)
 
     switch ($action) {
 
         case 'kpis':
             // Total students (non-teacher users)
             $totalStudents = (int) $pdo->query(
-                "SELECT COUNT(*) FROM users WHERE user_type != 'teacher'"
+                "SELECT COUNT(*) FROM users u WHERE u.user_type != 'teacher'" . $scopeStudentWhere
             )->fetchColumn();
 
             // Active this week
             $activeWeek = (int) $pdo->query(
-                "SELECT COUNT(DISTINCT user_id) FROM watch_history
-                 WHERE last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+                "SELECT COUNT(DISTINCT wh.user_id) FROM watch_history wh
+                 WHERE wh.last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)" . $scopeWhere
             )->fetchColumn();
 
             // Total watch time (seconds) this week
             $watchTimeSec = (int) $pdo->query(
-                "SELECT COALESCE(SUM(LEAST(progress_seconds, duration_seconds)), 0)
-                 FROM watch_history
-                 WHERE last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+                "SELECT COALESCE(SUM(LEAST(wh.progress_seconds, wh.duration_seconds)), 0)
+                 FROM watch_history wh
+                 WHERE wh.last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)" . $scopeWhere
             )->fetchColumn();
 
             // Average completion percentage
             $avgCompletion = (float) $pdo->query(
                 "SELECT COALESCE(AVG(
-                    CASE WHEN duration_seconds > 0
-                         THEN LEAST(progress_seconds * 100.0 / duration_seconds, 100)
+                    CASE WHEN wh.duration_seconds > 0
+                         THEN LEAST(wh.progress_seconds * 100.0 / wh.duration_seconds, 100)
                          ELSE 0 END
-                ), 0) FROM watch_history"
+                ), 0) FROM watch_history wh WHERE 1=1" . $scopeWhere
             )->fetchColumn();
 
             // Content library size
@@ -68,11 +89,11 @@ try {
 
             // Weekly sparkline — last 7 days of watch time
             $sparkStmt = $pdo->query(
-                "SELECT DATE(last_watched) AS d,
-                        SUM(LEAST(progress_seconds, duration_seconds)) AS s
-                 FROM watch_history
-                 WHERE last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                 GROUP BY DATE(last_watched)
+                "SELECT DATE(wh.last_watched) AS d,
+                        SUM(LEAST(wh.progress_seconds, wh.duration_seconds)) AS s
+                 FROM watch_history wh
+                 WHERE wh.last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)" . $scopeWhere . "
+                 GROUP BY DATE(wh.last_watched)
                  ORDER BY d ASC"
             );
             $sparkRaw = $sparkStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -88,9 +109,9 @@ try {
 
             // Previous week for delta comparison
             $prevActiveWeek = (int) $pdo->query(
-                "SELECT COUNT(DISTINCT user_id) FROM watch_history
-                 WHERE last_watched >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
-                   AND last_watched < DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+                "SELECT COUNT(DISTINCT wh.user_id) FROM watch_history wh
+                 WHERE wh.last_watched >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+                   AND wh.last_watched < DATE_SUB(CURDATE(), INTERVAL 7 DAY)" . $scopeWhere
             )->fetchColumn();
 
             echo json_encode([
@@ -140,7 +161,7 @@ try {
                     u.last_active,
                     DATEDIFF(CURDATE(), COALESCE(u.last_active, u.created_at)) AS days_inactive
                  FROM users u
-                 WHERE u.user_type != 'teacher'
+                 WHERE u.user_type != 'teacher'" . $scopeStudentWhere . "
                    AND (u.last_active IS NULL
                         OR u.last_active < DATE_SUB(CURDATE(), INTERVAL 7 DAY))
                  ORDER BY days_inactive DESC
@@ -152,13 +173,13 @@ try {
         case 'engagement':
             $stmt = $pdo->query(
                 "SELECT
-                    DATE(last_watched) AS watch_date,
-                    DAYNAME(MIN(last_watched)) AS day_name,
-                    SUM(LEAST(progress_seconds, duration_seconds)) AS total_seconds,
-                    COUNT(DISTINCT user_id) AS unique_users
-                 FROM watch_history
-                 WHERE last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                 GROUP BY DATE(last_watched)
+                    DATE(wh.last_watched) AS watch_date,
+                    DAYNAME(MIN(wh.last_watched)) AS day_name,
+                    SUM(LEAST(wh.progress_seconds, wh.duration_seconds)) AS total_seconds,
+                    COUNT(DISTINCT wh.user_id) AS unique_users
+                 FROM watch_history wh
+                 WHERE wh.last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)" . $scopeWhere . "
+                 GROUP BY DATE(wh.last_watched)
                  ORDER BY watch_date ASC"
             );
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -211,9 +232,9 @@ try {
 
             // Students inactive 14+ days
             $longInactive = (int) $pdo->query(
-                "SELECT COUNT(*) FROM users
-                 WHERE user_type != 'teacher'
-                   AND (last_active IS NULL OR last_active < DATE_SUB(CURDATE(), INTERVAL 14 DAY))"
+                "SELECT COUNT(*) FROM users u
+                 WHERE u.user_type != 'teacher'" . $scopeStudentWhere . "
+                   AND (u.last_active IS NULL OR u.last_active < DATE_SUB(CURDATE(), INTERVAL 14 DAY))"
             )->fetchColumn();
             if ($longInactive > 0) {
                 $insights[] = [
@@ -265,13 +286,13 @@ try {
 
             // Active learners trend
             $prevWeekActive = (int) $pdo->query(
-                "SELECT COUNT(DISTINCT user_id) FROM watch_history
-                 WHERE last_watched >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
-                   AND last_watched < DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+                "SELECT COUNT(DISTINCT wh.user_id) FROM watch_history wh
+                 WHERE wh.last_watched >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+                   AND wh.last_watched < DATE_SUB(CURDATE(), INTERVAL 7 DAY)" . $scopeWhere
             )->fetchColumn();
             $thisWeekActive = (int) $pdo->query(
-                "SELECT COUNT(DISTINCT user_id) FROM watch_history
-                 WHERE last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+                "SELECT COUNT(DISTINCT wh.user_id) FROM watch_history wh
+                 WHERE wh.last_watched >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)" . $scopeWhere
             )->fetchColumn();
             if ($prevWeekActive > 0 && $thisWeekActive > $prevWeekActive) {
                 $pctUp = round((($thisWeekActive - $prevWeekActive) / $prevWeekActive) * 100);

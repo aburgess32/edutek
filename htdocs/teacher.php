@@ -28,6 +28,7 @@ $teacherId = (int)($user['id'] ?? 0);
   <link rel="stylesheet" href="/css/playlist.css">
   <link rel="stylesheet" href="/css/lesson-publish.css">
   <link rel="stylesheet" href="/css/search-results.css">
+  <link rel="stylesheet" href="/css/teacher-students.css">
 </head>
 <body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>" data-teacher-email="<?= $teacherEmail ?>">
 
@@ -58,6 +59,9 @@ $teacherId = (int)($user['id'] ?? 0);
             role="tab" aria-selected="false" aria-controls="playlists"
             data-tab="playlists">Lesson Plans</button>
     <button class="teacher-tabs__btn"
+            role="tab" aria-selected="false" aria-controls="students"
+            data-tab="students">Students</button>
+    <button class="teacher-tabs__btn"
             role="tab" aria-selected="false" aria-controls="profile"
             data-tab="profile">Profile</button>
   </nav>
@@ -79,6 +83,13 @@ $teacherId = (int)($user['id'] ?? 0);
     <section id="playlists" class="tab-panel" role="tabpanel">
       <div id="playlists-content">
         <!-- Populated by lesson-builder.js -->
+      </div>
+    </section>
+
+    <!-- Students Tab (FRE-47) -->
+    <section id="students" class="tab-panel" role="tabpanel">
+      <div id="students-root">
+        <!-- Populated by teacher-students.js -->
       </div>
     </section>
 
@@ -124,6 +135,11 @@ $teacherId = (int)($user['id'] ?? 0);
         case 'playlists':
           if (typeof window.LessonBuilder !== 'undefined') {
             window.LessonBuilder.renderListView();
+          }
+          break;
+        case 'students':
+          if (typeof window.TeacherStudents !== 'undefined') {
+            window.TeacherStudents.init(document.getElementById('students-root'));
           }
           break;
         case 'profile':
@@ -207,6 +223,7 @@ $teacherId = (int)($user['id'] ?? 0);
   <script src="/js/teacher-dashboard.js"></script>
   <script src="/js/lesson-publish.js"></script>
   <script src="/js/lesson-builder.js"></script>
+  <script src="/js/teacher-students.js"></script>
   <script src="/js/teacher-profile.js"></script>
 </body>
 </html>

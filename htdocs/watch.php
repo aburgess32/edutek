@@ -39,17 +39,37 @@
         $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher, $encryption_key, $options, $iv)));
         $videoname = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname", $cipher, $encryption_key, $options, $iv)));
 
-     $file = '';
-  $file = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink])), $cipher, $decryption_key, $options, $iv);
-
+  // FRE-48: Handle content_id parameter (used by student assignments & search)
+  // content_id is the file path stored in content_meta, e.g. "videos/Category/Sub/file.mp4"
+  $file  = '';
   $file1 = '';
-  $file1 = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname])), $cipher, $decryption_key, $options, $iv);
-
   $filea = '';
-  $filea = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink1])), $cipher, $decryption_key, $options, $iv);
-
   $file1b = '';
-  $file1b = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname1])), $cipher, $decryption_key, $options, $iv);
+
+  $contentIdParam = isset($_GET['content_id']) && $_GET['content_id'] !== '' ? $_GET['content_id']
+                   : (isset($_GET['id']) && $_GET['id'] !== '' ? $_GET['id'] : '');
+  if ($contentIdParam !== '') {
+      // content_id is the full file path — derive the 4 watch variables from it
+      // $file  = folder path (dirname + /)
+      // $file1 = folder name (basename of dirname)
+      // $filea = full file path (the content_id itself)
+      // $file1b = filename (basename)
+      $file   = dirname($contentIdParam) . '/';
+      $file1  = basename(dirname($contentIdParam));
+      $filea  = $contentIdParam;
+      $file1b = basename($contentIdParam);
+  } elseif (isset($_GET[$videolink])) {
+      $file = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink])), $cipher, $decryption_key, $options, $iv);
+      $file1 = isset($_GET[$videoname])
+          ? openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname])), $cipher, $decryption_key, $options, $iv)
+          : '';
+      $filea = isset($_GET[$videolink1])
+          ? openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink1])), $cipher, $decryption_key, $options, $iv)
+          : '';
+      $file1b = isset($_GET[$videoname1])
+          ? openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname1])), $cipher, $decryption_key, $options, $iv)
+          : '';
+  }
 
   $dd2 = $file . "/";
   $length = strlen($dd2);

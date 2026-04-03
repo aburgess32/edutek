@@ -161,6 +161,18 @@
   margin-bottom: 20px;
   padding: 0 16px;
 }
+.ta-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ta-new-assign-btn {
+  white-space: nowrap;
+}
+.ta-empty-assign-btn {
+  margin-top: 16px;
+}
 .ta-title {
   display: flex;
   align-items: center;
@@ -816,6 +828,8 @@
 /* ─── Responsive ─── */
 @media (max-width: 600px) {
   .ta-header { flex-direction: column; align-items: flex-start; }
+  .ta-header-right { width: 100%; }
+  .ta-new-assign-btn { width: 100%; text-align: center; }
   .ta-card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
   .ta-card-actions { align-self: flex-end; }
   .ta-student-row { flex-direction: column; align-items: flex-start; gap: 6px; }

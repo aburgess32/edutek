@@ -13,7 +13,9 @@
   var API_OVERVIEW = '/api/teacher/dashboard_overview.php';
   var API_USAGE    = '/api/teacher/dashboard_usage.php';
   var API_SEED     = '/api/teacher/seed_dashboard.php';
+  var API_GROUPS   = '/api/teacher/groups.php';
   var root = null;
+  var currentScope = 'all';  // FRE-47: 'all', 'mine', or group ID
 
   // ─── SVG Icon Library (no emojis) ───────────────────────────────────────────
 
@@ -83,6 +85,13 @@
   function renderSkeleton() {
     var teacherName = document.body.getAttribute('data-teacher-name') || 'Teacher';
     return '' +
+      '<div class="dash-scope-bar" id="d-scope-bar">' +
+        '<label class="dash-scope-label">Showing:</label>' +
+        '<select class="dash-scope-select" id="d-scope-select">' +
+          '<option value="all">All Students</option>' +
+          '<option value="mine">My Students</option>' +
+        '</select>' +
+      '</div>' +
       '<div class="card welcome-banner" id="d-welcome">' +
         '<h2>Welcome back, ' + esc(teacherName) + '</h2>' +
         '<p id="d-welcome-sub">Loading your dashboard...</p>' +
@@ -591,20 +600,39 @@
     });
   }
 
-  // ─── Init ───────────────────────────────────────────────────────────────────
+  // ─── FRE-47: Scope helpers ───────────────────────────────────────────────────────
 
-  function init(el) {
-    root = el;
-    root.innerHTML = renderSkeleton();
-    bindSeedButton();
+  function loadScopeGroups() {
+    fetchJSON(API_GROUPS + '?action=list').then(function(data) {
+      var sel = document.getElementById('d-scope-select');
+      if (!sel || !data.groups) return;
+      data.groups.forEach(function(g) {
+        var opt = document.createElement('option');
+        opt.value = String(g.id);
+        opt.textContent = g.name;
+        sel.appendChild(opt);
+      });
+      sel.value = currentScope;
+    }).catch(function() { /* groups table may not exist yet */ });
+  }
 
-    // Fetch all data in parallel
+  function bindScopeSelect() {
+    var sel = document.getElementById('d-scope-select');
+    if (!sel) return;
+    sel.addEventListener('change', function() {
+      currentScope = this.value;
+      loadDashboardData();
+    });
+  }
+
+  function loadDashboardData() {
+    var scopeParam = '&scope=' + encodeURIComponent(currentScope);
     Promise.all([
-      fetchJSON(API_OVERVIEW + '?action=kpis'),
-      fetchJSON(API_OVERVIEW + '?action=top_content'),
-      fetchJSON(API_OVERVIEW + '?action=needs_attention'),
-      fetchJSON(API_OVERVIEW + '?action=engagement'),
-      fetchJSON(API_OVERVIEW + '?action=insights'),
+      fetchJSON(API_OVERVIEW + '?action=kpis' + scopeParam),
+      fetchJSON(API_OVERVIEW + '?action=top_content' + scopeParam),
+      fetchJSON(API_OVERVIEW + '?action=needs_attention' + scopeParam),
+      fetchJSON(API_OVERVIEW + '?action=engagement' + scopeParam),
+      fetchJSON(API_OVERVIEW + '?action=insights' + scopeParam),
       fetchJSON(API_OVERVIEW + '?action=device_health'),
       fetchJSON(API_USAGE + '?action=age_groups'),
       fetchJSON(API_USAGE + '?action=returning_users'),
@@ -624,7 +652,6 @@
       var downloads   = results[9];
       var searches    = results[10];
 
-      // Render all sections
       renderKPIs(kpis);
       renderWelcomeSub(kpis);
       renderTopContent(topContent);
@@ -634,7 +661,6 @@
       renderInsights(insights);
       renderDeviceHealth(health);
 
-      // Usage Analysis
       var usageBody = document.getElementById('d-usage-body');
       if (usageBody) {
         usageBody.innerHTML =
@@ -644,8 +670,7 @@
           renderDownloads(downloads) +
           renderSearchQueries(searches);
       }
-
-    }).catch(function(err) {
+    }).catch(function() {
       root.innerHTML =
         '<div class="card" style="text-align:center;padding:40px">' +
           '<div style="font-size:16px;font-weight:700;margin-bottom:8px">Dashboard could not load</div>' +
@@ -673,6 +698,17 @@
         });
       }
     });
+  }
+
+  // ─── Init ───────────────────────────────────────────────────────────────────
+
+  function init(el) {
+    root = el;
+    root.innerHTML = renderSkeleton();
+    bindSeedButton();
+    bindScopeSelect();
+    loadScopeGroups();
+    loadDashboardData();
   }
 
   // Export

@@ -189,6 +189,21 @@ try {
 
     // Log the search query for dashboard analytics (FRE-39)
     try {
+        // Ensure search_log table exists (safe no-op if already present)
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS search_log (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT DEFAULT NULL,
+                user_type VARCHAR(20) DEFAULT NULL,
+                age_range VARCHAR(20) DEFAULT NULL,
+                query VARCHAR(255) NOT NULL,
+                result_count INT DEFAULT 0,
+                searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_searched_at (searched_at),
+                INDEX idx_query (query(100))
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+
         $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, user_type, age_range, query, result_count) VALUES (?, ?, ?, ?, ?)');
         $logStmt->execute([
             $_SESSION['user_id'] ?? null,

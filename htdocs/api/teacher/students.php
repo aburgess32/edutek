@@ -2,11 +2,14 @@
 /**
  * Teacher Students API (FRE-47)
  *
- * GET  ?action=list                — List teacher's assigned students with stats
- * GET  ?action=available           — List unassigned students on device
+ * GET  ?action=list                — List teacher's assigned students with stats (paginated)
+ * GET  ?action=available           — List unassigned students on device (paginated)
  * GET  ?action=detail&id={id}      — Student detail + watch history
  * POST ?action=assign              — Assign student(s) to teacher  { student_ids: [1,2,3] }
  * POST ?action=remove              — Remove student from teacher   { student_id: 1 }
+ * POST ?action=remove_bulk         — Remove multiple students      { student_ids: [1,2,3] }
+ * POST ?action=import_csv          — Import students from CSV data { csv_text: "name\n..." }
+ * POST ?action=batch_group         — Assign multiple students to group { student_ids: [...], group_id: N }
  */
 
 require_once __DIR__ . '/../../includes/auth.php';
@@ -42,6 +45,9 @@ try {
                 $groupFilter = isset($_GET['group_id']) ? (int) $_GET['group_id'] : null;
                 $sort = in_array($_GET['sort'] ?? '', ['name', 'last_active', 'screen_time']) ? $_GET['sort'] : 'name';
                 $search = trim($_GET['search'] ?? '');
+                $page = max(1, (int) ($_GET['page'] ?? 1));
+                $perPage = min(100, max(10, (int) ($_GET['per_page'] ?? 50)));
+                $offset = ($page - 1) * $perPage;
 
                 $sql = "
                     SELECT
@@ -98,6 +104,15 @@ try {
                         $sql .= " ORDER BY u.display_name ASC";
                 }
 
+                // Count total before pagination
+                $countSql = preg_replace('/SELECT.*?FROM/s', 'SELECT COUNT(*) FROM', $sql, 1);
+                $countSql = preg_replace('/ORDER BY.*$/s', '', $countSql);
+                $countStmt = $pdo->prepare($countSql);
+                $countStmt->execute($params);
+                $totalCount = (int) $countStmt->fetchColumn();
+
+                $sql .= " LIMIT " . (int) $perPage . " OFFSET " . (int) $offset;
+
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
                 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -111,7 +126,15 @@ try {
                     $s['group_id'] = $s['group_id'] ? (int) $s['group_id'] : null;
                 }
 
-                echo json_encode(['students' => $students, 'count' => count($students)]);
+                $totalPages = max(1, (int) ceil($totalCount / $perPage));
+                echo json_encode([
+                    'students' => $students,
+                    'count' => count($students),
+                    'total' => $totalCount,
+                    'page' => $page,
+                    'per_page' => $perPage,
+                    'total_pages' => $totalPages,
+                ]);
                 break;
 
             case 'available':
@@ -297,9 +320,159 @@ try {
                 echo json_encode(['success' => true]);
                 break;
 
+            case 'remove_bulk':
+                $studentIds = $body['student_ids'] ?? [];
+                if (!is_array($studentIds) || empty($studentIds)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'student_ids array required']);
+                    break;
+                }
+
+                $removed = 0;
+                $stmtDel = $pdo->prepare("DELETE FROM teacher_students WHERE teacher_id = ? AND student_id = ?");
+                $stmtGrp = $pdo->prepare("
+                    DELETE sgm FROM student_group_members sgm
+                    JOIN student_groups sg ON sg.id = sgm.group_id
+                    WHERE sg.teacher_id = ? AND sgm.student_id = ?
+                ");
+                foreach ($studentIds as $sid) {
+                    $sid = (int) $sid;
+                    if ($sid > 0) {
+                        $stmtDel->execute([$teacherId, $sid]);
+                        $removed += $stmtDel->rowCount();
+                        $stmtGrp->execute([$teacherId, $sid]);
+                    }
+                }
+                echo json_encode(['success' => true, 'removed' => $removed]);
+                break;
+
+            case 'batch_group':
+                $studentIds = $body['student_ids'] ?? [];
+                $groupId = isset($body['group_id']) ? (int) $body['group_id'] : null;
+                if (!is_array($studentIds) || empty($studentIds)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'student_ids array required']);
+                    break;
+                }
+
+                // Verify group belongs to this teacher (if not ungrouping)
+                if ($groupId) {
+                    $gCheck = $pdo->prepare("SELECT 1 FROM student_groups WHERE id = ? AND teacher_id = ?");
+                    $gCheck->execute([$groupId, $teacherId]);
+                    if (!$gCheck->fetchColumn()) {
+                        http_response_code(400);
+                        echo json_encode(['error' => 'Group not found']);
+                        break;
+                    }
+                }
+
+                $moved = 0;
+                foreach ($studentIds as $sid) {
+                    $sid = (int) $sid;
+                    if ($sid <= 0) continue;
+
+                    // Remove from all of this teacher's groups first
+                    $pdo->prepare("
+                        DELETE sgm FROM student_group_members sgm
+                        JOIN student_groups sg ON sg.id = sgm.group_id
+                        WHERE sg.teacher_id = ? AND sgm.student_id = ?
+                    ")->execute([$teacherId, $sid]);
+
+                    // Add to new group if specified
+                    if ($groupId) {
+                        $pdo->prepare(
+                            "INSERT IGNORE INTO student_group_members (group_id, student_id) VALUES (?, ?)"
+                        )->execute([$groupId, $sid]);
+                    }
+                    $moved++;
+                }
+                echo json_encode(['success' => true, 'moved' => $moved]);
+                break;
+
+            case 'import_csv':
+                $csvText = trim($body['csv_text'] ?? '');
+                if ($csvText === '') {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'csv_text required']);
+                    break;
+                }
+
+                $lines = preg_split('/\r?\n/', $csvText);
+                $created = 0;
+                $assigned = 0;
+                $skipped = 0;
+                $errors = [];
+
+                // Parse header row — look for 'name' column
+                $header = str_getcsv(array_shift($lines));
+                $header = array_map(function($h) { return strtolower(trim($h)); }, $header);
+                $nameIdx = array_search('name', $header);
+                $typeIdx = array_search('type', $header);
+                if ($nameIdx === false) {
+                    // No header — treat entire lines as names
+                    array_unshift($lines, implode(',', $header));
+                    $nameIdx = 0;
+                    $typeIdx = false;
+                }
+
+                $stmtFind = $pdo->prepare("SELECT id FROM users WHERE display_name = ? AND user_type != 'teacher' LIMIT 1");
+                $stmtCreate = $pdo->prepare(
+                    "INSERT INTO users (display_name, user_type, created_at) VALUES (?, ?, NOW())"
+                );
+                $stmtAssign = $pdo->prepare(
+                    "INSERT IGNORE INTO teacher_students (teacher_id, student_id) VALUES (?, ?)"
+                );
+
+                foreach ($lines as $lineNum => $line) {
+                    $line = trim($line);
+                    if ($line === '') continue;
+
+                    $cols = str_getcsv($line);
+                    $name = trim($cols[$nameIdx] ?? '');
+                    $type = ($typeIdx !== false && isset($cols[$typeIdx]))
+                        ? trim($cols[$typeIdx])
+                        : 'student';
+
+                    if ($name === '') { $skipped++; continue; }
+                    if (mb_strlen($name) > 100) {
+                        $errors[] = 'Line ' . ($lineNum + 2) . ': name too long';
+                        $skipped++;
+                        continue;
+                    }
+
+                    // Sanitize type
+                    if (!in_array($type, ['kid', 'teen', 'adult', 'student'])) {
+                        $type = 'student';
+                    }
+
+                    // Try to find existing student by name
+                    $stmtFind->execute([$name]);
+                    $existingId = $stmtFind->fetchColumn();
+
+                    if ($existingId) {
+                        $studentId = (int) $existingId;
+                    } else {
+                        $stmtCreate->execute([$name, $type]);
+                        $studentId = (int) $pdo->lastInsertId();
+                        $created++;
+                    }
+
+                    $stmtAssign->execute([$teacherId, $studentId]);
+                    $assigned += $stmtAssign->rowCount();
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'created' => $created,
+                    'assigned' => $assigned,
+                    'skipped' => $skipped,
+                    'errors' => $errors,
+                ]);
+                break;
+
             default:
                 http_response_code(400);
-                echo json_encode(['error' => 'Invalid action. Use: assign, remove']);
+                echo json_encode(['error' => 'Invalid action. Use: assign, remove, remove_bulk, import_csv, batch_group']);
                 break;
         }
         exit;

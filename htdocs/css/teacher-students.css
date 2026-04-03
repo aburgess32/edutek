@@ -600,10 +600,10 @@
   .stu-toolbar__row {
     flex-direction: column;
   }
-  .stu-th:nth-child(3),
-  .stu-td:nth-child(3),
   .stu-th:nth-child(4),
-  .stu-td:nth-child(4) {
+  .stu-td:nth-child(4),
+  .stu-th:nth-child(5),
+  .stu-td:nth-child(5) {
     display: none;
   }
   .stu-detail {
@@ -619,4 +619,259 @@
   .stu-stat-card__val {
     font-size: 1rem;
   }
+  .stu-bulk-bar__inner {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   Checkbox column
+   ────────────────────────────────────────────────────────── */
+
+.stu-th--check,
+.stu-td--check {
+  width: 36px;
+  padding: 8px 4px 8px 12px;
+  text-align: center;
+}
+.stu-th--check input,
+.stu-td--check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent, #4ECDC4);
+  cursor: pointer;
+}
+.stu-row--selected {
+  background: color-mix(in srgb, var(--accent, #4ECDC4) 6%, transparent);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Bulk Action Bar (sticky bottom)
+   ────────────────────────────────────────────────────────── */
+
+.stu-bulk-bar {
+  position: fixed;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  transition: bottom 0.25s ease;
+  width: 100%;
+  max-width: 720px;
+  padding: 0 16px;
+  pointer-events: none;
+}
+.stu-bulk-bar--visible {
+  bottom: 20px;
+  pointer-events: auto;
+}
+.stu-bulk-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: #1a1a2e;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  color: #fff;
+}
+.stu-bulk-bar__count {
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+.stu-bulk-bar__count strong {
+  font-weight: 700;
+  color: var(--accent, #4ECDC4);
+}
+.stu-bulk-bar__group-sel {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  flex: 1;
+  min-width: 0;
+}
+.stu-bulk-bar__group-sel option {
+  color: #333;
+  background: #fff;
+}
+.stu-btn--danger {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+}
+.stu-btn--danger:hover {
+  background: #c0392b;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Pagination
+   ────────────────────────────────────────────────────────── */
+
+.stu-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-top: 4px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.stu-pagination__info {
+  font-size: 0.82rem;
+  color: #888;
+}
+.stu-pagination__btns {
+  display: flex;
+  gap: 4px;
+}
+.stu-btn--sm {
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  min-height: 32px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Add Modal — select-all toolbar + count badge
+   ────────────────────────────────────────────────────────── */
+
+.stu-modal--add .stu-modal__body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.stu-add-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 8px;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+}
+.stu-add-item--all {
+  font-weight: 600;
+}
+.stu-add-item--checked {
+  background: color-mix(in srgb, var(--accent, #4ECDC4) 8%, transparent);
+  border-radius: 6px;
+}
+.stu-add-count {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent, #4ECDC4);
+  padding: 3px 10px;
+  background: color-mix(in srgb, var(--accent, #4ECDC4) 12%, transparent);
+  border-radius: 20px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Import Modal
+   ────────────────────────────────────────────────────────── */
+
+.stu-modal--import {
+  max-width: 520px;
+}
+.stu-import-hint {
+  font-size: 0.88rem;
+  color: #666;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+.stu-import-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 12px;
+}
+.stu-import-tab {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.stu-import-tab--active {
+  color: var(--accent, #4ECDC4);
+  border-bottom-color: var(--accent, #4ECDC4);
+}
+.stu-import-panel--hidden {
+  display: none;
+}
+.stu-import-textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  resize: vertical;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+.stu-import-textarea:focus {
+  outline: none;
+  border-color: var(--accent, #4ECDC4);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #4ECDC4) 15%, transparent);
+}
+.stu-file-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  border: 2px dashed #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: center;
+}
+.stu-file-drop:hover {
+  border-color: var(--accent, #4ECDC4);
+  background: color-mix(in srgb, var(--accent, #4ECDC4) 4%, transparent);
+}
+.stu-file-input {
+  display: none;
+}
+.stu-file-drop__text {
+  font-size: 0.85rem;
+  color: #888;
+}
+.stu-file-drop__name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent, #4ECDC4);
+}
+.stu-import-result {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  min-height: 20px;
+}
+.stu-import-err {
+  color: #e74c3c;
+}
+.stu-import-ok {
+  color: #27ae60;
+}
+.stu-import-info {
+  color: #888;
+}
+.stu-import-errs {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #e67e22;
+  line-height: 1.5;
 }

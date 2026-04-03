@@ -289,6 +289,28 @@ function handleCreate(PDO $pdo): void
     $parsedStudents = $studentIds ? json_decode($studentIds, true) : [];
     if (!is_array($parsedStudents)) $parsedStudents = [];
 
+    $groupIds = $_POST['group_ids'] ?? '';
+    $parsedGroups = $groupIds ? json_decode($groupIds, true) : [];
+    if (!is_array($parsedGroups)) $parsedGroups = [];
+
+    // Resolve group members to individual student IDs
+    if (!empty($parsedGroups)) {
+        $placeholders = implode(',', array_fill(0, count($parsedGroups), '?'));
+        $stmt = $pdo->prepare("
+            SELECT DISTINCT sgm.student_id
+            FROM student_group_members sgm
+            JOIN student_groups sg ON sg.id = sgm.group_id
+            WHERE sgm.group_id IN ($placeholders)
+              AND sg.teacher_id = ?
+        ");
+        $params = array_map('intval', $parsedGroups);
+        $params[] = $teacherId;
+        $stmt->execute($params);
+        $groupStudentIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        // Merge with any individually selected students, deduplicate
+        $parsedStudents = array_values(array_unique(array_merge($parsedStudents, $groupStudentIds)));
+    }
+
     $validDueDate = null;
     if ($dueDate && $mode === 'individual') {
         $validDueDate = date('Y-m-d', strtotime($dueDate));

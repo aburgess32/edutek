@@ -103,7 +103,12 @@ try {
     // POST
     // ──────────────────────────────────────────────────────────
     if ($method === 'POST') {
-        verify_csrf();
+        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!csrf_verify($csrfToken)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'CSRF validation failed']);
+            exit;
+        }
         $body = json_decode(file_get_contents('php://input'), true) ?: $_POST;
         $action = $body['action'] ?? ($action ?: '');
 

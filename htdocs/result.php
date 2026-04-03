@@ -18,6 +18,11 @@
         $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher, $encryption_key, $options, $iv)));
         $videoname = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname", $cipher, $encryption_key, $options, $iv)));
 
+    // TODO (autocomplete): This legacy file-system search could benefit from typeahead.
+    // The /api/search-suggest.php endpoint and js/search-typeahead.js component (FRE-40)
+    // already exist and query content_meta + search_aliases tables. To enable autocomplete
+    // on the navbar search input, add the data-search-typeahead attribute and include the
+    // JS/CSS assets in navbar.php. No new backend work is needed.
     if (isset($_POST['submit'])) {
         $searching = ($_POST['search']);
         ?>
@@ -41,6 +46,7 @@
                             $gfg_folderpath = "videos/";
                             $filesIn = array();
                             $filesIn1 = array();
+                            $search_result_count = 0;
 // CHECKING WHETHER PATH IS A DIRECTORY OR NOT
                             if (is_dir($gfg_folderpath)) {
                                                     // GETING INTO DIRECTORY
@@ -49,10 +55,10 @@
                                 if ($firstfolder) {
                                     //READING NAMES OF EACH ELEMENT INSIDE THE DIRECTORY
                                     while (($gfg_subfolder1 = readdir($firstfolder)) != false) {
-                                        // CHECKING FOR FILENAME ERRORS
-                                        if ($gfg_subfolder1 != '.' && $gfg_subfolder1 != '..') {
-                         /*echo "SUBFOLDER--" .$gfg_subfolder1 . "<br>
-                          "."Files in ".$gfg_subfolder1."--<br>"; */
+                                        // Skip dotfiles (.DS_Store, ._, etc.) and non-directory entries
+                                        if ($gfg_subfolder1[0] === '.' || !is_dir($gfg_folderpath . $gfg_subfolder1)) {
+                                            continue;
+                                        }
 
                                             $dirpath1 = "videos/" . $gfg_subfolder1 . "/";
                           // GETING INSIDE EACH ANOTHER SUBFOLDERS
@@ -62,10 +68,10 @@
                                             if ($secondfolder) {
                                                                            //READING NAMES OF EACH ELEMENT INSIDE THE DIRECTORY
                                                 while (($gfg_subfolder2 = readdir($secondfolder)) != false) {
-                   // CHECKING FOR FILENAME ERRORS
-                                                    if ($gfg_subfolder2 != '.' && $gfg_subfolder2 != '..') {
-                                                        /*echo "SUBFOLDER--" .$gfg_subfolder2 . "<br>
-                                                        "."Files in ".$gfg_subfolder2."--<br>"; */
+                                                    // Skip dotfiles (.DS_Store, ._, etc.) and non-directory entries
+                                                    if ($gfg_subfolder2[0] === '.' || !is_dir($dirpath1 . $gfg_subfolder2)) {
+                                                        continue;
+                                                    }
 
                                                                                         $dirpath2 = "videos/" . $gfg_subfolder1 . "/" . $gfg_subfolder2 . "/";
                                                         // GETING INSIDE EACH SUBFOLDERS
@@ -80,6 +86,7 @@
                                                                         if (stristr(pathinfo($gfg_filename, PATHINFO_FILENAME), $searching) != false) {
                                                                             $id = array_search($searching, $filesIn, true);
                                                                             if (substr($filesIn[$id], 0, 2) != '._') {
+                                                                                $search_result_count++;
                                                                                 if (in_array(pathinfo($filesIn[$id], PATHINFO_EXTENSION), $audio)) {
                                                                                     $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($dirpath2, $cipher, $encryption_key, $options, $iv)));
                                                                                     $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($gfg_subfolder2, $cipher, $encryption_key, $options, $iv)));
@@ -194,6 +201,22 @@
                             }
 
 
+                            // Log search query for dashboard analytics (FRE-39)
+                            // Logs ALL queries — including those with zero results — so the
+                            // admin dashboard can display search analytics for failed searches.
+                            try {
+                                $pdo = getDbConnection();
+                                $logStmt = $pdo->prepare(
+                                    'INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)'
+                                );
+                                $logStmt->execute([
+                                    $_SESSION['user_id'] ?? null,
+                                    mb_substr($searching, 0, 255),
+                                    $search_result_count
+                                ]);
+                            } catch (Exception $e) {
+                                // Silent fail — don't break search results for logging
+                            }
                             ?>
         <!--///result Wrapper-->
         

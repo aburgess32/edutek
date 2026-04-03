@@ -59,6 +59,15 @@
           <form class="form-inline my-2 my-lg-0 mr-lg-2" method="post" action="result.php">
 		  <div class="col-md-12">
             <div class="input-group">
+              <!-- TODO (autocomplete): Wire up search suggestions here. Data sources available:
+                   1. content_meta table (titles, categories, subcategories) — already powers /api/search-suggest.php
+                   2. search_aliases table — synonym mappings (e.g. "beats" → "rhythm, tempo, BPM")
+                   3. search_log table — popular past queries could feed "trending searches"
+                   Quickest win: add data-search-typeahead attribute to this input and include
+                   js/search-typeahead.js + css/search-results.css — the typeahead component
+                   (FRE-40) is already built but not linked from the navbar.
+                   Alternatively, an HTML5 <datalist> populated server-side with top categories
+                   would give zero-JS autocomplete with no extra HTTP requests. -->
               <input class="form-control" type="text" name="search" placeholder="Search for...">
               <span class="input-group-btn">
                 <input class="btn btn-danger" name="submit" type="submit">

@@ -353,7 +353,9 @@
           <svg class="sidebar-section__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </summary>
         <div class="sidebar-section__items lp-playlist__items">
-          <?php foreach ($lpItems as $idx => $lpItem):
+          <?php
+          $lpColorIndex = 0;
+          foreach ($lpItems as $idx => $lpItem):
               $isCurrentVideo = ($lpItem['content_id'] === $currentVideoSrc);
               $isUpNext = ($upNextSource === 'plan' && $lpCurrentIdx >= 0 && isset($lpItems[$lpCurrentIdx + 1]) && $lpItem['content_id'] === $lpItems[$lpCurrentIdx + 1]['content_id']);
               $lpFileName   = basename($lpItem['content_id']);
@@ -373,22 +375,41 @@
 
               $lpDuration = (int) $lpItem['duration_seconds'];
               $lpDurStr = $lpDuration > 0 ? floor($lpDuration/60) . ':' . str_pad($lpDuration % 60, 2, '0', STR_PAD_LEFT) : '';
+
+              // Thumbnail: use content_meta thumbnail_path if available, else color block
+              $lpThumbPath = $lpItem['thumbnail_path'] ?? '';
+              $lpHasThumb  = ($lpThumbPath !== '' && file_exists($lpThumbPath));
+              $lpThumbClass = $thumbColors[$lpColorIndex % count($thumbColors)];
+              $lpColorIndex++;
           ?>
           <a class="playlist-item lp-playlist__item <?php echo $isCurrentVideo ? 'playlist-item--active' : ''; ?> <?php echo $isUpNext ? 'playlist-item--up-next' : ''; ?>"
              href="<?php echo $lpHref; ?>"
              <?php echo $isUpNext ? 'data-up-next="true"' : ''; ?>>
-            <div class="lp-playlist__num"><?php echo $idx + 1; ?></div>
+            <?php if ($isCurrentVideo): ?>
+            <div class="playlist-item__indicator">
+              <div class="now-playing-badge">Now Playing</div>
+            </div>
+            <?php elseif ($isUpNext): ?>
+            <div class="playlist-item__indicator">
+              <div class="up-next-badge">Up Next</div>
+            </div>
+            <?php endif; ?>
+            <div class="playlist-item__thumb <?php echo $lpThumbClass; ?>">
+              <?php if ($lpHasThumb): ?>
+              <img src="<?php echo htmlspecialchars($lpThumbPath); ?>" alt="" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:var(--wp-radius-sm);">
+              <?php endif; ?>
+              <div class="playlist-item__play-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
             <div class="playlist-item__info">
               <span class="playlist-item__title"><?php echo htmlspecialchars($lpItem['title'] ?? $lpFileName); ?></span>
-              <?php if ($lpDurStr): ?>
-              <span class="playlist-item__duration"><?php echo $lpDurStr; ?></span>
-              <?php endif; ?>
+              <div class="playlist-item__meta">
+                <?php if ($lpDurStr): ?>
+                <span class="playlist-item__duration"><?php echo $lpDurStr; ?></span>
+                <?php endif; ?>
+              </div>
             </div>
-            <?php if ($isCurrentVideo): ?>
-            <div class="now-playing-badge">Now Playing</div>
-            <?php elseif ($isUpNext): ?>
-            <div class="up-next-badge">Up Next</div>
-            <?php endif; ?>
           </a>
           <?php endforeach; ?>
         </div>

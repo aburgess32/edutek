@@ -40,14 +40,14 @@
     dash.className = 'mini-dash';
     dash.id = 'mini-dash';
     dash.innerHTML =
-      '<div class="mini-dash-body">' +
-        '<div class="mini-dash-header">' +
-          '<div class="mini-dash-avatar">' + generateAvatar(avatarName, 64, avatarColor) + '</div>' +
-          '<div class="mini-dash-names">' +
-            '<div class="mini-dash-avatar-name">' + avatarName.toUpperCase() + '</div>' +
-            '<div class="mini-dash-real-name">' + escapeHtml(displayName) + '</div>' +
-          '</div>' +
+      '<div class="mini-dash-header">' +
+        '<div class="mini-dash-avatar">' + generateAvatar(avatarName, 64, avatarColor) + '</div>' +
+        '<div class="mini-dash-names">' +
+          '<div class="mini-dash-avatar-name">' + avatarName.toUpperCase() + '</div>' +
+          '<div class="mini-dash-real-name">' + escapeHtml(displayName) + '</div>' +
         '</div>' +
+      '</div>' +
+      '<div class="mini-dash-body">' +
         '<div class="mini-dash-section">' +
           '<div class="mini-dash-tabs" id="mini-dash-tabs">' +
             '<button class="mini-dash-tab active" data-type="videos">Videos</button>' +

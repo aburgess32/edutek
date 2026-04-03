@@ -126,7 +126,7 @@
     color: #7C3AED;
 }
 
-/* ========== Student Mini-Menu ========== */
+/* ========== Student Mini-Menu (Switch User dropdown) ========== */
 .student-menu {
     position: relative;
 }
@@ -142,6 +142,7 @@
 
 .student-menu__name:hover {
     color: #fff;
+    text-decoration: underline;
 }
 
 .student-menu__popup {

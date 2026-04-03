@@ -320,7 +320,7 @@ function myFunction() {
       });
     })();
     </script>
-    <!-- Student mini-menu toggle -->
+    <!-- Student mini-menu toggle (Switch User dropdown) -->
     <script>
     (function() {
       var names = document.querySelectorAll('.student-menu__name');
@@ -333,7 +333,7 @@ function myFunction() {
           e.stopPropagation();
           var isOpen = wrapper.classList.contains('student-menu--open');
 
-          // Close all other menus first
+          // Close all other student menus first
           document.querySelectorAll('.student-menu--open').forEach(function(el) {
             el.classList.remove('student-menu--open');
             el.querySelector('.student-menu__name').setAttribute('aria-expanded', 'false');

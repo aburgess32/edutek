@@ -1,11 +1,9 @@
+<?php
+    include_once"navbar.php";
+?>
     <!-- Custom styles for this Home-->
   <link href="css/sittings.css" rel="stylesheet">
 
-<?php
-    //nabvbar
-    include_once"navbar.php";
-    //nabvbar
-    ?>
     
         <!--contens are here-->
     

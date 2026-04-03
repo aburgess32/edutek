@@ -12,8 +12,11 @@
 
 // Note: strict_types removed — this file is included from other files
 
-// Start output buffering FIRST so session_start works even after HTML output
-if (session_status() === PHP_SESSION_NONE && !ob_get_level()) {
+// Start output buffering FIRST so session_start works even after HTML output.
+// Always start a buffer — do NOT skip when ob_get_level() > 0 because an
+// implicit buffer (php.ini output_buffering) can overflow or flush before
+// session_start() runs, causing "headers already sent" errors.
+if (session_status() === PHP_SESSION_NONE) {
     ob_start();
 }
 

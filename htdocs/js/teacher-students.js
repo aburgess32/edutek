@@ -804,14 +804,18 @@
         html += '<div class="stu-detail__history">';
         for (var wi = 0; wi < s.watch_history.length; wi++) {
           var w = s.watch_history[wi];
-          html += '<div class="stu-history-item">' +
-            '<div class="stu-history-item__title">' + escHtml(w.content_title || w.content_id) + '</div>' +
+          var title = (w.content_title || w.content_id || '').replace(/\.(mp4|mov|wmv|flv|f4v|avi|webm|mkv)$/i, '');
+          var href = w.url ? w.url : '/' + (w.content_id || '');
+          html += '<a class="stu-history-item stu-history-item--link" href="' + escHtml(href) + '" target="_blank">' +
+            '<div class="stu-history-item__title">' + escHtml(title) +
+              '<svg class="stu-history-item__icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2H2.5a1 1 0 00-1 1v6.5a1 1 0 001 1H9a1 1 0 001-1V7.5M7 1.5h3.5V5M5.5 6.5L10.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            '</div>' +
             '<div class="stu-history-item__meta">' +
               '<span class="stu-history-item__pct">' + w.completion_pct + '%</span>' +
               '<div class="stu-progress-bar"><div class="stu-progress-bar__fill" style="width:' + w.completion_pct + '%"></div></div>' +
               '<span class="stu-history-item__time">' + timeAgo(w.last_watched) + '</span>' +
             '</div>' +
-          '</div>';
+          '</a>';
         }
         html += '</div>';
       } else {

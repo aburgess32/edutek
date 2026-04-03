@@ -875,3 +875,38 @@
   color: #e67e22;
   line-height: 1.5;
 }
+
+/* ──────────────────────────────────────────────────────────
+   Clickable watch history items
+   ────────────────────────────────────────────────────────── */
+
+a.stu-history-item--link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s, transform 0.1s;
+}
+a.stu-history-item--link:hover {
+  background: color-mix(in srgb, var(--accent, #4ECDC4) 8%, transparent);
+  transform: translateX(2px);
+}
+a.stu-history-item--link:hover .stu-history-item__title {
+  color: var(--accent, #4ECDC4);
+}
+.stu-history-item__icon {
+  opacity: 0;
+  margin-left: 6px;
+  vertical-align: middle;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+a.stu-history-item--link:hover .stu-history-item__icon {
+  opacity: 0.6;
+}
+.stu-history-item__title {
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}

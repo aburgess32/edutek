@@ -22,6 +22,18 @@ if (!isTeacher()) {
     exit;
 }
 
+/**
+ * Build a playable URL from a content_id path.
+ * content_id format: "videos/Category/Subcategory/filename.mp4"
+ * Returns a direct link to the file, since tutorials/watch use encrypted params
+ * and we just need a simple clickable path for the teacher's reference.
+ */
+function buildContentUrl($contentId) {
+    if (!$contentId) return '';
+    // content_id is already a relative path like "videos/Primary Multiplication/Five Times Table.mp4"
+    return '/' . ltrim($contentId, '/');
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 $teacherId = (int) ($_SESSION['user_id'] ?? 0);
@@ -218,7 +230,13 @@ try {
                     LIMIT 15
                 ");
                 $whStmt->execute([$studentId]);
-                $student['watch_history'] = $whStmt->fetchAll(PDO::FETCH_ASSOC);
+                $watchHistory = $whStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Build playable URL from content_id (e.g. "videos/Primary Multiplication/Sub/file.mp4")
+                foreach ($watchHistory as &$wh) {
+                    $wh['url'] = buildContentUrl($wh['content_id']);
+                }
+                $student['watch_history'] = $watchHistory;
 
                 // Aggregate stats
                 $statsStmt = $pdo->prepare("

@@ -14,6 +14,7 @@
   var API_USAGE    = '/api/teacher/dashboard_usage.php';
   var API_SEED     = '/api/teacher/seed_dashboard.php';
   var API_GROUPS   = '/api/teacher/groups.php';
+  var API_STUDENTS = '/api/teacher/students.php';
   var root = null;
   var currentScope = 'all';  // FRE-47: 'all', 'mine', or group ID
 
@@ -616,6 +617,16 @@
     }).catch(function() { /* groups table may not exist yet */ });
   }
 
+  function resolveDefaultScope() {
+    return fetchJSON(API_STUDENTS + '?action=list').then(function(data) {
+      if (data.students && data.students.length > 0) {
+        currentScope = 'mine';
+        var sel = document.getElementById('d-scope-select');
+        if (sel) sel.value = 'mine';
+      }
+    }).catch(function() { /* keep default */ });
+  }
+
   function bindScopeSelect() {
     var sel = document.getElementById('d-scope-select');
     if (!sel) return;
@@ -708,7 +719,7 @@
     bindSeedButton();
     bindScopeSelect();
     loadScopeGroups();
-    loadDashboardData();
+    resolveDefaultScope().then(function() { loadDashboardData(); });
   }
 
   // Export

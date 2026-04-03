@@ -379,7 +379,7 @@
 
               // Thumbnail: use content_meta thumbnail_path if available, else color block
               $lpThumbPath = $lpItem['thumbnail_path'] ?? '';
-              $lpHasThumb  = ($lpThumbPath !== '' && file_exists($lpThumbPath));
+              $lpHasThumb  = ($lpThumbPath !== '' && file_exists(__DIR__ . '/' . ltrim($lpThumbPath, '/')));
               $lpThumbClass = $thumbColors[$lpColorIndex % count($thumbColors)];
               $lpColorIndex++;
           ?>

@@ -98,7 +98,10 @@
 
     root.innerHTML =
       '<div class="ta-header">' +
-        '<h2 class="ta-title">' + icon('assignment') + ' Assignments</h2>' +
+        '<div class="ta-header-left">' +
+          '<h2 class="ta-title">' + icon('assignment') + ' Assignments</h2>' +
+          '<button class="lb-btn lb-btn-accent ta-new-assign-btn" id="ta-new-assign">+ New Assignment</button>' +
+        '</div>' +
         '<div class="ta-filters">' +
           '<button class="ta-filter-btn ta-filter-btn--active" data-filter="active">Active</button>' +
           '<button class="ta-filter-btn" data-filter="completed">Completed</button>' +
@@ -109,6 +112,12 @@
       '<div class="ta-list" id="ta-list">' +
         '<div class="ta-loading"><div class="dash-spinner"></div> Loading assignments...</div>' +
       '</div>';
+
+    // Bind new assignment button
+    var newBtn = document.getElementById('ta-new-assign');
+    if (newBtn) {
+      newBtn.addEventListener('click', function () { openNewAssignmentModal(); });
+    }
 
     // Bind filter buttons
     root.querySelectorAll('.ta-filter-btn').forEach(function (btn) {
@@ -136,8 +145,13 @@
           '<div class="ta-empty">' +
             '<div class="ta-empty-icon">' + icon('assignment', 48, 48) + '</div>' +
             '<h3>No assignments yet</h3>' +
-            '<p>Go to the Lesson Plans tab to assign a lesson plan to your students.</p>' +
+            '<p>Create your first assignment to get started.</p>' +
+            '<button class="lb-btn lb-btn-accent ta-empty-assign-btn" id="ta-empty-new-assign">+ New Assignment</button>' +
           '</div>';
+        var emptyBtn = document.getElementById('ta-empty-new-assign');
+        if (emptyBtn) {
+          emptyBtn.addEventListener('click', function () { openNewAssignmentModal(); });
+        }
         return;
       }
 
@@ -426,11 +440,121 @@
       });
   }
 
+  // ─── New Assignment Modal (lesson plan picker → assign modal) ────────────────
+
+  function openNewAssignmentModal() {
+    var overlay = document.createElement('div');
+    overlay.className = 'lb-modal-overlay assign-modal-overlay';
+
+    var modal = document.createElement('div');
+    modal.className = 'lb-modal assign-modal';
+
+    var heading = document.createElement('h3');
+    heading.textContent = 'New Assignment';
+    modal.appendChild(heading);
+
+    var field = document.createElement('div');
+    field.className = 'assign-field';
+
+    var label = document.createElement('label');
+    label.className = 'assign-label';
+    label.textContent = 'Select Lesson Plan';
+    field.appendChild(label);
+
+    var select = document.createElement('select');
+    select.className = 'assign-select';
+    select.id = 'ta-plan-select';
+
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Loading lesson plans...';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+    field.appendChild(select);
+    modal.appendChild(field);
+
+    var statusEl = document.createElement('div');
+    statusEl.className = 'assign-status';
+    statusEl.id = 'ta-plan-status';
+    modal.appendChild(statusEl);
+
+    var actions = document.createElement('div');
+    actions.className = 'lb-modal-actions';
+
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'lb-btn lb-btn-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', function () { overlay.remove(); });
+
+    var nextBtn = document.createElement('button');
+    nextBtn.className = 'lb-btn lb-btn-accent';
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = true;
+    nextBtn.addEventListener('click', function () {
+      var selectedOption = select.options[select.selectedIndex];
+      if (!selectedOption || !selectedOption.value) return;
+      var plan = {
+        id: selectedOption.value,
+        title: selectedOption.textContent
+      };
+      overlay.remove();
+      if (typeof window.LessonBuilder !== 'undefined' && window.LessonBuilder.openAssignModal) {
+        window.LessonBuilder.openAssignModal(plan);
+      }
+    });
+
+    actions.appendChild(cancelBtn);
+    actions.appendChild(nextBtn);
+    modal.appendChild(actions);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Close on overlay click
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    // Fetch lesson plans
+    fetch('/api/lesson_plans.php?action=list')
+      .then(function (r) { return r.json(); })
+      .then(function (plans) {
+        if (!plans || plans.length === 0) {
+          placeholder.textContent = 'No lesson plans available';
+          statusEl.textContent = 'Create a lesson plan first in the Lesson Plans tab.';
+          return;
+        }
+        placeholder.textContent = '-- Choose a lesson plan --';
+        plans.forEach(function (p) {
+          var opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.title + ' (' + p.item_count + ' items)';
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', function () {
+          nextBtn.disabled = !select.value;
+        });
+      })
+      .catch(function () {
+        placeholder.textContent = 'Failed to load lesson plans';
+        statusEl.textContent = 'Could not fetch lesson plans. Please try again.';
+      });
+  }
+
   // ─── Init ───────────────────────────────────────────────────────────────────
 
   function init(el) {
     root = el;
     render();
+
+    // Refresh list when assignment is created from the shared modal
+    document.addEventListener('assignment-created', function () {
+      if (root) {
+        var activeFilter = root.querySelector('.ta-filter-btn--active');
+        var currentFilter = activeFilter ? activeFilter.getAttribute('data-filter') : 'active';
+        loadAssignments(currentFilter);
+      }
+    });
   }
 
   function cleanup() {

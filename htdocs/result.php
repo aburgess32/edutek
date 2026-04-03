@@ -1,234 +1,137 @@
-<?php ob_start(); ?>
-    <!-- Custom styles for this watch-->
-   <link href="css/saved.css" rel="stylesheet">
-
 <?php
-    //nabvbar
-    include_once"navbar.php";
-    $cipher = "BF-CBC";
-    $iv_length = openssl_cipher_iv_length($cipher);
-    $options = 0;
-    $iv = "91011121";
-    $encryption_key = "hfjfydjnvhbjfi";
-    $decryption_iv = "91011121";
-    $decryption_key = "hfjfydjnvhbjfi";
+// navbar.php outputs the full HTML document shell (<!DOCTYPE>, <head>, <body>, nav)
+include_once "navbar.php";
 
-        $videolink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink1", $cipher, $encryption_key, $options, $iv)));
-        $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname1", $cipher, $encryption_key, $options, $iv)));
-        $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher, $encryption_key, $options, $iv)));
-        $videoname = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname", $cipher, $encryption_key, $options, $iv)));
+$query = isset($_GET['q']) ? trim($_GET['q']) : '';
+$queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
+?>
 
-    // TODO (autocomplete): This legacy file-system search could benefit from typeahead.
-    // The /api/search-suggest.php endpoint and js/search-typeahead.js component (FRE-40)
-    // already exist and query content_meta + search_aliases tables. To enable autocomplete
-    // on the navbar search input, add the data-search-typeahead attribute and include the
-    // JS/CSS assets in navbar.php. No new backend work is needed.
-    if (isset($_POST['submit'])) {
-        $searching = ($_POST['search']);
-        ?>
-    
-        <!--contens are here-->
-        
-        <!--result found number-->
-    <div class="Rwrapper">
-        <span class="fa fa-fw fa-navicon"></span> 
-    </div>
-        <!--//result found number-->
-        
-        
-        
-        <!--result Wrapper-->
-                            <?php
-                            $acceptedFormats = array('pdf');
-                            $audio = array('wav','wma','mp3','m4a');
-                            $video = array('mp4','mov','wmv','flv','fl4','avi','WebM','mkv');
+<link href="css/search-results.css" rel="stylesheet">
 
-                            $gfg_folderpath = "videos/";
-                            $filesIn = array();
-                            $filesIn1 = array();
-                            $search_result_count = 0;
-// CHECKING WHETHER PATH IS A DIRECTORY OR NOT
-                            if (is_dir($gfg_folderpath)) {
-                                                    // GETING INTO DIRECTORY
-                                                    $firstfolder = opendir($gfg_folderpath); {
-                                // CHECKING FOR SMOOTH OPENING OF DIRECTORY
-                                if ($firstfolder) {
-                                    //READING NAMES OF EACH ELEMENT INSIDE THE DIRECTORY
-                                    while (($gfg_subfolder1 = readdir($firstfolder)) != false) {
-                                        // Skip dotfiles (.DS_Store, ._, etc.) and non-directory entries
-                                        if ($gfg_subfolder1[0] === '.' || !is_dir($gfg_folderpath . $gfg_subfolder1)) {
-                                            continue;
-                                        }
+<div class="container-fluid" style="padding-top:30px; min-height:60vh;">
+  <h4 style="margin-bottom:16px;">Search results<?php if ($queryEsc !== '') echo ' for <em>&ldquo;' . $queryEsc . '&rdquo;</em>'; ?></h4>
 
-                                            $dirpath1 = "videos/" . $gfg_subfolder1 . "/";
-                          // GETING INSIDE EACH ANOTHER SUBFOLDERS
+  <div id="search-results">
+    <?php if ($query === ''): ?>
+      <div class="sr-hint">
+        <div class="sr-hint__icon"><i class="fa fa-search"></i></div>
+        <div class="sr-hint__text">Enter a search term above to find content.</div>
+      </div>
+    <?php else: ?>
+      <div class="sr-loading">
+        <div class="sr-spinner"></div>
+        Searching...
+      </div>
+    <?php endif; ?>
+  </div>
+</div>
 
-                                            $secondfolder = opendir($dirpath1); {
-              // CHECKING FOR SMOOTH OPENING OF DIRECTORY
-                                            if ($secondfolder) {
-                                                                           //READING NAMES OF EACH ELEMENT INSIDE THE DIRECTORY
-                                                while (($gfg_subfolder2 = readdir($secondfolder)) != false) {
-                                                    // Skip dotfiles (.DS_Store, ._, etc.) and non-directory entries
-                                                    if ($gfg_subfolder2[0] === '.' || !is_dir($dirpath1 . $gfg_subfolder2)) {
-                                                        continue;
-                                                    }
+<?php if ($query !== ''): ?>
+<script>
+(function() {
+  var query = <?php echo json_encode($query, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
+  var container = document.getElementById('search-results');
 
-                                                                                        $dirpath2 = "videos/" . $gfg_subfolder1 . "/" . $gfg_subfolder2 . "/";
-                                                        // GETING INSIDE EACH SUBFOLDERS
-                                                        if (is_dir($dirpath2)) {
-                                                            $file = opendir($dirpath2); {
-                                                            if ($file) {
-                                                                            //READING NAMES OF EACH FILE INSIDE SUBFOLDERS
-                                                                while (($gfg_filename = readdir($file)) != false) {
-                                                                    if ($gfg_filename != '.' && $gfg_filename != '..') {
-                                                                                  $filesIn = array($gfg_filename);
-                                                                                  $filesIn1 = array($dirpath2 . $gfg_filename);
-                                                                        if (stristr(pathinfo($gfg_filename, PATHINFO_FILENAME), $searching) != false) {
-                                                                            $id = array_search($searching, $filesIn, true);
-                                                                            if (substr($filesIn[$id], 0, 2) != '._') {
-                                                                                $search_result_count++;
-                                                                                if (in_array(pathinfo($filesIn[$id], PATHINFO_EXTENSION), $audio)) {
-                                                                                    $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($dirpath2, $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($gfg_subfolder2, $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn1[$id], $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn[$id], $cipher, $encryption_key, $options, $iv)));
+  fetch('/api/search.php?q=' + encodeURIComponent(query))
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      var items = data.results || [];
+      var total = data.total || 0;
 
-                                                                                    echo'<div class="SavedWrapper">
-		<a href="listen.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . '">';
-                                                                                    if (file_exists($dirpath2 . $gfg_subfolder2 . '.jpg')) {
-                                                                                                echo'<img src="' . $dirpath2 . $gfg_subfolder2 . '.jpg" class="rimage">';
-                                                                                    } else {
-                                                                                        echo'<img src="images/music.jpg" class="rimage">';
-                                                                                    }
-                                                                                    echo'</a>
-		<div class="rcontents">
-			<a href="listen.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . '">
-				<p>
-					<b class="rtitle">' . $filesIn[$id] . '</b>
-				</p>
-			</a>
-			 <button>
-				<a href="' . $filesIn1[$id] . '" download="' . $filesIn[$id] . '"><i class="fa fa-download "> Download</i></a>
-			</button>
-		</div>
-	</div>';
-                                                                                } elseif (in_array(pathinfo($filesIn[$id], PATHINFO_EXTENSION), $acceptedFormats)) {
-                                                                                    $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($dirpath2, $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($gfg_subfolder2, $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptvalue = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn1[$id], $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptvalue1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn[$id], $cipher, $encryption_key, $options, $iv)));
+      if (total === 0) {
+        container.innerHTML =
+          '<div class="sr-empty">' +
+            '<div class="sr-empty__icon"><i class="fa fa-search"></i></div>' +
+            '<div class="sr-empty__text">No results found for &ldquo;' + escHtml(query) + '&rdquo;</div>' +
+            '<div class="sr-empty__hint">Try a different spelling or broader search term.</div>' +
+          '</div>';
+        return;
+      }
 
-            //echo"<img src='".substr_replace($dirpath2 ,"",-1).".jpg' class='rimage'>";
-                                                                                    echo'<div class="SavedWrapper">
-		<a href="readpdf.php?&' . $videolink . '=' . substr_replace($dirpath2, "", -1) . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptvalue1 . '">';
-                                                                                    if (file_exists(substr_replace($dirpath2, "", -1) . '.jpg')) {
-                                                                                        echo'<img src="' . substr_replace($dirpath2, "", -1) . '.jpg" class="rimage">';
-                                                                                    } else {
-                                                                                        echo'<img src="images/books.jpg" class="rimage">';
-                                                                                    }
-                                                                                    echo'</a>
-		
-		<div class="rcontents">
-			<a href="readpdf.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptvalue1 . '">
-				<p>
-					<b class="rtitle">' . $filesIn[$id] . '</b>
-				</p>
-			</a>
-			 <button>
-				<a href="' . $filesIn1[$id] . '" download="' . $filesIn[$id] . '"><i class="fa fa-download "> Download</i></a>
-			</button>
-		</div>
-	</div>';
-                                                                                } elseif (in_array(pathinfo($filesIn[$id], PATHINFO_EXTENSION), $video)) {
-                                                                                  /*
-                                                                                  $files2 = (glob($dirpath2."*", GLOB_BRACE));
-                                                                                  $length1 = strlen($dirpath2);
-                                                                                  $encryptdirpath2 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($dirpath2, $cipher,$encryption_key, $options, $iv)));
-                                                                                  $encryptgfg_subfolder2 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($gfg_subfolder2, $cipher,$encryption_key, $options, $iv)));
-                                                                                  $encryptfilesIn1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn1[$id],$cipher,$encryption_key, $options, $iv)));
-                                                                                  $encrypt$filesIn = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn[$id], $cipher,$encryption_key, $options, $iv)));
-                                                                                  //videolinkvideoname
-                                                                                   echo'<div class="SavedWrapper">
-                                                                                  <a href="watch.php?&'.$videolink.'='.$encryptdirpath2.'&'.$videoname.'='.$encryptgfg_subfolder2.'&'.$videolink1.'='.$encryptfilesIn1.
-                                                                                  '&'.$videoname1.'='.$encrypt$filesIn.'">
-                                                                                  */
-                                                                                    $files2 = (glob($dirpath2 . "*", GLOB_BRACE));
-                                                                                    $length1 = strlen($dirpath2);
+      // Fuzzy-match notice
+      var fuzzyNotice = '';
+      if (items.length > 0 && items[0].match_type && items[0].match_type !== 'exact' && items[0].match_type !== 'prefix') {
+        var label = items[0].match_type === 'alias' ? 'synonym' :
+                    items[0].match_type === 'soundex' ? 'sounds-like' : 'fuzzy';
+        fuzzyNotice = '<div class="sr-fuzzy-notice">Showing <strong>' + label + '</strong> matches for &ldquo;' + escHtml(query) + '&rdquo;</div>';
+      }
 
-                                                                                    $encryptdirpath2 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($dirpath2, $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptgfg_subfolder2 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($gfg_subfolder2, $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptfilesIn1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn1[$id], $cipher, $encryption_key, $options, $iv)));
-                                                                                    $encryptfilesIn = str_replace('=', '[equal]', base64_encode(openssl_encrypt($filesIn[$id], $cipher, $encryption_key, $options, $iv)));
+      var html = '<div class="sr-result-count">' + total + ' result' + (total !== 1 ? 's' : '') + ' found</div>' +
+                 fuzzyNotice +
+                 '<div class="sr-grid">';
 
-                                                                                    echo'<div class="SavedWrapper">
-		<a href="watch.php?&' . $videolink . '=' . $encryptdirpath2 . '&' . $videoname . '=' . $encryptgfg_subfolder2 . '&' . $videolink1 . '=' . $encryptfilesIn1 .
-                                                                                    '&' . $videoname1 . '=' . $encryptfilesIn . '">
-			';
-                                     //if(in_array(pathinfo(substr($files2[0], ($length1)), PATHINFO_EXTENSION), $video)) {
-                                                                                    echo"<img src='" . substr_replace($dirpath2, "", -1) . ".jpg' class='rimage'>";
+      items.forEach(function(item) {
+        var thumb = '';
+        if (item.thumbnail_path) {
+          thumb = '<img src="' + escAttr(item.thumbnail_path) + '" alt="">';
+        } else {
+          var iconMap = { video: 'fa-film', audiobook: 'fa-headphones', pdf: 'fa-file-pdf-o', interactive: 'fa-puzzle-piece', tool: 'fa-wrench' };
+          var iconCls = iconMap[item.content_type] || 'fa-file';
+          thumb = '<span class="sr-card__thumb-placeholder"><i class="fa ' + iconCls + '"></i></span>';
+        }
 
-                                                                                  //}
-                                                                                    echo'
-		</a>
-		<div class="rcontents">
-			<a href="watch.php?&' . $videolink . '=' . $encryptdirpath2 . '&' . $videoname . '=' . $encryptgfg_subfolder2 . '&' . $videolink1 . '=' . $encryptfilesIn1 .
-                                                                                    '&' . $videoname1 . '=' . $encryptfilesIn . '">
-				<p>
-					<b class="rtitle">' . $filesIn[$id] . '</b>
-				</p>
-			</a>
-			 <button>
-				<a href="' . $filesIn1[$id] . '" download="' . $filesIn[$id] . '"><i class="fa fa-download "> Download</i></a>
-			</button>
-		</div>
-	</div>';
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            }
-                                        }
-                                    }
-                                }
-                                }
-                            }
+        var breadcrumb = [item.category, item.subcategory].filter(Boolean).join(' / ');
+        var duration = item.duration_seconds ? formatDuration(item.duration_seconds) : '';
+        var badgeClass = 'sr-card__type-badge sr-card__type-badge--' + (item.content_type || 'video');
 
+        // Build link based on content type
+        var href = '#';
+        if (item.file_path) {
+          if (item.content_type === 'video') href = 'watch.php?id=' + item.content_id;
+          else if (item.content_type === 'audiobook') href = 'listen.php?id=' + item.content_id;
+          else if (item.content_type === 'pdf') href = 'readpdf.php?id=' + item.content_id;
+          else href = 'watch.php?id=' + item.content_id;
+        }
 
-                            // Log search query for dashboard analytics (FRE-39)
-                            // Logs ALL queries — including those with zero results — so the
-                            // admin dashboard can display search analytics for failed searches.
-                            try {
-                                $pdo = getDbConnection();
-                                $logStmt = $pdo->prepare(
-                                    'INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)'
-                                );
-                                $logStmt->execute([
-                                    $_SESSION['user_id'] ?? null,
-                                    mb_substr($searching, 0, 255),
-                                    $search_result_count
-                                ]);
-                            } catch (Exception $e) {
-                                // Silent fail — don't break search results for logging
-                            }
-                            ?>
-        <!--///result Wrapper-->
-        
-        
-        <!--//contens are here-->
+        html += '<a class="sr-card" href="' + escAttr(href) + '">' +
+          '<div class="sr-card__thumb">' + thumb + '</div>' +
+          '<div class="sr-card__info">' +
+            '<div class="sr-card__title">' + escHtml(item.title) + '</div>' +
+            (breadcrumb ? '<div class="sr-card__breadcrumb">' + escHtml(breadcrumb) + '</div>' : '') +
+            '<div class="sr-card__meta">' +
+              '<span class="' + badgeClass + '">' + escHtml(item.content_type) + '</span>' +
+              (duration ? '<span class="sr-card__duration">' + duration + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+        '</a>';
+      });
 
+      container.innerHTML = html + '</div>';
+    })
+    .catch(function(err) {
+      container.innerHTML =
+        '<div class="sr-empty">' +
+          '<div class="sr-empty__icon"><i class="fa fa-exclamation-triangle"></i></div>' +
+          '<div class="sr-empty__text">Something went wrong while searching.</div>' +
+          '<div class="sr-empty__hint">Please try again later.</div>' +
+        '</div>';
+    });
 
+  function escHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
 
+  function escAttr(str) {
+    return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 
-        <?php
-    }
-    include_once"footer.php";
-    ?>
+  function formatDuration(sec) {
+    sec = parseInt(sec, 10) || 0;
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    var s = sec % 60;
+    if (h > 0) return h + ':' + pad(m) + ':' + pad(s);
+    return m + ':' + pad(s);
+  }
 
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+})();
+</script>
+<?php endif; ?>
 
+<?php include_once "footer.php"; ?>

@@ -91,9 +91,12 @@ function myFunction() {
             </div>
           </span>
           <?php elseif (isLoggedIn()): ?>
-          <span class="nav-link nav-user-indicator">
+          <span class="nav-link nav-user-indicator student-menu" id="studentMenuHome">
             <span class="nav-user-dot" style="background: <?php echo htmlspecialchars($_SESSION['avatar_color'] ?? '#FF6B35', ENT_QUOTES, 'UTF-8'); ?>;"></span>
-            <span class="nav-user-name"><?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?></span>
+            <span class="student-menu__name" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true"><?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?></span>
+            <div class="student-menu__popup" role="menu">
+              <a href="/logout.php" class="student-menu__item" role="menuitem"><i class="fa fa-exchange"></i> Switch User</a>
+            </div>
           </span>
           <?php else: ?>
           <a class="nav-link" href="login.php" style="font-size: 13px;">
@@ -310,6 +313,61 @@ function myFunction() {
           document.querySelectorAll('.teacher-menu--open').forEach(function(el) {
             el.classList.remove('teacher-menu--open');
             var btn = el.querySelector('.teacher-menu__name');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.focus();
+          });
+        }
+      });
+    })();
+    </script>
+    <!-- Student mini-menu toggle -->
+    <script>
+    (function() {
+      var names = document.querySelectorAll('.student-menu__name');
+      if (!names.length) return;
+
+      names.forEach(function(name) {
+        var wrapper = name.closest('.student-menu');
+
+        name.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var isOpen = wrapper.classList.contains('student-menu--open');
+
+          // Close all other menus first
+          document.querySelectorAll('.student-menu--open').forEach(function(el) {
+            el.classList.remove('student-menu--open');
+            el.querySelector('.student-menu__name').setAttribute('aria-expanded', 'false');
+          });
+
+          if (!isOpen) {
+            wrapper.classList.add('student-menu--open');
+            name.setAttribute('aria-expanded', 'true');
+          }
+        });
+
+        // Allow Enter/Space to toggle
+        name.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            name.click();
+          }
+        });
+      });
+
+      // Close on outside click
+      document.addEventListener('click', function() {
+        document.querySelectorAll('.student-menu--open').forEach(function(el) {
+          el.classList.remove('student-menu--open');
+          el.querySelector('.student-menu__name').setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      // Close on Escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.student-menu--open').forEach(function(el) {
+            el.classList.remove('student-menu--open');
+            var btn = el.querySelector('.student-menu__name');
             btn.setAttribute('aria-expanded', 'false');
             btn.focus();
           });

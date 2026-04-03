@@ -59,15 +59,15 @@
       $filea  = $contentIdParam;
       $file1b = basename($contentIdParam);
   } elseif (isset($_GET[$videolink])) {
-      $file = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink])), $cipher, $decryption_key, $options, $iv);
+      $file = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink])), $cipher, $decryption_key, $options, $iv) ?: '';
       $file1 = isset($_GET[$videoname])
-          ? openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname])), $cipher, $decryption_key, $options, $iv)
+          ? (openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname])), $cipher, $decryption_key, $options, $iv) ?: '')
           : '';
       $filea = isset($_GET[$videolink1])
-          ? openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink1])), $cipher, $decryption_key, $options, $iv)
+          ? (openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videolink1])), $cipher, $decryption_key, $options, $iv) ?: '')
           : '';
       $file1b = isset($_GET[$videoname1])
-          ? openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname1])), $cipher, $decryption_key, $options, $iv)
+          ? (openssl_decrypt(base64_decode(str_replace('[equal]', '=', $_GET[$videoname1])), $cipher, $decryption_key, $options, $iv) ?: '')
           : '';
   }
 
@@ -608,6 +608,19 @@ if (!empty($filea)) {
 <?php endif; ?>
 <!-- FRE-41: Player Controls JS -->
 <script src="js/player-controls.js"></script>
+<!-- FRE-48: Resume at position from ?t= parameter (assignment links) -->
+<script>
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var t = parseInt(params.get('t'), 10);
+    if (!t || t <= 0) return;
+    var video = document.getElementById('wp-video');
+    if (!video) return;
+    function seek() { if (video.duration && video.duration > t) video.currentTime = t; }
+    if (video.readyState >= 1) seek();
+    else video.addEventListener('loadedmetadata', seek, { once: true });
+})();
+</script>
 <script src="js/playlist-metadata.js"></script>
 <script src="js/login.js"></script>
 <script src="js/avatar-bubble.js"></script>

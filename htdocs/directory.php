@@ -1,3 +1,4 @@
+<?php if (!ob_get_level()) { ob_start(); } ?>
   <link href="css/tiles.css" rel="stylesheet">
 <?php
     include_once "navbar.php";

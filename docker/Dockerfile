@@ -57,6 +57,8 @@ RUN { \
     echo 'display_errors=Off'; \
     echo 'log_errors=On'; \
     echo 'error_log=/var/log/apache2/php_error.log'; \
+    echo 'output_buffering=4096'; \
+    echo 'session.auto_start=0'; \
 } > /usr/local/etc/php/conf.d/edupak.ini
 
 # Set document root to htdocs (matching XAMPP convention)

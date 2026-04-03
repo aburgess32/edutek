@@ -1,4 +1,9 @@
 <?php
+// Output buffering MUST start before any includes that call session_start(),
+// otherwise "headers already sent" errors occur on servers with output_buffering=Off.
+if (!ob_get_level()) {
+    ob_start();
+}
 // navbar.php outputs the full HTML document shell (<!DOCTYPE>, <head>, <body>, nav)
 include_once "navbar.php";
 

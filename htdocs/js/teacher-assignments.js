@@ -202,11 +202,16 @@
     var statusBadge = '<span class="ta-badge ta-badge--' + a.status + '">' +
       a.status.charAt(0).toUpperCase() + a.status.slice(1) + '</span>';
 
-    var targetLabel = a.assigned_to_name
-      ? esc(a.assigned_to_name)
-      : 'Whole class';
+    // Use target_label from backend (handles new and legacy formats)
+    var targetLabel = a.target_label || a.assigned_to_name || 'Whole class';
 
     var dueDateLabel = a.due_date ? 'Due: ' + formatDate(a.due_date) : '';
+
+    // Store legacy_batch_ids as data attribute for batch actions
+    var batchAttr = '';
+    if (a.legacy_batch_ids && a.legacy_batch_ids.length > 0) {
+      batchAttr = ' data-batch-ids="' + esc(JSON.stringify(a.legacy_batch_ids)) + '"';
+    }
 
     var actions = '';
     if (a.status === 'active') {
@@ -218,7 +223,7 @@
         '<button class="ta-action-btn ta-action-btn--danger" data-action="archive" data-aid="' + a.id + '" title="Archive">Archive</button>';
     }
 
-    return '<div class="ta-card" data-aid="' + a.id + '" data-mode="' + a.mode + '">' +
+    return '<div class="ta-card" data-aid="' + a.id + '" data-mode="' + a.mode + '"' + batchAttr + '>' +
       '<div class="ta-card-header">' +
         '<div class="ta-card-left">' +
           '<div class="ta-card-chevron">' + icon('chevron') + '</div>' +
@@ -226,7 +231,7 @@
             '<div class="ta-card-title">' + esc(a.plan_title) + '</div>' +
             '<div class="ta-card-meta">' +
               modeBadge + statusBadge +
-              '<span class="ta-card-target">' + icon('users', 14, 14) + ' ' + targetLabel + '</span>' +
+              '<span class="ta-card-target">' + icon('users', 14, 14) + ' ' + esc(targetLabel) + '</span>' +
               '<span class="ta-card-items">' + a.item_count + ' items</span>' +
               (dueDateLabel ? '<span class="ta-card-due">' + icon('clock', 14, 14) + ' ' + dueDateLabel + '</span>' : '') +
             '</div>' +
@@ -522,6 +527,13 @@
     var csrfMeta = document.querySelector('meta[name="csrf-token"]');
     var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
+    // Check for legacy batch IDs on the card
+    var card = document.querySelector('.ta-card[data-aid="' + aid + '"]');
+    var batchIds = '';
+    if (card && card.getAttribute('data-batch-ids')) {
+      batchIds = card.getAttribute('data-batch-ids');
+    }
+
     var status = '';
     if (action === 'complete') status = 'completed';
     else if (action === 'archive') status = 'archived';
@@ -531,6 +543,7 @@
       body.append('action', 'delete');
       body.append('_csrf_token', csrfToken);
       body.append('assignment_id', aid);
+      if (batchIds) body.append('legacy_batch_ids', batchIds);
       fetch(API_ASSIGNMENTS, { method: 'POST', body: body })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -546,6 +559,7 @@
     body.append('_csrf_token', csrfToken);
     body.append('assignment_id', aid);
     body.append('status', status);
+    if (batchIds) body.append('legacy_batch_ids', batchIds);
 
     fetch(API_ASSIGNMENTS, { method: 'POST', body: body })
       .then(function (r) { return r.json(); })

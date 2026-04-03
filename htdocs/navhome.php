@@ -9,9 +9,9 @@
   <meta name="author" content="">
   <title>Edutek Global</title>
   <!-- Bootstrap core CSS-->
-  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" onerror="this.href='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css'">
   <!-- Custom fonts for this template-->
-  <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+  <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'">
   <!-- Custom styles for this template-->
   <link href="css/sb-admin.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
@@ -29,7 +29,7 @@
      <!-- FLEXSLIDER CSS -->
 <link href="assets/css/flexslider.css" rel="stylesheet" />
     <!-- CUSTOM STYLE CSS -->
-    <link href="assets/css/style.css" rel="stylesheet" /> 
+    <link href="assets/css/style.css" rel="stylesheet" />
 <script>
 function myFunction() {
   document.getElementById("myNumber").stepUp();
@@ -68,14 +68,12 @@ function myFunction() {
           </a>
        </li>
         <li class="nav-item">
-          <form class="form-inline my-2 my-lg-0 mr-lg-2" method="post" action="result.php">
+          <form class="form-inline my-2 my-lg-0 mr-lg-2" method="get" action="result.php">
 		  <div class="col-md-12">
             <div class="input-group">
-              <input class="form-control" type="text" name="search" placeholder="Search for...">
+              <input class="form-control" type="text" name="q" placeholder="Search for...">
               <span class="input-group-btn">
-                <input class="btn btn-danger" name="submit" type="submit">
-                 <button> <i class="fa fa-search"></i>
-                </button>
+                <button type="submit" class="btn btn-danger"><i class="fa fa-search"></i></button>
               </span>
             </div>
 		  </div>
@@ -153,9 +151,12 @@ function myFunction() {
     </div>
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"><\/script>')</script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>if(typeof jQuery!=='undefined'&&typeof jQuery.fn.tooltip==='undefined')document.write('<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"><\/script>')</script>
     <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script>if(typeof jQuery!=='undefined'&&typeof jQuery.easing!=='undefined'&&typeof jQuery.easing.easeInOutExpo==='undefined')document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"><\/script>')</script>
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin.min.js"></script>
 	    <script src="assets/js/jquery-1.10.2.js"></script>

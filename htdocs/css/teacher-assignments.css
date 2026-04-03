@@ -1,0 +1,825 @@
+/* ========== FRE-50/52: Lesson Assignments Styles ========== */
+
+/* ─── Assign Button (on lesson plan cards & detail) ─── */
+.lb-btn-accent {
+  background: var(--accent, #4ECDC4);
+  color: #fff;
+  border: none;
+  border-radius: var(--teacher-radius-sm, 10px);
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s;
+}
+.lb-btn-accent:hover { background: var(--accent-dark, #3bb5ad); }
+
+.lb-btn-sm {
+  padding: 6px 14px;
+  font-size: 13px;
+  min-height: 36px;
+}
+
+.lb-plan-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.lb-plan-card-assign {
+  flex-shrink: 0;
+}
+
+/* ─── Assign Modal ─── */
+.assign-modal-overlay {
+  z-index: 1000;
+}
+.assign-modal {
+  max-width: 480px;
+  width: calc(100% - 32px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.assign-field {
+  margin-bottom: 16px;
+}
+.assign-label {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--teacher-muted, #5a5a6e);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.assign-select,
+.assign-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--teacher-border, #e8e4df);
+  border-radius: var(--teacher-radius-sm, 10px);
+  font-size: 15px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--teacher-text, #1a1a2e);
+  min-height: 44px;
+}
+.assign-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.assign-select:focus,
+.assign-input:focus {
+  outline: none;
+  border-color: var(--accent, #4ECDC4);
+  box-shadow: 0 0 0 3px rgba(78,205,196,0.15);
+}
+.assign-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 0;
+}
+.assign-checkbox-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent, #4ECDC4);
+}
+.assign-checkbox-row label {
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.assign-student-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--teacher-border, #e8e4df);
+  border-radius: var(--teacher-radius-sm, 10px);
+  padding: 8px;
+}
+.assign-student-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  min-height: 44px;
+  transition: background 0.1s;
+}
+.assign-student-row:hover {
+  background: var(--accent-light, rgba(78,205,196,0.12));
+}
+.assign-student-cb {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent, #4ECDC4);
+  flex-shrink: 0;
+}
+.assign-student-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.assign-student-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.assign-loading,
+.assign-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--teacher-muted, #5a5a6e);
+  font-size: 13px;
+}
+.assign-status {
+  font-size: 13px;
+  color: var(--red, #e74c3c);
+  min-height: 20px;
+  margin-bottom: 8px;
+}
+.assign-status--success {
+  color: var(--green, #27ae60);
+}
+
+/* ─── Assignments Tab ─── */
+.ta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 0 16px;
+}
+.ta-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+}
+.ta-filters {
+  display: flex;
+  gap: 6px;
+}
+.ta-filter-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--teacher-border, #e8e4df);
+  border-radius: 20px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teacher-muted, #5a5a6e);
+  cursor: pointer;
+  min-height: 36px;
+  transition: all 0.15s;
+}
+.ta-filter-btn:hover {
+  border-color: var(--accent, #4ECDC4);
+  color: var(--accent, #4ECDC4);
+}
+.ta-filter-btn--active {
+  background: var(--accent, #4ECDC4);
+  color: #fff;
+  border-color: var(--accent, #4ECDC4);
+}
+.ta-list {
+  padding: 0 16px;
+}
+.ta-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--teacher-muted, #5a5a6e);
+}
+.ta-loading-sm {
+  padding: 12px;
+  text-align: center;
+  color: var(--teacher-muted, #5a5a6e);
+  font-size: 13px;
+}
+.ta-error {
+  text-align: center;
+  padding: 24px;
+  color: var(--red, #e74c3c);
+}
+.ta-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--teacher-muted, #5a5a6e);
+}
+.ta-empty-icon { margin-bottom: 12px; color: var(--teacher-border); }
+.ta-empty h3 { margin: 0 0 8px; font-size: 18px; }
+.ta-empty p { margin: 0; font-size: 14px; }
+
+/* ─── Assignment Card ─── */
+.ta-card {
+  background: var(--teacher-card, #fff);
+  border-radius: var(--teacher-radius, 16px);
+  box-shadow: var(--teacher-shadow, 0 2px 8px rgba(0,0,0,0.08));
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.ta-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  gap: 12px;
+  min-height: 64px;
+  transition: background 0.1s;
+}
+.ta-card-header:hover {
+  background: rgba(0,0,0,0.02);
+}
+.ta-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.ta-card-chevron {
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.ta-card--open .ta-card-chevron {
+  transform: rotate(180deg);
+}
+.ta-card-info {
+  min-width: 0;
+}
+.ta-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ta-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--teacher-muted, #5a5a6e);
+}
+.ta-card-target,
+.ta-card-items,
+.ta-card-due {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ta-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.ta-action-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--teacher-border, #e8e4df);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teacher-muted, #5a5a6e);
+  cursor: pointer;
+  min-height: 32px;
+  transition: all 0.15s;
+}
+.ta-action-btn:hover {
+  border-color: var(--accent, #4ECDC4);
+  color: var(--accent, #4ECDC4);
+}
+.ta-action-btn--danger:hover {
+  border-color: var(--red, #e74c3c);
+  color: var(--red, #e74c3c);
+}
+
+/* ─── Badges ─── */
+.ta-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.ta-badge--guided {
+  background: rgba(243,156,18,0.15);
+  color: #d68910;
+}
+.ta-badge--individual {
+  background: var(--accent-light, rgba(78,205,196,0.12));
+  color: var(--accent-dark, #3bb5ad);
+}
+.ta-badge--active {
+  background: var(--green-light, rgba(39,174,96,0.12));
+  color: var(--green, #27ae60);
+}
+.ta-badge--completed {
+  background: rgba(78,205,196,0.12);
+  color: #2d8f88;
+}
+.ta-badge--archived {
+  background: rgba(90,90,110,0.1);
+  color: var(--teacher-muted, #5a5a6e);
+}
+
+/* ─── Card Body (progress detail) ─── */
+.ta-card-body {
+  border-top: 1px solid var(--teacher-border, #e8e4df);
+}
+.ta-card:not(.ta-card--open) .ta-card-body {
+  display: none;
+}
+.ta-progress-summary {
+  padding: 20px;
+}
+.ta-progress-overview {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.ta-progress-stats {
+  font-size: 14px;
+}
+.ta-stat {
+  margin-bottom: 4px;
+  color: var(--teacher-muted, #5a5a6e);
+}
+.ta-stat strong {
+  color: var(--teacher-text, #1a1a2e);
+}
+
+/* ─── At Risk ─── */
+.ta-at-risk {
+  background: var(--red-light, rgba(231,76,60,0.10));
+  border-radius: var(--teacher-radius-sm, 10px);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.ta-at-risk-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--red, #e74c3c);
+  margin-bottom: 8px;
+}
+.ta-at-risk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.ta-at-risk-detail {
+  color: var(--teacher-muted, #5a5a6e);
+  font-size: 12px;
+  margin-left: auto;
+}
+.ta-at-risk-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--red-light, rgba(231,76,60,0.10));
+  color: var(--red, #e74c3c);
+  margin-left: 6px;
+}
+.ta-complete-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--green-light, rgba(39,174,96,0.12));
+  color: var(--green, #27ae60);
+  margin-left: 6px;
+}
+
+/* ─── Student Breakdown ─── */
+.ta-breakdown-header {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--teacher-text, #1a1a2e);
+}
+.ta-student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+  gap: 12px;
+  min-height: 44px;
+}
+.ta-student-row:hover {
+  background: rgba(0,0,0,0.03);
+}
+.ta-student-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ta-student-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.ta-student-name {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ta-student-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.ta-progress-bar {
+  width: 100px;
+  height: 8px;
+  background: var(--teacher-border, #e8e4df);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.ta-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.ta-progress-label {
+  font-size: 12px;
+  color: var(--teacher-muted, #5a5a6e);
+  white-space: nowrap;
+}
+
+/* ─── Item Detail (drill-down) ─── */
+.ta-item-detail {
+  padding: 8px 0 8px 36px;
+  border-top: 1px solid var(--teacher-border, #e8e4df);
+  margin-top: 8px;
+}
+.ta-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.ta-item-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+.ta-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.ta-item-status {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.ta-item-status--completed { background: var(--green-light); color: var(--green); }
+.ta-item-status--in-progress { background: var(--amber-light); color: var(--amber); }
+.ta-item-status--not-started { background: rgba(90,90,110,0.08); color: var(--teacher-muted); }
+.ta-item-pct { font-weight: 600; }
+.ta-item-time { color: var(--teacher-muted); font-size: 12px; }
+.ta-item-empty { padding: 12px; color: var(--teacher-muted); font-size: 13px; }
+
+/* ─── Guided Mode Live Panel ─── */
+.ta-guided-panel {
+  padding: 20px;
+}
+.ta-guided-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.ta-guided-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green, #27ae60);
+  animation: ta-pulse 1.5s infinite;
+}
+@keyframes ta-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.ta-guided-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--teacher-muted);
+}
+.ta-guided-student {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  min-height: 44px;
+}
+.ta-guided-student-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ta-guided-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.ta-guided-status {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.ta-guided-online { background: rgba(39,174,96,0.06); }
+.ta-guided-online .ta-guided-status { color: var(--green); }
+.ta-guided-offline .ta-guided-status { color: var(--teacher-muted); }
+.ta-guided-items {
+  display: flex;
+  gap: 4px;
+}
+.ta-guided-item-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.ta-guided-item--completed { background: var(--green); }
+.ta-guided-item--in-progress { background: var(--amber); }
+.ta-guided-item--not-started { background: var(--teacher-border); }
+
+/* ─── Dashboard Assignment Progress Card ─── */
+.dash-assign-list {
+  margin-top: 12px;
+}
+.dash-assign-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--teacher-border, #e8e4df);
+}
+.dash-assign-card:last-child { border-bottom: none; }
+.dash-assign-ring { flex-shrink: 0; }
+.dash-assign-info { min-width: 0; flex: 1; }
+.dash-assign-title {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-assign-meta {
+  font-size: 12px;
+  color: var(--teacher-muted, #5a5a6e);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.dash-assign-risk {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--red, #e74c3c);
+  font-weight: 600;
+}
+.dash-assign-more {
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+}
+.dash-assign-more a {
+  color: var(--accent, #4ECDC4);
+  font-weight: 600;
+  text-decoration: none;
+}
+.dash-assign-more a:hover { text-decoration: underline; }
+
+/* ─── Student Assignments (My Assignments) ─── */
+.my-assignments-section {
+  padding: 0 16px;
+  margin-bottom: 20px;
+}
+.sa-header {
+  margin-bottom: 12px;
+}
+.sa-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0;
+}
+.sa-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+}
+.sa-card {
+  flex: 0 0 280px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+.sa-card-body {
+  padding: 16px;
+}
+.sa-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sa-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #5a5a6e;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.sa-card-teacher { font-weight: 600; }
+.sa-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.sa-badge--guided {
+  background: rgba(243,156,18,0.15);
+  color: #d68910;
+}
+.sa-due {
+  font-weight: 600;
+}
+.sa-due--urgent { color: #e74c3c; }
+.sa-due--soon { color: #f39c12; }
+
+/* Student progress bar */
+.sa-progress { margin-bottom: 12px; }
+.sa-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e8e4df;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.sa-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.sa-progress-label {
+  font-size: 12px;
+  color: #5a5a6e;
+}
+.sa-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.sa-continue-btn {
+  background: #4ECDC4;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s;
+}
+.sa-continue-btn:hover { background: #3bb5ad; }
+.sa-complete-label {
+  color: #27ae60;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Student item list (drill-down) */
+.sa-item-list {
+  border-top: 1px solid #e8e4df;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.sa-item-loading {
+  text-align: center;
+  padding: 12px;
+  color: #5a5a6e;
+  font-size: 13px;
+}
+.sa-item-empty {
+  text-align: center;
+  padding: 12px;
+  color: #5a5a6e;
+  font-size: 13px;
+}
+.sa-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid #f0ece8;
+  gap: 8px;
+}
+.sa-item:last-child { border-bottom: none; }
+.sa-item-info {
+  min-width: 0;
+  flex: 1;
+}
+.sa-item-title {
+  font-weight: 600;
+  font-size: 14px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sa-item-status {
+  font-size: 11px;
+  color: #5a5a6e;
+}
+.sa-item-play {
+  background: #4ECDC4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 36px;
+  flex-shrink: 0;
+}
+.sa-item-play:hover { background: #3bb5ad; }
+.sa-item--completed .sa-item-status { color: #27ae60; }
+.sa-item--in-progress .sa-item-status { color: #f39c12; }
+
+/* ─── Responsive ─── */
+@media (max-width: 600px) {
+  .ta-header { flex-direction: column; align-items: flex-start; }
+  .ta-card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .ta-card-actions { align-self: flex-end; }
+  .ta-student-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .ta-student-progress { width: 100%; }
+  .ta-progress-bar { flex: 1; }
+  .sa-card { flex: 0 0 260px; }
+}

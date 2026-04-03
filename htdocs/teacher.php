@@ -29,6 +29,7 @@ $teacherId = (int)($user['id'] ?? 0);
   <link rel="stylesheet" href="/css/lesson-publish.css">
   <link rel="stylesheet" href="/css/search-results.css">
   <link rel="stylesheet" href="/css/teacher-students.css">
+  <link rel="stylesheet" href="/css/teacher-assignments.css">
 </head>
 <body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>" data-teacher-email="<?= $teacherEmail ?>">
 
@@ -59,6 +60,9 @@ $teacherId = (int)($user['id'] ?? 0);
             role="tab" aria-selected="false" aria-controls="playlists"
             data-tab="playlists">Lesson Plans</button>
     <button class="teacher-tabs__btn"
+            role="tab" aria-selected="false" aria-controls="assignments"
+            data-tab="assignments">Assignments</button>
+    <button class="teacher-tabs__btn"
             role="tab" aria-selected="false" aria-controls="students"
             data-tab="students">Students</button>
     <button class="teacher-tabs__btn"
@@ -83,6 +87,13 @@ $teacherId = (int)($user['id'] ?? 0);
     <section id="playlists" class="tab-panel" role="tabpanel">
       <div id="playlists-content">
         <!-- Populated by lesson-builder.js -->
+      </div>
+    </section>
+
+    <!-- Assignments Tab (FRE-50) -->
+    <section id="assignments" class="tab-panel" role="tabpanel">
+      <div id="assignments-root">
+        <!-- Populated by teacher-assignments.js -->
       </div>
     </section>
 
@@ -135,6 +146,11 @@ $teacherId = (int)($user['id'] ?? 0);
         case 'playlists':
           if (typeof window.LessonBuilder !== 'undefined') {
             window.LessonBuilder.renderListView();
+          }
+          break;
+        case 'assignments':
+          if (typeof window.TeacherAssignments !== 'undefined') {
+            window.TeacherAssignments.init(document.getElementById('assignments-root'));
           }
           break;
         case 'students':
@@ -223,6 +239,7 @@ $teacherId = (int)($user['id'] ?? 0);
   <script src="/js/teacher-dashboard.js"></script>
   <script src="/js/lesson-publish.js"></script>
   <script src="/js/lesson-builder.js"></script>
+  <script src="/js/teacher-assignments.js"></script>
   <script src="/js/teacher-students.js"></script>
   <script src="/js/teacher-profile.js"></script>
 </body>

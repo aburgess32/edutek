@@ -161,6 +161,11 @@
                 if (typeof window.EduPakPublish !== 'undefined') {
                     publishBadge = window.EduPakPublish.createStatusBadge(plan);
                 }
+                var assignBtn = el('button', {
+                    className: 'lb-btn lb-btn-accent lb-btn-sm lb-plan-card-assign',
+                    onClick: function (e) { e.stopPropagation(); openAssignModal(plan); },
+                    title: 'Assign to students'
+                }, 'Assign');
                 var card = el('div', {
                     className: 'lb-plan-card',
                     onClick: function () { openDetail(plan.id); }
@@ -173,7 +178,10 @@
                             el('span', { className: 'lb-plan-card-dot' }, '\u00B7'),
                             el('span', { className: 'lb-plan-card-creator' }, plan.creator_name)
                         ]),
-                        el('div', { className: 'lb-plan-card-date' }, formatDate(plan.created_at))
+                        el('div', { className: 'lb-plan-card-footer' }, [
+                            el('span', { className: 'lb-plan-card-date' }, formatDate(plan.created_at)),
+                            assignBtn
+                        ])
                     ])
                 ]);
                 grid.appendChild(card);
@@ -260,6 +268,10 @@
                 className: 'lb-btn lb-btn-secondary',
                 onClick: function () { openBuilder('add'); }
             }, '+ Add Content'),
+            el('button', {
+                className: 'lb-btn lb-btn-accent',
+                onClick: function () { openAssignModal(plan); }
+            }, 'Assign'),
             el('button', {
                 className: 'lb-btn lb-btn-danger',
                 onClick: function () { confirmDeletePlan(plan.id); }
@@ -1096,6 +1108,177 @@
         var m = Math.floor(secs / 60);
         var s = secs % 60;
         return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ASSIGN MODAL (FRE-50)
+    // ─────────────────────────────────────────────────────────────────────────
+    function openAssignModal(plan) {
+        var overlay = el('div', { className: 'lb-modal-overlay assign-modal-overlay' });
+        var modal = el('div', { className: 'lb-modal assign-modal' });
+
+        modal.appendChild(el('h3', null, 'Assign: ' + truncate(plan.title, 40)));
+
+        // Mode toggle
+        var modeGroup = el('div', { className: 'assign-field' });
+        modeGroup.appendChild(el('label', { className: 'assign-label' }, 'Mode'));
+        var modeSelect = el('select', { className: 'assign-select', id: 'assign-mode' });
+        modeSelect.appendChild(el('option', { value: 'individual' }, 'Individual (self-paced)'));
+        modeSelect.appendChild(el('option', { value: 'guided' }, 'Guided (teacher-led)'));
+        modeGroup.appendChild(modeSelect);
+        modal.appendChild(modeGroup);
+
+        // Student multi-select
+        var studentGroup = el('div', { className: 'assign-field' });
+        studentGroup.appendChild(el('label', { className: 'assign-label' }, 'Assign to'));
+        var studentList = el('div', { className: 'assign-student-list', id: 'assign-students' });
+        studentList.innerHTML = '<div class="assign-loading">Loading students...</div>';
+        studentGroup.appendChild(studentList);
+
+        var wholeClassCheck = el('div', { className: 'assign-checkbox-row' });
+        var wcInput = document.createElement('input');
+        wcInput.type = 'checkbox';
+        wcInput.id = 'assign-whole-class';
+        wcInput.checked = true;
+        var wcLabel = el('label', { 'for': 'assign-whole-class' }, 'Whole class');
+        wholeClassCheck.appendChild(wcInput);
+        wholeClassCheck.appendChild(wcLabel);
+        studentGroup.appendChild(wholeClassCheck);
+        modal.appendChild(studentGroup);
+
+        wcInput.addEventListener('change', function () {
+            studentList.style.display = wcInput.checked ? 'none' : 'block';
+        });
+        studentList.style.display = 'none';
+
+        // Due date (individual only)
+        var dueDateGroup = el('div', { className: 'assign-field', id: 'assign-due-group' });
+        dueDateGroup.appendChild(el('label', { className: 'assign-label' }, 'Due date (optional)'));
+        var dueDateInput = document.createElement('input');
+        dueDateInput.type = 'date';
+        dueDateInput.className = 'assign-input';
+        dueDateInput.id = 'assign-due-date';
+        dueDateGroup.appendChild(dueDateInput);
+        modal.appendChild(dueDateGroup);
+
+        modeSelect.addEventListener('change', function () {
+            dueDateGroup.style.display = modeSelect.value === 'individual' ? 'block' : 'none';
+        });
+
+        // Notes
+        var notesGroup = el('div', { className: 'assign-field' });
+        notesGroup.appendChild(el('label', { className: 'assign-label' }, 'Notes (optional)'));
+        var notesInput = document.createElement('textarea');
+        notesInput.className = 'assign-input assign-textarea';
+        notesInput.id = 'assign-notes';
+        notesInput.rows = 3;
+        notesInput.placeholder = 'Instructions for students...';
+        notesGroup.appendChild(notesInput);
+        modal.appendChild(notesGroup);
+
+        // Actions
+        var statusMsg = el('div', { className: 'assign-status', id: 'assign-status' });
+        var actions = el('div', { className: 'lb-modal-actions' }, [
+            el('button', {
+                className: 'lb-btn lb-btn-secondary',
+                onClick: function () { overlay.remove(); }
+            }, 'Cancel'),
+            el('button', {
+                className: 'lb-btn lb-btn-accent',
+                id: 'assign-submit-btn',
+                onClick: function () { submitAssignment(plan, overlay); }
+            }, 'Assign')
+        ]);
+        modal.appendChild(statusMsg);
+        modal.appendChild(actions);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Load students
+        loadStudentsForAssign();
+    }
+
+    function loadStudentsForAssign() {
+        var listEl = document.getElementById('assign-students');
+        if (!listEl) return;
+
+        fetch('/api/teacher/students.php?action=list')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var students = data.students || [];
+                if (students.length === 0) {
+                    listEl.innerHTML = '<div class="assign-empty">No students assigned to you yet. Add students in the Students tab.</div>';
+                    return;
+                }
+                listEl.innerHTML = '';
+                students.forEach(function (s) {
+                    var row = el('label', { className: 'assign-student-row' });
+                    var cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = s.id;
+                    cb.className = 'assign-student-cb';
+                    row.appendChild(cb);
+                    var avatar = el('span', { className: 'assign-student-avatar' });
+                    avatar.style.backgroundColor = s.avatar_color || '#333';
+                    avatar.textContent = (s.display_name || s.avatar_name || '?').charAt(0).toUpperCase();
+                    row.appendChild(avatar);
+                    row.appendChild(el('span', { className: 'assign-student-name' }, s.display_name || s.avatar_name || 'Unknown'));
+                    listEl.appendChild(row);
+                });
+            })
+            .catch(function () {
+                listEl.innerHTML = '<div class="assign-empty">Failed to load students.</div>';
+            });
+    }
+
+    function submitAssignment(plan, overlay) {
+        var btn = document.getElementById('assign-submit-btn');
+        var statusEl = document.getElementById('assign-status');
+        if (btn) { btn.disabled = true; btn.textContent = 'Assigning...'; }
+
+        var mode = document.getElementById('assign-mode').value;
+        var wholeClass = document.getElementById('assign-whole-class').checked;
+        var dueDate = document.getElementById('assign-due-date').value;
+        var notes = document.getElementById('assign-notes').value;
+
+        var studentIds = [];
+        if (!wholeClass) {
+            var checkboxes = document.querySelectorAll('.assign-student-cb:checked');
+            checkboxes.forEach(function (cb) { studentIds.push(cb.value); });
+            if (studentIds.length === 0) {
+                if (statusEl) statusEl.textContent = 'Select at least one student or check "Whole class"';
+                if (btn) { btn.disabled = false; btn.textContent = 'Assign'; }
+                return;
+            }
+        }
+
+        var body = new FormData();
+        body.append('action', 'create');
+        body.append('_csrf_token', state.csrfToken);
+        body.append('lesson_plan_id', plan.id);
+        body.append('mode', mode);
+        body.append('due_date', dueDate);
+        body.append('notes', notes);
+        body.append('student_ids', JSON.stringify(studentIds));
+
+        fetch('/api/lesson_assignments.php', { method: 'POST', body: body })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ok) {
+                    if (statusEl) {
+                        statusEl.textContent = 'Assigned successfully!';
+                        statusEl.className = 'assign-status assign-status--success';
+                    }
+                    setTimeout(function () { overlay.remove(); }, 1000);
+                } else {
+                    if (statusEl) statusEl.textContent = data.error || 'Failed to assign';
+                    if (btn) { btn.disabled = false; btn.textContent = 'Assign'; }
+                }
+            })
+            .catch(function () {
+                if (statusEl) statusEl.textContent = 'Network error. Try again.';
+                if (btn) { btn.disabled = false; btn.textContent = 'Assign'; }
+            });
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -127,6 +127,8 @@
         '<div class="card" id="d-attention"><div class="card-title">Needs Attention</div><div class="card-subtitle">Loading...</div></div>' +
       '</div>' +
 
+      '<div class="card" id="d-assignments"><div class="card-title">' + icon('doc') + ' Assignment Progress</div><div class="card-subtitle">Loading...</div></div>' +
+
       '<div class="card" id="d-engagement"><div class="card-title">Weekly Engagement</div><div class="card-subtitle">Loading...</div></div>' +
 
       '<div class="card" id="d-content-insights"><div class="card-title">Content Insights</div><div class="card-subtitle">Loading...</div></div>' +
@@ -279,6 +281,83 @@
     });
 
     el.innerHTML = html + '</ul>';
+  }
+
+  // ─── Assignment Progress (FRE-52) ───────────────────────────────────────────
+
+  function renderAssignmentProgress() {
+    var el = document.getElementById('d-assignments');
+    if (!el) return;
+
+    fetchJSON('/api/lesson_assignments.php?action=list&status=active').then(function(data) {
+      var assignments = data.assignments || [];
+      if (assignments.length === 0) {
+        el.innerHTML = '<div class="card-title">' + icon('doc') + ' Assignment Progress</div>' +
+          '<div class="card-subtitle">No active assignments. Assign lesson plans from the Lesson Plans tab.</div>';
+        return;
+      }
+
+      var html = '<div class="card-title">' + icon('doc') + ' Assignment Progress</div>' +
+        '<div class="card-subtitle">' + assignments.length + ' active assignment' + (assignments.length !== 1 ? 's' : '') + '</div>';
+
+      // Show up to 5 assignments with progress rings
+      var shown = assignments.slice(0, 5);
+      html += '<div class="dash-assign-list">';
+
+      var loaded = 0;
+      shown.forEach(function(a) {
+        html += '<div class="dash-assign-card" id="d-assign-' + a.id + '">' +
+          '<div class="dash-assign-ring" id="d-assign-ring-' + a.id + '"></div>' +
+          '<div class="dash-assign-info">' +
+            '<div class="dash-assign-title">' + esc(a.plan_title) + '</div>' +
+            '<div class="dash-assign-meta">' +
+              (a.mode === 'guided' ? '<span class="ta-badge ta-badge--guided">Guided</span> ' : '') +
+              '<span>' + a.item_count + ' items</span>' +
+              (a.due_date ? ' &middot; Due ' + relativeDate(a.due_date) : '') +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+
+      html += '</div>';
+
+      if (assignments.length > 5) {
+        html += '<div class="dash-assign-more"><a href="#assignments">View all ' + assignments.length + ' assignments</a></div>';
+      }
+
+      el.innerHTML = html;
+
+      // Load progress for each shown assignment
+      shown.forEach(function(a) {
+        fetchJSON('/api/lesson_progress.php?action=summary&assignment_id=' + a.id).then(function(prog) {
+          var ringEl = document.getElementById('d-assign-ring-' + a.id);
+          if (!ringEl) return;
+          var pct = prog.overall_pct || 0;
+          var r = 21;
+          var circ = 2 * Math.PI * r;
+          var offset = circ - (pct / 100) * circ;
+          var color = pct >= 80 ? 'var(--green)' : pct >= 40 ? 'var(--amber)' : 'var(--accent)';
+          ringEl.innerHTML = '<svg width="48" height="48" viewBox="0 0 48 48">' +
+            '<circle cx="24" cy="24" r="' + r + '" fill="none" stroke="var(--teacher-border)" stroke-width="4"/>' +
+            '<circle cx="24" cy="24" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="4" ' +
+              'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" transform="rotate(-90 24 24)"/>' +
+            '<text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="var(--teacher-text)">' + pct + '%</text>' +
+          '</svg>';
+
+          // Add at-risk count if any
+          var atRiskCount = (prog.students || []).filter(function(s) { return s.at_risk; }).length;
+          if (atRiskCount > 0) {
+            var infoEl = document.querySelector('#d-assign-' + a.id + ' .dash-assign-meta');
+            if (infoEl) {
+              infoEl.innerHTML += ' &middot; <span class="dash-assign-risk">' + icon('alert', 12, 12) + ' ' + atRiskCount + ' at risk</span>';
+            }
+          }
+        }).catch(function() { /* ignore progress load failures */ });
+      });
+    }).catch(function() {
+      el.innerHTML = '<div class="card-title">' + icon('doc') + ' Assignment Progress</div>' +
+        '<div class="card-subtitle">Could not load assignment data</div>';
+    });
   }
 
   // ─── Weekly Engagement ──────────────────────────────────────────────────────
@@ -872,6 +951,7 @@
       renderWelcomeSub(kpis);
       renderTopContent(topContent);
       renderAttention(attention);
+      renderAssignmentProgress();
       renderEngagement(engagement);
       renderContentInsights(topContent);
       renderSearchQueriesCard(searches);

@@ -76,6 +76,82 @@ try {
         ':dur'   => $durationSeconds,
     ]);
 
+    // FRE-51: Auto-update lesson_progress for any active assignments containing this content
+    try {
+        $progressPct = $durationSeconds > 0 ? min(100, (int) round(($progressSeconds / $durationSeconds) * 100)) : 0;
+        $lpStatus = 'not_started';
+        if ($progressPct >= 80) {
+            $lpStatus = 'completed';
+        } elseif ($progressPct > 0) {
+            $lpStatus = 'in_progress';
+        }
+
+        // Find all active lesson_progress rows for this user + content_id
+        $lpStmt = $pdo->prepare("
+            SELECT lp.id, lp.assignment_id, lp.progress_pct
+            FROM lesson_progress lp
+            JOIN lesson_assignments la ON la.id = lp.assignment_id
+            WHERE lp.student_id = :uid
+              AND lp.content_id = :cid
+              AND la.status = 'active'
+        ");
+        $lpStmt->execute([':uid' => $userId, ':cid' => $contentId]);
+        $lpRows = $lpStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($lpRows)) {
+            $lpUpdate = $pdo->prepare("
+                UPDATE lesson_progress
+                SET progress_pct = GREATEST(progress_pct, :pct),
+                    last_position = :pos,
+                    status = CASE
+                        WHEN :st1 = 'completed' THEN 'completed'
+                        WHEN status = 'completed' THEN 'completed'
+                        WHEN :st2 = 'in_progress' THEN 'in_progress'
+                        ELSE status
+                    END,
+                    completed_at = CASE
+                        WHEN :st3 = 'completed' AND completed_at IS NULL THEN NOW()
+                        ELSE completed_at
+                    END
+                WHERE id = :id
+            ");
+
+            foreach ($lpRows as $lpRow) {
+                $lpUpdate->execute([
+                    ':pct' => $progressPct,
+                    ':pos' => $progressSeconds,
+                    ':st1' => $lpStatus,
+                    ':st2' => $lpStatus,
+                    ':st3' => $lpStatus,
+                    ':id'  => (int) $lpRow['id'],
+                ]);
+
+                // Check if assignment is fully completed
+                if ($lpStatus === 'completed') {
+                    $checkStmt = $pdo->prepare("
+                        SELECT COUNT(*) AS total,
+                               SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS done
+                        FROM lesson_progress
+                        WHERE assignment_id = :aid AND student_id = :sid
+                    ");
+                    $checkStmt->execute([':aid' => (int) $lpRow['assignment_id'], ':sid' => $userId]);
+                    $checkRow = $checkStmt->fetch(PDO::FETCH_ASSOC);
+                    if ($checkRow && (int) $checkRow['total'] > 0 && (int) $checkRow['done'] >= (int) $checkRow['total']) {
+                        $aStmt = $pdo->prepare("SELECT assigned_to FROM lesson_assignments WHERE id = :id");
+                        $aStmt->execute([':id' => (int) $lpRow['assignment_id']]);
+                        $aRow = $aStmt->fetch(PDO::FETCH_ASSOC);
+                        if ($aRow && (int) ($aRow['assigned_to'] ?? 0) === $userId) {
+                            $pdo->prepare("UPDATE lesson_assignments SET status = 'completed' WHERE id = :id")
+                                ->execute([':id' => (int) $lpRow['assignment_id']]);
+                        }
+                    }
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        // Silently ignore lesson_progress errors — table may not exist yet
+    }
+
     echo json_encode(['ok' => true]);
 } catch (PDOException $e) {
     http_response_code(500);

@@ -28,6 +28,12 @@
         $bcQuery .= '&topic=' . urlencode($_GET['topic']);
     }
 
+    // FRE-45: Detect lesson plan context
+    $lessonPlanId = isset($_GET['plan']) ? (int) $_GET['plan'] : 0;
+    if ($lessonPlanId > 0) {
+        $bcQuery .= '&plan=' . $lessonPlanId;
+    }
+
         $videolink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink1", $cipher, $encryption_key, $options, $iv)));
         $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname1", $cipher, $encryption_key, $options, $iv)));
         $videolink = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher, $encryption_key, $options, $iv)));
@@ -80,6 +86,114 @@
   // Color classes for playlist thumbnails (cycle through)
   $thumbColors = ['', 'playlist-item__thumb--blue', 'playlist-item__thumb--green', 'playlist-item__thumb--orange', 'playlist-item__thumb--purple', 'playlist-item__thumb--teal'];
   $colorIndex = 0;
+
+  // FRE-45: Fetch lesson plan data if plan context is present
+  $lessonPlan = null;
+  $lpItems    = [];
+
+  if ($lessonPlanId > 0) {
+      try {
+          $pdo = getDbConnection();
+          $stmt = $pdo->prepare("
+              SELECT lp.id, lp.title, lp.icon, lp.color, lp.content_ids
+              FROM lesson_plans lp
+              WHERE lp.id = ?
+                AND lp.published_segments IS NOT NULL
+                AND JSON_LENGTH(lp.published_segments) > 0
+          ");
+          $stmt->execute([$lessonPlanId]);
+          $lessonPlan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+          if ($lessonPlan) {
+              $rawIds = json_decode($lessonPlan['content_ids'], true) ?: [];
+              $contentIds = [];
+              foreach ($rawIds as $item) {
+                  $contentIds[] = is_array($item) && isset($item['id']) ? $item['id'] : (string) $item;
+              }
+              if (!empty($contentIds)) {
+                  $ph = implode(',', array_fill(0, count($contentIds), '?'));
+                  $metaStmt = $pdo->prepare("
+                      SELECT content_id, title, thumbnail_path, duration_seconds
+                      FROM content_meta WHERE content_id IN ({$ph})
+                  ");
+                  $metaStmt->execute($contentIds);
+                  $metaMap = [];
+                  foreach ($metaStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                      $metaMap[$r['content_id']] = $r;
+                  }
+                  $videoExts = ['mp4','mov','wmv','flv','f4v','avi','webm','mkv'];
+                  foreach ($contentIds as $cid) {
+                      $ext = strtolower(pathinfo($cid, PATHINFO_EXTENSION));
+                      if (!in_array($ext, $videoExts)) continue;
+                      $lpItems[] = $metaMap[$cid] ?? ['content_id' => $cid, 'title' => basename($cid), 'thumbnail_path' => '', 'duration_seconds' => 0];
+                  }
+              }
+          }
+      } catch (PDOException $e) {
+          $lessonPlan = null;
+      }
+  }
+
+  // FRE-45: Compute "Up Next" video
+  $upNextHref   = '';
+  $upNextTitle  = '';
+  $upNextSource = '';
+  $lpCurrentIdx = -1;
+
+  // Priority 1: next item in lesson plan
+  if ($lessonPlan && !empty($lpItems)) {
+      foreach ($lpItems as $i => $lpItem) {
+          if ($lpItem['content_id'] === $currentVideoSrc) {
+              $lpCurrentIdx = $i;
+              break;
+          }
+      }
+      if ($lpCurrentIdx >= 0 && $lpCurrentIdx < count($lpItems) - 1) {
+          $nextLp = $lpItems[$lpCurrentIdx + 1];
+          $nFolderPath = dirname($nextLp['content_id']) . '/';
+          $nFolderName = basename(dirname($nextLp['content_id']));
+          $nFileName   = basename($nextLp['content_id']);
+
+          $upNextHref = 'watch.php?&'
+              . $videolink  . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($nFolderPath, $cipher, $encryption_key, $options, $iv)))
+              . '&' . $videoname  . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($nFolderName, $cipher, $encryption_key, $options, $iv)))
+              . '&' . $videolink1 . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($nextLp['content_id'], $cipher, $encryption_key, $options, $iv)))
+              . '&' . $videoname1 . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($nFileName, $cipher, $encryption_key, $options, $iv)))
+              . '&plan=' . $lessonPlanId . $bcQuery;
+          $upNextTitle = $nextLp['title'] ?? $nFileName;
+          $upNextSource = 'plan';
+      }
+  }
+
+  // Priority 2: fallback to subcategory next video
+  if ($upNextHref === '') {
+      $subcatVideos = [];
+      foreach ($ff2 as $v) {
+          $vName = substr($v, $length);
+          if (in_array(pathinfo($vName, PATHINFO_EXTENSION), $video)) {
+              $subcatVideos[] = ['src' => $v, 'name' => $vName];
+          }
+      }
+      $scCurrentIdx = -1;
+      foreach ($subcatVideos as $i => $sv) {
+          if ($sv['name'] === $currentVideoName) {
+              $scCurrentIdx = $i;
+              break;
+          }
+      }
+      if ($scCurrentIdx >= 0 && $scCurrentIdx < count($subcatVideos) - 1) {
+          $nextSc = $subcatVideos[$scCurrentIdx + 1];
+          $upNextHref = 'watch.php?&'
+              . $videolink  . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)))
+              . '&' . $videoname  . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)))
+              . '&' . $videolink1 . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($nextSc['src'], $cipher, $encryption_key, $options, $iv)))
+              . '&' . $videoname1 . '=' . str_replace('=','[equal]', base64_encode(openssl_encrypt($nextSc['name'], $cipher, $encryption_key, $options, $iv)))
+              . ($lessonPlanId > 0 ? '&plan=' . $lessonPlanId : '')
+              . $bcQuery;
+          $upNextTitle = $nextSc['name'];
+          $upNextSource = 'subcategory';
+      }
+  }
 ?>
 
 <!-- FRE-41: Watch Page Grid Layout -->
@@ -88,6 +202,13 @@
 
     <!-- LEFT COLUMN: Player -->
     <div class="player-col">
+
+      <!-- FRE-45: Back to Lesson Plan link -->
+      <?php if ($lessonPlan): ?>
+      <a class="lp-back-link" href="playlist.php?plan=<?php echo $lessonPlanId; ?>">
+        &larr; Back to <?php echo htmlspecialchars($lessonPlan['title']); ?>
+      </a>
+      <?php endif; ?>
 
       <!-- Breadcrumb -->
       <nav class="wp-breadcrumb" aria-label="Breadcrumb">
@@ -103,6 +224,13 @@
         <!-- Video -->
         <div class="player-card__video-wrap">
           <video class="Wvideo" id="wp-video" src="<?php echo htmlspecialchars($currentVideoSrc); ?>" autoplay></video>
+          <!-- FRE-45: Up Next Toast Overlay -->
+          <div class="up-next-toast" id="up-next-toast" style="display:none;">
+            <span class="up-next-toast__label">Up Next</span>
+            <span class="up-next-toast__title" id="up-next-toast-title"></span>
+            <span class="up-next-toast__countdown" id="up-next-countdown"></span>
+            <button class="up-next-toast__cancel" id="up-next-cancel">Cancel</button>
+          </div>
           <!-- Keyboard shortcuts hint -->
           <div class="player-shortcut-hint">
             <button class="shortcut-btn" aria-label="Keyboard shortcuts">?</button>
@@ -211,72 +339,145 @@
 
     <!-- RIGHT COLUMN: Playlist Sidebar -->
     <aside class="playlist-sidebar">
-      <div class="playlist-header">
-        <h2 class="playlist-header__title"><?php echo htmlspecialchars($file1); ?></h2>
-        <span class="playlist-header__count"><?php echo $videoCount; ?> video<?php echo $videoCount !== 1 ? 's' : ''; ?></span>
-      </div>
 
-      <div class="playlist-items">
-        <?php
-        // FRE-41: Render current video as first playlist item (active)
-        if ($currentVideoName !== '') {
-            $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
-            $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
-            $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($currentVideoSrc, $cipher, $encryption_key, $options, $iv)));
-            $encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt($currentVideoName, $cipher, $encryption_key, $options, $iv)));
-            $thumbClass = $thumbColors[$colorIndex % count($thumbColors)];
-            $colorIndex++;
-        ?>
-        <a class="playlist-item playlist-item--active" href="watch.php?&<?php echo $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . $bcQuery; ?>">
-          <div class="playlist-item__indicator">
+      <?php // ── FRE-45: Lesson Plan Playlist (collapsible) ── ?>
+      <?php if ($lessonPlan && !empty($lpItems)): ?>
+      <details class="sidebar-section" open>
+        <summary class="sidebar-section__header lp-playlist__header"
+                 style="border-left: 3px solid <?php echo htmlspecialchars($lessonPlan['color'] ?? '#4ECDC4'); ?>;">
+          <span class="lp-playlist__icon"><?php echo $lessonPlan['icon'] ?? '📚'; ?></span>
+          <div class="sidebar-section__header-text">
+            <h3 class="sidebar-section__title"><?php echo htmlspecialchars($lessonPlan['title']); ?></h3>
+            <span class="sidebar-section__count"><?php echo count($lpItems); ?> item<?php echo count($lpItems) !== 1 ? 's' : ''; ?></span>
+          </div>
+          <svg class="sidebar-section__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="sidebar-section__items lp-playlist__items">
+          <?php foreach ($lpItems as $idx => $lpItem):
+              $isCurrentVideo = ($lpItem['content_id'] === $currentVideoSrc);
+              $isUpNext = ($upNextSource === 'plan' && $lpCurrentIdx >= 0 && isset($lpItems[$lpCurrentIdx + 1]) && $lpItem['content_id'] === $lpItems[$lpCurrentIdx + 1]['content_id']);
+              $lpFileName   = basename($lpItem['content_id']);
+              $lpFolderPath = dirname($lpItem['content_id']) . '/';
+              $lpFolderName = basename(dirname($lpItem['content_id']));
+
+              $lpEncLink  = str_replace('=', '[equal]', base64_encode(openssl_encrypt($lpFolderPath, $cipher, $encryption_key, $options, $iv)));
+              $lpEncName  = str_replace('=', '[equal]', base64_encode(openssl_encrypt($lpFolderName, $cipher, $encryption_key, $options, $iv)));
+              $lpEncLink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($lpItem['content_id'], $cipher, $encryption_key, $options, $iv)));
+              $lpEncName1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($lpFileName, $cipher, $encryption_key, $options, $iv)));
+
+              $lpHref = 'watch.php?&' . $videolink . '=' . $lpEncLink
+                      . '&' . $videoname . '=' . $lpEncName
+                      . '&' . $videolink1 . '=' . $lpEncLink1
+                      . '&' . $videoname1 . '=' . $lpEncName1
+                      . '&plan=' . $lessonPlanId . $bcQuery;
+
+              $lpDuration = (int) $lpItem['duration_seconds'];
+              $lpDurStr = $lpDuration > 0 ? floor($lpDuration/60) . ':' . str_pad($lpDuration % 60, 2, '0', STR_PAD_LEFT) : '';
+          ?>
+          <a class="playlist-item lp-playlist__item <?php echo $isCurrentVideo ? 'playlist-item--active' : ''; ?> <?php echo $isUpNext ? 'playlist-item--up-next' : ''; ?>"
+             href="<?php echo $lpHref; ?>"
+             <?php echo $isUpNext ? 'data-up-next="true"' : ''; ?>>
+            <div class="lp-playlist__num"><?php echo $idx + 1; ?></div>
+            <div class="playlist-item__info">
+              <span class="playlist-item__title"><?php echo htmlspecialchars($lpItem['title'] ?? $lpFileName); ?></span>
+              <?php if ($lpDurStr): ?>
+              <span class="playlist-item__duration"><?php echo $lpDurStr; ?></span>
+              <?php endif; ?>
+            </div>
+            <?php if ($isCurrentVideo): ?>
             <div class="now-playing-badge">Now Playing</div>
-          </div>
-          <div class="playlist-item__thumb <?php echo $thumbClass; ?>">
-            <div class="playlist-item__play-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-          </div>
-          <div class="playlist-item__info">
-            <span class="playlist-item__title"><?php echo htmlspecialchars($currentVideoName); ?></span>
-            <div class="playlist-item__meta">
-              <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($currentVideoSrc); ?>">--:--</span>
-            </div>
-          </div>
-        </a>
-        <?php } ?>
+            <?php elseif ($isUpNext): ?>
+            <div class="up-next-badge">Up Next</div>
+            <?php endif; ?>
+          </a>
+          <?php endforeach; ?>
+        </div>
+      </details>
+      <?php endif; ?>
 
-        <?php
-        // FRE-41: Render other videos in the playlist
-        foreach ($ff2 as $key => $value) {
-            if (substr($value, ($length)) != $currentVideoName) {
-                if (in_array(pathinfo(substr($value, ($length)), PATHINFO_EXTENSION), $video)) {
-                    $otherName = substr($value, ($length));
-                    $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
-                    $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
-                    $encryptvalue = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value, $cipher, $encryption_key, $options, $iv)));
-                    $encryptname = str_replace('=', '[equal]', base64_encode(openssl_encrypt($otherName, $cipher, $encryption_key, $options, $iv)));
-                    $thumbClass = $thumbColors[$colorIndex % count($thumbColors)];
-                    $colorIndex++;
-        ?>
-        <a class="playlist-item" href="watch.php?&<?php echo $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptname . $bcQuery; ?>">
-          <div class="playlist-item__thumb <?php echo $thumbClass; ?>">
-            <div class="playlist-item__play-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
-            </div>
+      <?php // ── FRE-45: Subcategory Videos (collapsible, always present) ── ?>
+      <details class="sidebar-section" <?php echo (!$lessonPlan) ? 'open' : ''; ?>>
+        <summary class="sidebar-section__header">
+          <div class="sidebar-section__header-text">
+            <h2 class="sidebar-section__title"><?php echo htmlspecialchars($file1); ?></h2>
+            <span class="sidebar-section__count"><?php echo $videoCount; ?> video<?php echo $videoCount !== 1 ? 's' : ''; ?></span>
           </div>
-          <div class="playlist-item__info">
-            <span class="playlist-item__title"><?php echo htmlspecialchars($otherName); ?></span>
-            <div class="playlist-item__meta">
-              <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($value); ?>">--:--</span>
+          <svg class="sidebar-section__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <div class="sidebar-section__items playlist-items">
+          <?php
+          // Current video as first item (active)
+          $colorIndex = 0;
+          if ($currentVideoName !== '') {
+              $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
+              $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
+              $encryptfilea = str_replace('=', '[equal]', base64_encode(openssl_encrypt($currentVideoSrc, $cipher, $encryption_key, $options, $iv)));
+              $encryptfile1b = str_replace('=', '[equal]', base64_encode(openssl_encrypt($currentVideoName, $cipher, $encryption_key, $options, $iv)));
+              $thumbClass = $thumbColors[$colorIndex % count($thumbColors)];
+              $colorIndex++;
+          ?>
+          <a class="playlist-item playlist-item--active" href="watch.php?&<?php echo $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptfilea . '&' . $videoname1 . '=' . $encryptfile1b . $bcQuery; ?>">
+            <div class="playlist-item__indicator">
+              <div class="now-playing-badge">Now Playing</div>
             </div>
-          </div>
-        </a>
-        <?php
-                }
-            }
-        }
-        ?>
-      </div>
+            <div class="playlist-item__thumb <?php echo $thumbClass; ?>">
+              <div class="playlist-item__play-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+            <div class="playlist-item__info">
+              <span class="playlist-item__title"><?php echo htmlspecialchars($currentVideoName); ?></span>
+              <div class="playlist-item__meta">
+                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($currentVideoSrc); ?>">--:--</span>
+              </div>
+            </div>
+          </a>
+          <?php } ?>
+
+          <?php
+          // Other videos in the subcategory
+          foreach ($ff2 as $key => $value) {
+              if (substr($value, ($length)) != $currentVideoName) {
+                  if (in_array(pathinfo(substr($value, ($length)), PATHINFO_EXTENSION), $video)) {
+                      $otherName = substr($value, ($length));
+                      $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
+                      $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
+                      $encryptvalue = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value, $cipher, $encryption_key, $options, $iv)));
+                      $encryptname = str_replace('=', '[equal]', base64_encode(openssl_encrypt($otherName, $cipher, $encryption_key, $options, $iv)));
+                      $thumbClass = $thumbColors[$colorIndex % count($thumbColors)];
+                      $colorIndex++;
+
+                      // Check if this is the "up next" video from subcategory source
+                      $scItemIsUpNext = ($upNextSource === 'subcategory' && $otherName === $upNextTitle);
+          ?>
+          <a class="playlist-item <?php echo $scItemIsUpNext ? 'playlist-item--up-next' : ''; ?>"
+             href="watch.php?&<?php echo $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptname . $bcQuery; ?>"
+             <?php echo $scItemIsUpNext ? 'data-up-next="true"' : ''; ?>>
+            <?php if ($scItemIsUpNext): ?>
+            <div class="playlist-item__indicator">
+              <div class="up-next-badge">Up Next</div>
+            </div>
+            <?php endif; ?>
+            <div class="playlist-item__thumb <?php echo $thumbClass; ?>">
+              <div class="playlist-item__play-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+            <div class="playlist-item__info">
+              <span class="playlist-item__title"><?php echo htmlspecialchars($otherName); ?></span>
+              <div class="playlist-item__meta">
+                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($value); ?>">--:--</span>
+              </div>
+            </div>
+          </a>
+          <?php
+                  }
+              }
+          }
+          ?>
+        </div>
+      </details>
+
     </aside>
 
   </div>

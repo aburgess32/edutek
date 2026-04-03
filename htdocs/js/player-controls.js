@@ -359,6 +359,46 @@
     if (video.paused) { video.play(); } else { video.pause(); }
   });
 
+  // ========== FRE-45: AUTO-ADVANCE ON VIDEO END ==========
+  video.addEventListener('ended', function () {
+    // Don't auto-advance if A-B loop is active
+    if (loopState === 2) return;
+
+    var upNextEl = document.querySelector('[data-up-next="true"]');
+    if (!upNextEl || !upNextEl.href) return;
+
+    var toast = document.getElementById('up-next-toast');
+    var titleEl = document.getElementById('up-next-toast-title');
+    var countdownEl = document.getElementById('up-next-countdown');
+    var cancelBtn = document.getElementById('up-next-cancel');
+    if (!toast) return;
+
+    var upNextTitle = upNextEl.querySelector('.playlist-item__title');
+    titleEl.textContent = upNextTitle ? upNextTitle.textContent : 'Next video';
+    toast.style.display = 'flex';
+
+    var seconds = 5;
+    countdownEl.textContent = seconds;
+    var cancelled = false;
+
+    function onCancel() {
+      cancelled = true;
+      toast.style.display = 'none';
+      cancelBtn.removeEventListener('click', onCancel);
+    }
+    cancelBtn.addEventListener('click', onCancel);
+
+    var interval = setInterval(function () {
+      if (cancelled) { clearInterval(interval); return; }
+      seconds--;
+      countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        window.location.href = upNextEl.href;
+      }
+    }, 1000);
+  });
+
   // ========== INIT: remove native controls ==========
   video.removeAttribute('controls');
 

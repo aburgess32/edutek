@@ -851,3 +851,233 @@
   margin-top: 0;
   position: static;
 }
+
+/* ============================
+   COLLAPSIBLE SIDEBAR SECTIONS (FRE-45)
+   ============================ */
+
+.sidebar-section {
+  border-bottom: 1px solid var(--wp-divider);
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+
+.sidebar-section > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.sidebar-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sidebar-section__header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-section__title {
+  font-family: var(--wp-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--wp-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.sidebar-section__count {
+  font-size: 12px;
+  color: var(--wp-text-muted);
+  font-weight: 500;
+}
+
+.sidebar-section__chevron {
+  flex-shrink: 0;
+  color: var(--wp-text-muted);
+  transition: transform var(--wp-transition);
+}
+
+.sidebar-section[open] > summary .sidebar-section__chevron {
+  transform: rotate(180deg);
+}
+
+.sidebar-section__items {
+  padding: 0 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+/* ============================
+   LESSON PLAN PLAYLIST (FRE-45)
+   ============================ */
+
+.lp-playlist__header {
+  background: var(--wp-accent-highlight);
+  border-radius: var(--wp-radius-sm);
+}
+
+.lp-playlist__icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.lp-playlist__items {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.lp-playlist__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-playlist__num {
+  width: 22px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--wp-text-muted);
+  flex-shrink: 0;
+}
+
+.lp-playlist__items::-webkit-scrollbar { width: 4px; }
+.lp-playlist__items::-webkit-scrollbar-thumb { background: var(--wp-border); border-radius: 2px; }
+
+/* ============================
+   UP NEXT BADGE (FRE-45)
+   ============================ */
+
+.up-next-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #e67e22;
+  background: rgba(230, 126, 34, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.playlist-item--up-next {
+  border-left-color: #e67e22;
+}
+
+/* ============================
+   UP NEXT TOAST OVERLAY (FRE-45)
+   ============================ */
+
+.up-next-toast {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: var(--wp-radius-md);
+  font-family: var(--wp-font-body);
+  font-size: 13px;
+  z-index: 20;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--wp-shadow-lg);
+}
+
+.up-next-toast__label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: #e67e22;
+}
+
+.up-next-toast__title {
+  font-weight: 500;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.up-next-toast__countdown {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 18px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.up-next-toast__cancel {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: none;
+  padding: 4px 12px;
+  border-radius: var(--wp-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--wp-font-body);
+}
+
+.up-next-toast__cancel:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ============================
+   BACK TO LESSON PLAN LINK (FRE-45)
+   ============================ */
+
+.lp-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--wp-accent);
+  text-decoration: none;
+  margin-bottom: 6px;
+  transition: color var(--wp-transition);
+}
+
+.lp-back-link:hover {
+  color: var(--wp-accent-hover);
+}
+
+/* ============================
+   RESPONSIVE OVERRIDES (FRE-45)
+   ============================ */
+
+@media (max-width: 768px) {
+  .sidebar-section__items {
+    max-height: none;
+  }
+
+  .lp-playlist__items {
+    max-height: none;
+  }
+
+  .up-next-toast {
+    bottom: 48px;
+    font-size: 12px;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .up-next-toast__title {
+    max-width: 120px;
+  }
+}

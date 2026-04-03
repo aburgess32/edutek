@@ -169,6 +169,7 @@ $teacherName = htmlspecialchars($plan['teacher_name'] ?? 'Teacher', ENT_QUOTES, 
                            . '&' . $encKeyVideoname . '=' . $encName
                            . '&' . $encKeyVideolink1 . '=' . $encLink1
                            . '&' . $encKeyVideoname1 . '=' . $encName1;
+                $watchHref .= '&plan=' . (int) $planId;
             }
 
             // Thumbnail

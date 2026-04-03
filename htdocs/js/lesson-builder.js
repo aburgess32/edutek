@@ -1128,28 +1128,53 @@
         modeGroup.appendChild(modeSelect);
         modal.appendChild(modeGroup);
 
-        // Student multi-select
-        var studentGroup = el('div', { className: 'assign-field' });
-        studentGroup.appendChild(el('label', { className: 'assign-label' }, 'Assign to'));
-        var studentList = el('div', { className: 'assign-student-list', id: 'assign-students' });
-        studentList.innerHTML = '<div class="assign-loading">Loading students...</div>';
-        studentGroup.appendChild(studentList);
+        // Assign-to segmented control
+        var assignToGroup = el('div', { className: 'assign-field' });
+        assignToGroup.appendChild(el('label', { className: 'assign-label' }, 'Assign to'));
 
-        var wholeClassCheck = el('div', { className: 'assign-checkbox-row' });
-        var wcInput = document.createElement('input');
-        wcInput.type = 'checkbox';
-        wcInput.id = 'assign-whole-class';
-        wcInput.checked = true;
-        var wcLabel = el('label', { 'for': 'assign-whole-class' }, 'Whole class');
-        wholeClassCheck.appendChild(wcInput);
-        wholeClassCheck.appendChild(wcLabel);
-        studentGroup.appendChild(wholeClassCheck);
-        modal.appendChild(studentGroup);
-
-        wcInput.addEventListener('change', function () {
-            studentList.style.display = wcInput.checked ? 'none' : 'block';
+        var segmentedRow = el('div', { className: 'assign-segmented' });
+        var segments = [
+            { value: 'all', label: 'All Students' },
+            { value: 'groups', label: 'Groups' },
+            { value: 'individuals', label: 'Individuals' }
+        ];
+        segments.forEach(function (seg) {
+            var btn = el('button', {
+                className: 'assign-seg-btn' + (seg.value === 'all' ? ' assign-seg-btn--active' : ''),
+                'data-target': seg.value,
+                type: 'button'
+            }, seg.label);
+            btn.addEventListener('click', function () {
+                segmentedRow.querySelectorAll('.assign-seg-btn').forEach(function (b) {
+                    b.classList.remove('assign-seg-btn--active');
+                });
+                btn.classList.add('assign-seg-btn--active');
+                allPanel.style.display = seg.value === 'all' ? 'block' : 'none';
+                groupsPanel.style.display = seg.value === 'groups' ? 'block' : 'none';
+                studentList.style.display = seg.value === 'individuals' ? 'block' : 'none';
+            });
+            segmentedRow.appendChild(btn);
         });
+        assignToGroup.appendChild(segmentedRow);
+
+        // Panel: All Students
+        var allPanel = el('div', { className: 'assign-target-panel', id: 'assign-panel-all' });
+        allPanel.innerHTML = '<div class="assign-panel-msg">This lesson plan will be assigned to all students.</div>';
+        assignToGroup.appendChild(allPanel);
+
+        // Panel: Groups
+        var groupsPanel = el('div', { className: 'assign-target-panel', id: 'assign-panel-groups' });
+        groupsPanel.style.display = 'none';
+        groupsPanel.innerHTML = '<div class="assign-loading">Loading groups...</div>';
+        assignToGroup.appendChild(groupsPanel);
+
+        // Panel: Individuals
+        var studentList = el('div', { className: 'assign-student-list', id: 'assign-students' });
         studentList.style.display = 'none';
+        studentList.innerHTML = '<div class="assign-loading">Loading students...</div>';
+        assignToGroup.appendChild(studentList);
+
+        modal.appendChild(assignToGroup);
 
         // Due date (individual only)
         var dueDateGroup = el('div', { className: 'assign-field', id: 'assign-due-group' });
@@ -1194,8 +1219,9 @@
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
 
-        // Load students
+        // Load students and groups
         loadStudentsForAssign();
+        loadGroupsForAssign();
     }
 
     function loadStudentsForAssign() {
@@ -1231,22 +1257,68 @@
             });
     }
 
+    function loadGroupsForAssign() {
+        var panelEl = document.getElementById('assign-panel-groups');
+        if (!panelEl) return;
+
+        fetch('/api/teacher/groups.php?action=list')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var groups = data.groups || [];
+                if (groups.length === 0) {
+                    panelEl.innerHTML = '<div class="assign-empty">No groups created yet. Create groups in the Students tab.</div>';
+                    return;
+                }
+                panelEl.innerHTML = '';
+                groups.forEach(function (g) {
+                    var row = el('label', { className: 'assign-group-row' });
+                    var cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = g.id;
+                    cb.className = 'assign-group-cb';
+                    row.appendChild(cb);
+                    var swatch = el('span', { className: 'assign-group-swatch' });
+                    swatch.style.backgroundColor = g.color || '#4ECDC4';
+                    row.appendChild(swatch);
+                    row.appendChild(el('span', { className: 'assign-group-name' }, g.name));
+                    row.appendChild(el('span', { className: 'assign-group-count' }, g.member_count + (g.member_count === 1 ? ' student' : ' students')));
+                    panelEl.appendChild(row);
+                });
+            })
+            .catch(function () {
+                panelEl.innerHTML = '<div class="assign-empty">Failed to load groups.</div>';
+            });
+    }
+
     function submitAssignment(plan, overlay) {
         var btn = document.getElementById('assign-submit-btn');
         var statusEl = document.getElementById('assign-status');
         if (btn) { btn.disabled = true; btn.textContent = 'Assigning...'; }
 
         var mode = document.getElementById('assign-mode').value;
-        var wholeClass = document.getElementById('assign-whole-class').checked;
         var dueDate = document.getElementById('assign-due-date').value;
         var notes = document.getElementById('assign-notes').value;
 
+        // Determine which assignment target is active
+        var activeBtn = document.querySelector('.assign-seg-btn--active');
+        var assignTarget = activeBtn ? activeBtn.getAttribute('data-target') : 'all';
+
         var studentIds = [];
-        if (!wholeClass) {
+        var groupIds = [];
+
+        if (assignTarget === 'individuals') {
             var checkboxes = document.querySelectorAll('.assign-student-cb:checked');
             checkboxes.forEach(function (cb) { studentIds.push(cb.value); });
             if (studentIds.length === 0) {
-                if (statusEl) statusEl.textContent = 'Select at least one student or check "Whole class"';
+                if (statusEl) statusEl.textContent = 'Select at least one student.';
+                if (btn) { btn.disabled = false; btn.textContent = 'Assign'; }
+                return;
+            }
+        } else if (assignTarget === 'groups') {
+            var groupCheckboxes = document.querySelectorAll('.assign-group-cb:checked');
+            groupCheckboxes.forEach(function (cb) { groupIds.push(cb.value); });
+            if (groupIds.length === 0) {
+                if (statusEl) statusEl.textContent = 'Select at least one group.';
                 if (btn) { btn.disabled = false; btn.textContent = 'Assign'; }
                 return;
             }
@@ -1260,6 +1332,7 @@
         body.append('due_date', dueDate);
         body.append('notes', notes);
         body.append('student_ids', JSON.stringify(studentIds));
+        body.append('group_ids', JSON.stringify(groupIds));
 
         fetch('/api/lesson_assignments.php', { method: 'POST', body: body })
             .then(function (r) { return r.json(); })

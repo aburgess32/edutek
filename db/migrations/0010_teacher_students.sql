@@ -42,8 +42,7 @@ CREATE TABLE IF NOT EXISTS student_group_members (
     FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- DOWN
-
-DROP TABLE IF EXISTS student_group_members;
-DROP TABLE IF EXISTS student_groups;
-DROP TABLE IF EXISTS teacher_students;
+-- DOWN (run manually to rollback)
+-- DROP TABLE IF EXISTS student_group_members;
+-- DROP TABLE IF EXISTS student_groups;
+-- DROP TABLE IF EXISTS teacher_students;

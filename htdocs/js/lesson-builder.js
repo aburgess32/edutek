@@ -1269,7 +1269,10 @@
                         statusEl.textContent = 'Assigned successfully!';
                         statusEl.className = 'assign-status assign-status--success';
                     }
-                    setTimeout(function () { overlay.remove(); }, 1000);
+                    setTimeout(function () {
+                        overlay.remove();
+                        document.dispatchEvent(new CustomEvent('assignment-created'));
+                    }, 1000);
                 } else {
                     if (statusEl) statusEl.textContent = data.error || 'Failed to assign';
                     if (btn) { btn.disabled = false; btn.textContent = 'Assign'; }
@@ -1308,7 +1311,8 @@
         init: init,
         renderListView: renderListView,
         openBuilder: openBuilder,
-        openDetail: openDetail
+        openDetail: openDetail,
+        openAssignModal: openAssignModal
     };
 
     // Auto-init on DOM ready

@@ -161,6 +161,12 @@
   margin-bottom: 20px;
   padding: 0 16px;
 }
+.ta-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
 .ta-title {
   display: flex;
   align-items: center;
@@ -168,6 +174,9 @@
   font-size: 22px;
   font-weight: 800;
   margin: 0;
+}
+.ta-new-assign-btn {
+  white-space: nowrap;
 }
 .ta-filters {
   display: flex;
@@ -220,7 +229,8 @@
 }
 .ta-empty-icon { margin-bottom: 12px; color: var(--teacher-border); }
 .ta-empty h3 { margin: 0 0 8px; font-size: 18px; }
-.ta-empty p { margin: 0; font-size: 14px; }
+.ta-empty p { margin: 0 0 16px; font-size: 14px; }
+.ta-empty-assign-btn { margin-top: 4px; }
 
 /* ─── Assignment Card ─── */
 .ta-card {

@@ -133,6 +133,21 @@ try {
 
         case 'search_queries':
             try {
+                // Ensure search_log table exists (auto-create if migrations haven't run)
+                $pdo->exec("
+                    CREATE TABLE IF NOT EXISTS search_log (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        user_id INT DEFAULT NULL,
+                        user_type VARCHAR(20) DEFAULT NULL,
+                        age_range VARCHAR(20) DEFAULT NULL,
+                        query VARCHAR(255) NOT NULL,
+                        result_count INT DEFAULT 0,
+                        searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_searched_at (searched_at),
+                        INDEX idx_query (query(100))
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ");
+
                 // Main aggregated query list
                 $stmt = $pdo->query("
                     SELECT
@@ -148,36 +163,40 @@ try {
                 ");
                 $queries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Per-query breakdown by user_type
-                $byRole = $pdo->query("
-                    SELECT
-                        query,
-                        COALESCE(user_type, 'guest') AS user_type,
-                        COUNT(*) AS count
-                    FROM search_log
-                    GROUP BY query, user_type
-                    ORDER BY count DESC
-                ")->fetchAll(PDO::FETCH_ASSOC);
-
+                // Check if user_type/age_range columns exist before querying them
                 $roleMap = [];
-                foreach ($byRole as $r) {
-                    $roleMap[$r['query']][$r['user_type']] = (int)$r['count'];
-                }
-
-                // Per-query breakdown by age_range
-                $byAge = $pdo->query("
-                    SELECT
-                        query,
-                        COALESCE(age_range, 'unknown') AS age_range,
-                        COUNT(*) AS count
-                    FROM search_log
-                    GROUP BY query, age_range
-                    ORDER BY count DESC
-                ")->fetchAll(PDO::FETCH_ASSOC);
-
                 $ageMap = [];
-                foreach ($byAge as $a) {
-                    $ageMap[$a['query']][$a['age_range']] = (int)$a['count'];
+                try {
+                    $byRole = $pdo->query("
+                        SELECT
+                            query,
+                            COALESCE(user_type, 'guest') AS user_type,
+                            COUNT(*) AS count
+                        FROM search_log
+                        GROUP BY query, user_type
+                        ORDER BY count DESC
+                    ")->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($byRole as $r) {
+                        $roleMap[$r['query']][$r['user_type']] = (int)$r['count'];
+                    }
+
+                    $byAge = $pdo->query("
+                        SELECT
+                            query,
+                            COALESCE(age_range, 'unknown') AS age_range,
+                            COUNT(*) AS count
+                        FROM search_log
+                        GROUP BY query, age_range
+                        ORDER BY count DESC
+                    ")->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($byAge as $a) {
+                        $ageMap[$a['query']][$a['age_range']] = (int)$a['count'];
+                    }
+                } catch (PDOException $e) {
+                    // user_type/age_range columns may not exist yet
+                    error_log('search_log role/age query failed (columns may be missing): ' . $e->getMessage());
                 }
 
                 // Merge breakdowns into main result
@@ -187,26 +206,50 @@ try {
                 }
 
                 // Recent searches (individual entries, most recent first)
-                $recent = $pdo->query("
-                    SELECT
-                        sl.query,
-                        sl.result_count,
-                        sl.searched_at,
-                        COALESCE(sl.user_type, 'guest') AS user_type,
-                        COALESCE(sl.age_range, 'unknown') AS age_range,
-                        u.display_name,
-                        u.avatar_name
-                    FROM search_log sl
-                    LEFT JOIN users u ON u.id = sl.user_id
-                    ORDER BY sl.searched_at DESC
-                    LIMIT 50
-                ")->fetchAll(PDO::FETCH_ASSOC);
+                $recent = [];
+                try {
+                    $recent = $pdo->query("
+                        SELECT
+                            sl.query,
+                            sl.result_count,
+                            sl.searched_at,
+                            COALESCE(sl.user_type, 'guest') AS user_type,
+                            COALESCE(sl.age_range, 'unknown') AS age_range,
+                            u.display_name,
+                            u.avatar_name
+                        FROM search_log sl
+                        LEFT JOIN users u ON u.id = sl.user_id
+                        ORDER BY sl.searched_at DESC
+                        LIMIT 50
+                    ")->fetchAll(PDO::FETCH_ASSOC);
+                } catch (PDOException $e) {
+                    // Fallback without user_type/age_range columns
+                    try {
+                        $recent = $pdo->query("
+                            SELECT
+                                sl.query,
+                                sl.result_count,
+                                sl.searched_at,
+                                'guest' AS user_type,
+                                'unknown' AS age_range,
+                                u.display_name,
+                                u.avatar_name
+                            FROM search_log sl
+                            LEFT JOIN users u ON u.id = sl.user_id
+                            ORDER BY sl.searched_at DESC
+                            LIMIT 50
+                        ")->fetchAll(PDO::FETCH_ASSOC);
+                    } catch (PDOException $e2) {
+                        error_log('search_log recent query fallback failed: ' . $e2->getMessage());
+                    }
+                }
 
                 echo json_encode([
                     'aggregated' => $queries,
                     'recent' => $recent
                 ]);
             } catch (PDOException $e) {
+                error_log('search_queries dashboard error: ' . $e->getMessage());
                 echo json_encode(['aggregated' => [], 'recent' => []]);
             }
             break;

@@ -71,6 +71,33 @@ CREATE TABLE IF NOT EXISTS content_meta (
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Search query log (FRE-39 Teacher Dashboard analytics)
+CREATE TABLE IF NOT EXISTS search_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT DEFAULT NULL,
+    user_type VARCHAR(20) DEFAULT NULL,
+    age_range VARCHAR(20) DEFAULT NULL,
+    query VARCHAR(255) NOT NULL,
+    result_count INT DEFAULT 0,
+    searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_searched_at (searched_at),
+    INDEX idx_query (query(100)),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Download log (FRE-39 Teacher Dashboard analytics)
+CREATE TABLE IF NOT EXISTS download_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT DEFAULT NULL,
+    content_id VARCHAR(255) NOT NULL,
+    content_title VARCHAR(500) DEFAULT NULL,
+    content_type VARCHAR(50) DEFAULT NULL,
+    downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_downloaded_at (downloaded_at),
+    INDEX idx_content_id (content_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Saved lesson plans (Teacher Content Finder - Priority #5)
 -- Publish columns added by migration 0007
 CREATE TABLE IF NOT EXISTS lesson_plans (

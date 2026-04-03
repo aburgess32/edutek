@@ -6,6 +6,7 @@
   <link href="css/tiles.css" rel="stylesheet">
   <link href="css/login.css" rel="stylesheet">
   <link href="css/teacher-assignments.css" rel="stylesheet">
+  <link href="css/student-assignments.css" rel="stylesheet">
 <?php
     include_once "navhome.php";
 

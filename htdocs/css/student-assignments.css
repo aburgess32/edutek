@@ -1,0 +1,501 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Student Assignments – Redesign (FRE-48)
+   Full-width card layout with progress rings, expand/collapse, step list.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Section Container ── */
+.my-assignments-section {
+  padding: 0 16px;
+  margin-bottom: 28px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Section Header ── */
+.sa-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.sa-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0;
+}
+.sa-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 12px;
+  background: rgba(78,205,196,0.15);
+  color: #3bb5ad;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── Card Stack ── */
+.sa-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Assignment Card (collapsed) ── */
+.sa-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.sa-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.sa-card--expanded {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* Card header row: ring | info | actions */
+.sa-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+
+/* ── Progress Ring ── */
+.sa-ring {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  position: relative;
+}
+.sa-ring svg {
+  display: block;
+}
+
+/* ── Card Info (middle) ── */
+.sa-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.sa-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 4px;
+  line-height: 1.3;
+  /* Allow wrapping — no truncation */
+}
+.sa-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 13px;
+  color: #5a5a6e;
+  line-height: 1.4;
+}
+.sa-card-teacher {
+  font-weight: 600;
+}
+.sa-card-items-count {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+.sa-due {
+  font-weight: 600;
+}
+.sa-due--urgent { color: #e74c3c; }
+.sa-due--soon   { color: #f39c12; }
+
+/* ── Badges ── */
+.sa-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.sa-badge--guided {
+  background: rgba(243,156,18,0.15);
+  color: #d68910;
+}
+.sa-badge--individual {
+  background: rgba(78,205,196,0.12);
+  color: #3bb5ad;
+}
+
+/* ── Card Right Actions ── */
+.sa-card-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sa-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #4ECDC4;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 22px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.sa-action-btn:hover {
+  background: #3bb5ad;
+}
+.sa-action-btn:active {
+  transform: scale(0.97);
+}
+.sa-action-btn--complete {
+  background: rgba(39,174,96,0.12);
+  color: #27ae60;
+  cursor: default;
+}
+.sa-action-btn--complete:hover {
+  background: rgba(39,174,96,0.12);
+}
+
+/* Chevron toggle */
+.sa-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.04);
+  transition: transform 0.25s ease, background 0.15s;
+  flex-shrink: 0;
+}
+.sa-chevron svg {
+  display: block;
+  transition: transform 0.25s ease;
+}
+.sa-card--expanded .sa-chevron svg {
+  transform: rotate(180deg);
+}
+.sa-chevron:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+/* ═══ Expanded Item List ═══ */
+.sa-items-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+.sa-card--expanded .sa-items-panel {
+  max-height: 2000px;
+}
+
+.sa-items-inner {
+  padding: 0 20px 16px;
+  border-top: 1px solid #e8e4df;
+}
+.sa-items-loading,
+.sa-items-empty {
+  text-align: center;
+  padding: 20px 0;
+  color: #5a5a6e;
+  font-size: 14px;
+}
+
+/* ── Step List ── */
+.sa-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0ece8;
+  min-height: 44px;
+  transition: background 0.15s;
+}
+.sa-step:last-child {
+  border-bottom: none;
+}
+.sa-step--completed {
+  background: rgba(39,174,96,0.04);
+  border-radius: 10px;
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.sa-step--current {
+  background: rgba(78,205,196,0.06);
+  border-radius: 10px;
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* Step number circle */
+.sa-step-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 2.5px solid #d0ccc7;
+  color: #5a5a6e;
+  background: #fff;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.sa-step--completed .sa-step-num {
+  background: #27ae60;
+  border-color: #27ae60;
+  color: #fff;
+}
+.sa-step--in-progress .sa-step-num {
+  border-color: #f39c12;
+  background: rgba(243,156,18,0.1);
+  color: #d68910;
+}
+.sa-step--current .sa-step-num {
+  border-color: #4ECDC4;
+  background: rgba(78,205,196,0.12);
+  color: #3bb5ad;
+}
+
+/* Step info */
+.sa-step-info {
+  flex: 1;
+  min-width: 0;
+}
+.sa-step-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a2e;
+  line-height: 1.3;
+  margin-bottom: 3px;
+  /* No truncation — allow wrapping */
+}
+.sa-step-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #5a5a6e;
+  flex-wrap: wrap;
+}
+
+/* Content type badge */
+.sa-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+.sa-type-badge--video {
+  background: rgba(231,76,60,0.1);
+  color: #c0392b;
+}
+.sa-type-badge--audio {
+  background: rgba(142,68,173,0.1);
+  color: #8e44ad;
+}
+.sa-type-badge--book,
+.sa-type-badge--pdf {
+  background: rgba(41,128,185,0.1);
+  color: #2980b9;
+}
+.sa-type-badge--interactive {
+  background: rgba(243,156,18,0.1);
+  color: #d68910;
+}
+.sa-type-badge--default {
+  background: rgba(0,0,0,0.06);
+  color: #5a5a6e;
+}
+
+/* Step right side (status + button) */
+.sa-step-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.sa-step-status {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sa-step-status--completed {
+  color: #27ae60;
+}
+.sa-step-status--in-progress {
+  color: #f39c12;
+}
+.sa-step-status--not-started {
+  color: #999;
+}
+
+.sa-step-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: #4ECDC4;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.sa-step-btn:hover {
+  background: #3bb5ad;
+}
+.sa-step-btn:active {
+  transform: scale(0.97);
+}
+.sa-step-completed-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(39,174,96,0.12);
+  color: #27ae60;
+}
+
+/* Thumbnail */
+.sa-step-thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f0ece8;
+}
+.sa-step-type-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #f0ece8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5a5a6e;
+}
+
+/* ═══ Empty State ═══ */
+.sa-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.sa-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+.sa-empty-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+.sa-empty-text {
+  font-size: 14px;
+  color: #5a5a6e;
+  line-height: 1.5;
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 600px) {
+  .my-assignments-section {
+    padding: 0 12px;
+  }
+  .sa-card-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 14px;
+  }
+  .sa-card-info {
+    flex-basis: calc(100% - 72px);
+  }
+  .sa-card-right {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+  .sa-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  .sa-items-inner {
+    padding: 0 14px 14px;
+  }
+  .sa-step {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sa-step-info {
+    flex-basis: calc(100% - 50px - 14px);
+  }
+  .sa-step-right {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    padding-left: 50px;
+  }
+  .sa-step-btn {
+    flex: 1;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 400px) {
+  .sa-ring {
+    width: 48px;
+    height: 48px;
+  }
+  .sa-card-title {
+    font-size: 15px;
+  }
+  .sa-step-thumb,
+  .sa-step-type-icon {
+    width: 40px;
+    height: 40px;
+  }
+}

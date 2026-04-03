@@ -31,6 +31,8 @@ try {
         CREATE TABLE IF NOT EXISTS search_log (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT DEFAULT NULL,
+            user_type VARCHAR(20) DEFAULT NULL,
+            age_range VARCHAR(20) DEFAULT NULL,
             query VARCHAR(255) NOT NULL,
             result_count INT DEFAULT 0,
             searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -179,21 +181,45 @@ try {
             ['multiplication', 5], ['history', 3], ['art', 1], ['reading', 4],
             ['geography', 2], ['instruments', 1], ['exercise', 3], ['fractions', 6],
             ['solar', 2], ['grammar rules', 1], ['egypt pyramids', 3], ['color theory', 2],
-            ['addition', 4], ['subtraction', 3], ['planets', 5], ['animals', 2],
+            ['addition', 4], ['subtraction', 3], ['planets', 5], ['animals', 0],
             ['vocabulary', 3], ['spelling', 1],
         ];
 
+        $userTypes = ['student', 'student', 'student', 'teacher', 'guest'];
+        $ageRanges = ['under_10', '10_14', '10_14', '15_19', '20_plus'];
+
+        // Build a map of student user_type and age_range from users table
+        $userMeta = [];
+        if (count($studentIds) > 0) {
+            $inPlaceholders = implode(',', array_fill(0, count($studentIds), '?'));
+            $metaStmt = $pdo->prepare("SELECT id, user_type, age_range FROM users WHERE id IN ({$inPlaceholders})");
+            $metaStmt->execute($studentIds);
+            foreach ($metaStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $userMeta[(int)$row['id']] = $row;
+            }
+        }
+
         $stmt = $pdo->prepare(
-            "INSERT INTO search_log (user_id, query, result_count, searched_at)
-             VALUES (?, ?, ?, ?)"
+            "INSERT INTO search_log (user_id, user_type, age_range, query, result_count, searched_at)
+             VALUES (?, ?, ?, ?, ?, ?)"
         );
 
         foreach ($searches as $s) {
             $uid = count($studentIds) > 0 ? $studentIds[array_rand($studentIds)] : null;
+            $userType = 'guest';
+            $ageRange = null;
+            if ($uid && isset($userMeta[$uid])) {
+                $userType = $userMeta[$uid]['user_type'] ?? 'student';
+                $ageRange = $userMeta[$uid]['age_range'] ?? null;
+            } elseif ($uid) {
+                // Fallback: pick random realistic values
+                $userType = $userTypes[array_rand($userTypes)];
+                $ageRange = $ageRanges[array_rand($ageRanges)];
+            }
             $daysAgo = rand(0, 13);
             $hour = rand(8, 20);
             $ts = date('Y-m-d H:i:s', strtotime("-{$daysAgo} days {$hour}:00:00"));
-            $stmt->execute([$uid, $s[0], $s[1], $ts]);
+            $stmt->execute([$uid, $userType, $ageRange, $s[0], $s[1], $ts]);
         }
         $summary['search_log_created'] = count($searches);
     } else {

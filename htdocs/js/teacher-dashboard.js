@@ -81,6 +81,23 @@
     return d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
   }
 
+  function relativeTime(dateStr) {
+    if (!dateStr) return '--';
+    var d = new Date(dateStr);
+    var now = new Date();
+    var diffSec = Math.floor((now - d) / 1000);
+    if (diffSec < 60) return 'just now';
+    var diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return diffMin + 'm ago';
+    var diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return diffHr + 'h ago';
+    var diffDay = Math.floor(diffHr / 24);
+    if (diffDay === 1) return 'Yesterday';
+    if (diffDay < 7) return diffDay + 'd ago';
+    if (diffDay < 30) return Math.floor(diffDay / 7) + 'w ago';
+    return d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+  }
+
   // ─── Skeleton ───────────────────────────────────────────────────────────────
 
   function renderSkeleton() {
@@ -351,21 +368,100 @@
     var el = document.getElementById('d-search-queries');
     if (!el) return;
 
-    if (!data || data.length === 0) {
+    // Handle both old format (flat array) and new format ({aggregated, recent})
+    var aggregated, recent;
+    if (data && data.aggregated) {
+      aggregated = data.aggregated;
+      recent = data.recent || [];
+    } else if (Array.isArray(data)) {
+      aggregated = data;
+      recent = [];
+    } else {
+      aggregated = [];
+      recent = [];
+    }
+
+    if (aggregated.length === 0 && recent.length === 0) {
       el.innerHTML = '<div class="card-title">' + icon('search') + ' Search Queries</div>' +
         '<div class="card-subtitle">No searches recorded yet. Queries will appear here once students use the search feature.</div>';
       return;
     }
 
-    var maxSearches = Math.max.apply(null, data.map(function(d) { return parseInt(d.searches, 10); }));
-    if (maxSearches === 0) maxSearches = 1;
+    // Summary stats
+    var totalSearches = 0;
+    var uniqueQueries = aggregated.length;
+    var zeroResultQueries = 0;
+    var searchesToday = 0;
+    var todayStr = new Date().toISOString().slice(0, 10);
+
+    aggregated.forEach(function(q) {
+      totalSearches += parseInt(q.searches, 10) || 0;
+      if (parseFloat(q.avg_results) === 0) zeroResultQueries++;
+    });
+    recent.forEach(function(r) {
+      if (r.searched_at && r.searched_at.slice(0, 10) === todayStr) searchesToday++;
+    });
+
+    // Role pill colors
+    var roleColors = { student: '#27ae60', teacher: '#8e44ad', guest: '#95a5a6' };
+    // Age label map
+    var ageLabels = { under_10: 'Under 10', '10_14': '10-14', '15_19': '15-19', '20_plus': '20+', unknown: 'Unknown' };
+    var ageColorIdx = { under_10: 0, '10_14': 1, '15_19': 2, '20_plus': 3, unknown: 4 };
+
+    function rolePills(byRole) {
+      if (!byRole || typeof byRole !== 'object') return '';
+      var pills = '';
+      var keys = Object.keys(byRole);
+      if (keys.length === 0) return '';
+      keys.forEach(function(role) {
+        var color = roleColors[role] || '#95a5a6';
+        pills += '<span style="display:inline-block;padding:1px 7px;margin:1px 2px;border-radius:9px;font-size:11px;background:' + color + ';color:#fff">' + esc(role) + ': ' + byRole[role] + '</span>';
+      });
+      return pills;
+    }
+
+    function agePills(byAge) {
+      if (!byAge || typeof byAge !== 'object') return '';
+      var pills = '';
+      var keys = Object.keys(byAge);
+      if (keys.length === 0) return '';
+      keys.forEach(function(age) {
+        var label = ageLabels[age] || age;
+        var idx = ageColorIdx[age] !== undefined ? ageColorIdx[age] : 4;
+        pills += '<span class="age-tag age-tag--' + Math.min(idx, 3) + '" style="display:inline-block;padding:1px 7px;margin:1px 2px;font-size:11px">' + esc(label) + ': ' + byAge[age] + '</span>';
+      });
+      return pills;
+    }
 
     var html = '<div class="card-title">' + icon('search') + ' Search Queries</div>' +
-      '<div class="card-subtitle">What students are searching for -- zero-result queries reveal content gaps</div>' +
-      '<div class="content-table-wrap"><table class="content-table">' +
-      '<thead><tr><th>Query</th><th>Popularity</th><th>Results</th><th>Searches</th></tr></thead><tbody>';
+      '<div class="card-subtitle">What students are searching for -- zero-result queries reveal content gaps</div>';
 
-    data.forEach(function(item) {
+    // Summary stats bar
+    html += '<div style="display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 14px;padding:10px 12px;background:var(--teacher-bg,#faf9f7);border-radius:8px;font-size:13px">' +
+      '<div><strong>' + totalSearches + '</strong> <span style="color:var(--teacher-muted,#8a8278)">total searches</span></div>' +
+      '<div><strong>' + uniqueQueries + '</strong> <span style="color:var(--teacher-muted,#8a8278)">unique queries</span></div>' +
+      '<div><strong style="color:' + (zeroResultQueries > 0 ? '#e74c3c' : 'inherit') + '">' + zeroResultQueries + '</strong> <span style="color:var(--teacher-muted,#8a8278)">content gaps</span></div>' +
+      '<div><strong>' + searchesToday + '</strong> <span style="color:var(--teacher-muted,#8a8278)">today</span></div>' +
+    '</div>';
+
+    // Tab buttons
+    html += '<div style="display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid var(--teacher-border,#e8e4df)">' +
+      '<button class="sq-tab-btn sq-tab-btn--active" data-sq-tab="trends" style="padding:6px 16px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;border-bottom:2px solid var(--accent,#d35400);margin-bottom:-2px;color:var(--accent,#d35400)">Trends</button>' +
+      '<button class="sq-tab-btn" data-sq-tab="recent" style="padding:6px 16px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--teacher-muted,#8a8278)">Recent</button>' +
+    '</div>';
+
+    // Trends tab content
+    var maxSearches = 1;
+    aggregated.forEach(function(d) {
+      var s = parseInt(d.searches, 10);
+      if (s > maxSearches) maxSearches = s;
+    });
+
+    html += '<div class="sq-tab-panel" data-sq-panel="trends">' +
+      '<div class="content-table-wrap"><table class="content-table">' +
+      '<thead><tr><th>Query</th><th>Popularity</th><th>Avg Results</th><th>Searches</th><th>Role</th><th>Age</th><th>Last Searched</th></tr></thead><tbody>';
+
+    aggregated.forEach(function(item) {
       var searches = parseInt(item.searches, 10);
       var results = parseFloat(item.avg_results) || 0;
       var popPct = Math.round((searches / maxSearches) * 100);
@@ -379,10 +475,67 @@
         '<td><div class="sq-pop-bar"><div class="' + fillClass + '" style="width:' + popPct + '%"></div></div></td>' +
         '<td><span class="' + hitsClass + '">' + Math.round(results) + '</span></td>' +
         '<td>' + searches + '</td>' +
+        '<td>' + rolePills(item.by_role) + '</td>' +
+        '<td>' + agePills(item.by_age) + '</td>' +
+        '<td style="font-size:12px;color:var(--teacher-muted,#8a8278)">' + relativeDate(item.last_searched) + '</td>' +
       '</tr>';
     });
 
-    el.innerHTML = html + '</tbody></table></div>';
+    html += '</tbody></table></div></div>';
+
+    // Recent tab content (hidden by default)
+    html += '<div class="sq-tab-panel" data-sq-panel="recent" style="display:none">';
+
+    if (recent.length === 0) {
+      html += '<div style="padding:16px 0;color:var(--teacher-muted,#8a8278);font-size:13px;font-style:italic">No recent search data available.</div>';
+    } else {
+      html += '<div class="content-table-wrap"><table class="content-table">' +
+        '<thead><tr><th>Query</th><th>Who</th><th>Role</th><th>Age</th><th>Results</th><th>When</th></tr></thead><tbody>';
+
+      recent.forEach(function(item) {
+        var who = item.display_name || item.avatar_name || 'Guest';
+        var roleColor = roleColors[item.user_type] || '#95a5a6';
+        var ageLabel = ageLabels[item.age_range] || item.age_range || '--';
+        var ageIdx = ageColorIdx[item.age_range] !== undefined ? ageColorIdx[item.age_range] : 4;
+        var resultCount = parseInt(item.result_count, 10) || 0;
+        var isZero = resultCount === 0;
+
+        html += '<tr>' +
+          '<td><strong>' + esc(item.query) + '</strong>' + (isZero ? ' <span class="sq-zero-note">content gap</span>' : '') + '</td>' +
+          '<td>' + esc(who) + '</td>' +
+          '<td><span style="display:inline-block;padding:1px 7px;border-radius:9px;font-size:11px;background:' + roleColor + ';color:#fff">' + esc(item.user_type) + '</span></td>' +
+          '<td><span class="age-tag age-tag--' + Math.min(ageIdx, 3) + '" style="display:inline-block;padding:1px 7px;font-size:11px">' + esc(ageLabel) + '</span></td>' +
+          '<td><span class="' + (isZero ? 'sq-hits sq-hits--zero' : 'sq-hits') + '">' + resultCount + '</span></td>' +
+          '<td style="font-size:12px;color:var(--teacher-muted,#8a8278);white-space:nowrap">' + relativeTime(item.searched_at) + '</td>' +
+        '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+    }
+
+    html += '</div>';
+
+    el.innerHTML = html;
+
+    // Tab switching
+    var tabBtns = el.querySelectorAll('.sq-tab-btn');
+    var tabPanels = el.querySelectorAll('.sq-tab-panel');
+    tabBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = this.getAttribute('data-sq-tab');
+        tabBtns.forEach(function(b) {
+          b.classList.remove('sq-tab-btn--active');
+          b.style.borderBottomColor = 'transparent';
+          b.style.color = 'var(--teacher-muted,#8a8278)';
+        });
+        this.classList.add('sq-tab-btn--active');
+        this.style.borderBottomColor = 'var(--accent,#d35400)';
+        this.style.color = 'var(--accent,#d35400)';
+        tabPanels.forEach(function(p) {
+          p.style.display = p.getAttribute('data-sq-panel') === target ? '' : 'none';
+        });
+      });
+    });
   }
 
   // ─── Teacher Insights ──────────────────────────────────────────────────────
@@ -578,22 +731,32 @@
   // ─── Usage Analysis: Search Queries ─────────────────────────────────────────
 
   function renderSearchQueries(data) {
+    // Handle both old format (flat array) and new format ({aggregated, recent})
+    var items;
+    if (data && data.aggregated) {
+      items = data.aggregated;
+    } else if (Array.isArray(data)) {
+      items = data;
+    } else {
+      items = [];
+    }
+
     var html = '<div class="ua-card ua-card--accent">' +
       '<div class="ua-card__header"><div class="ua-card__title"><span class="ua-card__icon">' + ICONS.search + '</span> Search Queries</div></div>' +
       '<div class="ua-card__subtitle">What are students searching for? Zero-hit queries reveal content gaps.</div>';
 
-    if (!data || data.length === 0) {
+    if (!items || items.length === 0) {
       html += '<div style="padding:12px 0;color:var(--teacher-muted);font-size:13px;font-style:italic">No searches recorded yet. Queries will appear here once students use the search feature.</div>';
       return html + '</div>';
     }
 
-    var maxSearches = Math.max.apply(null, data.map(function(d) { return parseInt(d.searches, 10); }));
+    var maxSearches = Math.max.apply(null, items.map(function(d) { return parseInt(d.searches, 10); }));
     if (maxSearches === 0) maxSearches = 1;
 
     html += '<div class="content-table-wrap"><table class="sq-table">' +
       '<thead><tr><th>Query</th><th>Popularity</th><th>Results</th><th>Searches</th></tr></thead><tbody>';
 
-    data.forEach(function(item) {
+    items.forEach(function(item) {
       var searches = parseInt(item.searches, 10);
       var results = parseFloat(item.avg_results) || 0;
       var popPct = Math.round((searches / maxSearches) * 100);

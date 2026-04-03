@@ -189,14 +189,26 @@ try {
 
     // Log the search query for dashboard analytics (FRE-39)
     try {
-        $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)');
+        $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, user_type, age_range, query, result_count) VALUES (?, ?, ?, ?, ?)');
         $logStmt->execute([
             $_SESSION['user_id'] ?? null,
+            $_SESSION['user_role'] ?? 'guest',
+            $_SESSION['age_range'] ?? null,
             mb_substr($query, 0, 255),
             count($items)
         ]);
     } catch (PDOException $e) {
-        // Silent fail — don't break search for logging
+        // Fallback for old schema without user_type/age_range columns
+        try {
+            $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)');
+            $logStmt->execute([
+                $_SESSION['user_id'] ?? null,
+                mb_substr($query, 0, 255),
+                count($items)
+            ]);
+        } catch (PDOException $e2) {
+            // Silent fail — don't break search for logging
+        }
     }
 
     echo json_encode([

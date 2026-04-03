@@ -133,19 +133,81 @@ try {
 
         case 'search_queries':
             try {
-                $stmt = $pdo->query(
-                    "SELECT
+                // Main aggregated query list
+                $stmt = $pdo->query("
+                    SELECT
                         query,
                         COUNT(*) AS searches,
-                        ROUND(AVG(result_count), 1) AS avg_results
-                     FROM search_log
-                     GROUP BY query
-                     ORDER BY searches DESC
-                     LIMIT 10"
-                );
-                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+                        ROUND(AVG(result_count), 1) AS avg_results,
+                        MIN(searched_at) AS first_searched,
+                        MAX(searched_at) AS last_searched
+                    FROM search_log
+                    GROUP BY query
+                    ORDER BY searches DESC
+                    LIMIT 20
+                ");
+                $queries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Per-query breakdown by user_type
+                $byRole = $pdo->query("
+                    SELECT
+                        query,
+                        COALESCE(user_type, 'guest') AS user_type,
+                        COUNT(*) AS count
+                    FROM search_log
+                    GROUP BY query, user_type
+                    ORDER BY count DESC
+                ")->fetchAll(PDO::FETCH_ASSOC);
+
+                $roleMap = [];
+                foreach ($byRole as $r) {
+                    $roleMap[$r['query']][$r['user_type']] = (int)$r['count'];
+                }
+
+                // Per-query breakdown by age_range
+                $byAge = $pdo->query("
+                    SELECT
+                        query,
+                        COALESCE(age_range, 'unknown') AS age_range,
+                        COUNT(*) AS count
+                    FROM search_log
+                    GROUP BY query, age_range
+                    ORDER BY count DESC
+                ")->fetchAll(PDO::FETCH_ASSOC);
+
+                $ageMap = [];
+                foreach ($byAge as $a) {
+                    $ageMap[$a['query']][$a['age_range']] = (int)$a['count'];
+                }
+
+                // Merge breakdowns into main result
+                foreach ($queries as &$q) {
+                    $q['by_role'] = $roleMap[$q['query']] ?? [];
+                    $q['by_age'] = $ageMap[$q['query']] ?? [];
+                }
+
+                // Recent searches (individual entries, most recent first)
+                $recent = $pdo->query("
+                    SELECT
+                        sl.query,
+                        sl.result_count,
+                        sl.searched_at,
+                        COALESCE(sl.user_type, 'guest') AS user_type,
+                        COALESCE(sl.age_range, 'unknown') AS age_range,
+                        u.display_name,
+                        u.avatar_name
+                    FROM search_log sl
+                    LEFT JOIN users u ON u.id = sl.user_id
+                    ORDER BY sl.searched_at DESC
+                    LIMIT 50
+                ")->fetchAll(PDO::FETCH_ASSOC);
+
+                echo json_encode([
+                    'aggregated' => $queries,
+                    'recent' => $recent
+                ]);
             } catch (PDOException $e) {
-                echo json_encode([]);
+                echo json_encode(['aggregated' => [], 'recent' => []]);
             }
             break;
 

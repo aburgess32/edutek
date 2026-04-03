@@ -1,3 +1,4 @@
+<?php if (!ob_get_level()) { ob_start(); } ?>
     <!-- Custom styles for this Home-->
   <link href="css/sittings.css" rel="stylesheet">
 

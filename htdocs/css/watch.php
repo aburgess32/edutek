@@ -1,3 +1,4 @@
+<?php if (!ob_get_level()) { ob_start(); } ?>
     <!-- Custom styles for this watch-->
   <link href="css/WatchVideos.css" rel="stylesheet">
 

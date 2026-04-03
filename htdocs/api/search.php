@@ -189,6 +189,21 @@ try {
 
     // Log the search query for dashboard analytics (FRE-39)
     try {
+        // Ensure search_log table exists (auto-create on first use)
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS search_log (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT DEFAULT NULL,
+                user_type VARCHAR(20) DEFAULT NULL,
+                age_range VARCHAR(20) DEFAULT NULL,
+                query VARCHAR(255) NOT NULL,
+                result_count INT DEFAULT 0,
+                searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_searched_at (searched_at),
+                INDEX idx_query (query(100))
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+
         $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, user_type, age_range, query, result_count) VALUES (?, ?, ?, ?, ?)');
         $logStmt->execute([
             $_SESSION['user_id'] ?? null,
@@ -198,6 +213,7 @@ try {
             count($items)
         ]);
     } catch (PDOException $e) {
+        error_log('search_log insert failed: ' . $e->getMessage());
         // Fallback for old schema without user_type/age_range columns
         try {
             $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)');
@@ -207,7 +223,7 @@ try {
                 count($items)
             ]);
         } catch (PDOException $e2) {
-            // Silent fail — don't break search for logging
+            error_log('search_log fallback insert failed: ' . $e2->getMessage());
         }
     }
 
@@ -217,6 +233,7 @@ try {
         'query'   => $query,
     ]);
 } catch (PDOException $e) {
+    error_log('Search API error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['error' => 'Search failed']);
 }
@@ -230,18 +247,24 @@ function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
     $queryLower = mb_strtolower(trim($query));
 
     // Find matching alias rows: query matches the term or appears in aliases
-    $aliasSql = "
-        SELECT term, aliases FROM search_aliases
-        WHERE LOWER(term) = :term_exact
-           OR LOWER(aliases) LIKE :term_like
-        LIMIT 5
-    ";
-    $aliasStmt = $pdo->prepare($aliasSql);
-    $aliasStmt->execute([
-        ':term_exact' => $queryLower,
-        ':term_like'  => '%' . $queryLower . '%',
-    ]);
-    $aliasRows = $aliasStmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $aliasSql = "
+            SELECT term, aliases FROM search_aliases
+            WHERE LOWER(term) = :term_exact
+               OR LOWER(aliases) LIKE :term_like
+            LIMIT 5
+        ";
+        $aliasStmt = $pdo->prepare($aliasSql);
+        $aliasStmt->execute([
+            ':term_exact' => $queryLower,
+            ':term_like'  => '%' . $queryLower . '%',
+        ]);
+        $aliasRows = $aliasStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        // search_aliases table may not exist yet
+        error_log('searchByAliases: ' . $e->getMessage());
+        return [];
+    }
 
     if (empty($aliasRows)) {
         return [];

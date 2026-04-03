@@ -204,11 +204,29 @@ try {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ");
 
+        // Look up user metadata from the database for reliable logging.
+        // Session variables (user_role, age_range) can be missing if the session
+        // was started before these fields were added to loginUser(), so we fall
+        // back to the authoritative users table when a user_id is available.
+        $logUserId  = $_SESSION['user_id'] ?? null;
+        $logUserType = 'guest';
+        $logAgeRange = null;
+
+        if (!empty($logUserId)) {
+            $userStmt = $pdo->prepare('SELECT user_type, age_range FROM users WHERE id = ?');
+            $userStmt->execute([$logUserId]);
+            $userRow = $userStmt->fetch(PDO::FETCH_ASSOC);
+            if ($userRow) {
+                $logUserType = $userRow['user_type'] ?? 'guest';
+                $logAgeRange = $userRow['age_range'] ?? null;
+            }
+        }
+
         $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, user_type, age_range, query, result_count) VALUES (?, ?, ?, ?, ?)');
         $logStmt->execute([
-            $_SESSION['user_id'] ?? null,
-            $_SESSION['user_role'] ?? 'guest',
-            $_SESSION['age_range'] ?? null,
+            $logUserId,
+            $logUserType,
+            $logAgeRange,
             mb_substr($query, 0, 255),
             count($items)
         ]);

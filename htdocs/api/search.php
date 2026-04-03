@@ -189,7 +189,9 @@ try {
 
     // Log the search query for dashboard analytics (FRE-39)
     try {
-        // Ensure search_log table exists (auto-create on first use)
+        // Ensure search_log table exists (auto-create on first use).
+        // Note: no FOREIGN KEY on user_id — guest sessions use user_id=0
+        // which has no matching row in users, so a FK would reject the insert.
         $pdo->exec("
             CREATE TABLE IF NOT EXISTS search_log (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -204,9 +206,14 @@ try {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ");
 
+        // Guest sessions set user_id=0 (not a real row in users).
+        // Convert 0 to NULL so the FK constraint (if present) is satisfied,
+        // and so dashboard queries correctly identify guest searches.
+        $userId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+
         $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, user_type, age_range, query, result_count) VALUES (?, ?, ?, ?, ?)');
         $logStmt->execute([
-            $_SESSION['user_id'] ?? null,
+            $userId,
             $_SESSION['user_role'] ?? 'guest',
             $_SESSION['age_range'] ?? null,
             mb_substr($query, 0, 255),
@@ -216,9 +223,10 @@ try {
         error_log('search_log insert failed: ' . $e->getMessage());
         // Fallback for old schema without user_type/age_range columns
         try {
+            $userId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
             $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)');
             $logStmt->execute([
-                $_SESSION['user_id'] ?? null,
+                $userId,
                 mb_substr($query, 0, 255),
                 count($items)
             ]);

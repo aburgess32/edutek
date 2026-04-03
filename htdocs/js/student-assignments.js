@@ -181,7 +181,7 @@
       }
 
       html +=
-        '<div class="sa-card" role="listitem" data-aid="' + a.assignment_id + '">' +
+        '<div class="sa-card" role="listitem" data-aid="' + a.assignment_id + '" data-plan="' + (a.lesson_plan_id || '') + '">' +
           '<div class="sa-card-header" role="button" tabindex="0" aria-expanded="false" aria-label="Expand ' + esc(a.plan_title) + '">' +
             '<div class="sa-ring">' + progressRingSVG(pct) + '</div>' +
             '<div class="sa-card-info">' +
@@ -378,7 +378,14 @@
     sessionStorage.setItem('edupak_assignment_cid', cid);
     sessionStorage.setItem('edupak_resume_pos', String(pos));
 
-    window.location.href = '/watch.php?content_id=' + encodeURIComponent(cid) + '&t=' + pos;
+    // Build watch URL with content_id and optional lesson plan context
+    var url = '/watch.php?content_id=' + encodeURIComponent(cid) + '&t=' + pos;
+    var card = btn.closest('.sa-card');
+    var planId = card ? card.getAttribute('data-plan') : '';
+    if (planId) {
+      url += '&plan=' + encodeURIComponent(planId);
+    }
+    window.location.href = url;
   }
 
   /* ── Heartbeat for assigned content ─────────────────────────────── */

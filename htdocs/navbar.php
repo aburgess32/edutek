@@ -56,7 +56,7 @@
           </a>
        </li>
         <li class="nav-item">
-          <form class="form-inline my-2 my-lg-0 mr-lg-2" method="post" action="result.php">
+          <form class="form-inline my-2 my-lg-0 mr-lg-2" method="get" action="result.php">
 		  <div class="col-md-12">
             <div class="input-group">
               <!-- TODO (autocomplete): Wire up search suggestions here. Data sources available:
@@ -68,11 +68,9 @@
                    (FRE-40) is already built but not linked from the navbar.
                    Alternatively, an HTML5 <datalist> populated server-side with top categories
                    would give zero-JS autocomplete with no extra HTTP requests. -->
-              <input class="form-control" type="text" name="search" placeholder="Search for...">
+              <input class="form-control" type="text" name="q" placeholder="Search for...">
               <span class="input-group-btn">
-                <input class="btn btn-danger" name="submit" type="submit">
-                 <button> <i class="fa fa-search"></i>
-                </button>
+                <button type="submit" class="btn btn-danger"><i class="fa fa-search"></i></button>
               </span>
             </div>
 		  </div>

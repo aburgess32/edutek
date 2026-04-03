@@ -114,6 +114,8 @@
 
       '<div class="card" id="d-content-insights"><div class="card-title">Content Insights</div><div class="card-subtitle">Loading...</div></div>' +
 
+      '<div class="card" id="d-search-queries"><div class="card-title">' + icon('search') + ' Search Queries</div><div class="card-subtitle">Loading...</div></div>' +
+
       '<div class="card" id="d-insights"><div class="card-title">Teacher Insights & Recommendations</div><div class="card-subtitle">Loading...</div></div>' +
 
       '<div class="card device-health" id="d-device"><div class="card-title">Device Health</div><div class="card-subtitle">Loading...</div></div>' +
@@ -337,6 +339,46 @@
         '<td>' + item.views + '</td>' +
         '<td><div class="td-minibar"><div class="td-minibar__track"><div class="td-minibar__fill ' + fillClass + '" style="width:' + comp + '%"></div></div> ' + comp + '%</div></td>' +
         '<td>' + dropoff + '</td>' +
+      '</tr>';
+    });
+
+    el.innerHTML = html + '</tbody></table></div>';
+  }
+
+  // ─── Search Queries Card (main dashboard) ───────────────────────────────────
+
+  function renderSearchQueriesCard(data) {
+    var el = document.getElementById('d-search-queries');
+    if (!el) return;
+
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="card-title">' + icon('search') + ' Search Queries</div>' +
+        '<div class="card-subtitle">No searches recorded yet. Queries will appear here once students use the search feature.</div>';
+      return;
+    }
+
+    var maxSearches = Math.max.apply(null, data.map(function(d) { return parseInt(d.searches, 10); }));
+    if (maxSearches === 0) maxSearches = 1;
+
+    var html = '<div class="card-title">' + icon('search') + ' Search Queries</div>' +
+      '<div class="card-subtitle">What students are searching for -- zero-result queries reveal content gaps</div>' +
+      '<div class="content-table-wrap"><table class="content-table">' +
+      '<thead><tr><th>Query</th><th>Popularity</th><th>Results</th><th>Searches</th></tr></thead><tbody>';
+
+    data.forEach(function(item) {
+      var searches = parseInt(item.searches, 10);
+      var results = parseFloat(item.avg_results) || 0;
+      var popPct = Math.round((searches / maxSearches) * 100);
+      var isZero = results === 0;
+      var fillClass = isZero ? 'sq-pop-fill sq-pop-fill--zero' : 'sq-pop-fill';
+      var hitsClass = isZero ? 'sq-hits sq-hits--zero' : 'sq-hits';
+      var zeroNote = isZero ? ' <span class="sq-zero-note">content gap</span>' : '';
+
+      html += '<tr>' +
+        '<td><strong>' + esc(item.query) + '</strong>' + zeroNote + '</td>' +
+        '<td><div class="sq-pop-bar"><div class="' + fillClass + '" style="width:' + popPct + '%"></div></div></td>' +
+        '<td><span class="' + hitsClass + '">' + Math.round(results) + '</span></td>' +
+        '<td>' + searches + '</td>' +
       '</tr>';
     });
 
@@ -669,6 +711,7 @@
       renderAttention(attention);
       renderEngagement(engagement);
       renderContentInsights(topContent);
+      renderSearchQueriesCard(searches);
       renderInsights(insights);
       renderDeviceHealth(health);
 

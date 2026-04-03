@@ -93,6 +93,8 @@ function applyTestSchema(\PDO $pdo): void
     // Disable FK checks during teardown/setup
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
 
+    $pdo->exec('DROP TABLE IF EXISTS search_log');
+    $pdo->exec('DROP TABLE IF EXISTS download_log');
     $pdo->exec('DROP TABLE IF EXISTS lesson_plans');
     $pdo->exec('DROP TABLE IF EXISTS content_meta');
     $pdo->exec('DROP TABLE IF EXISTS watch_history');
@@ -174,6 +176,35 @@ function applyTestSchema(\PDO $pdo): void
             FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS search_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT DEFAULT NULL,
+            user_type VARCHAR(20) DEFAULT NULL,
+            age_range VARCHAR(20) DEFAULT NULL,
+            query VARCHAR(255) NOT NULL,
+            result_count INT DEFAULT 0,
+            searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_searched_at (searched_at),
+            INDEX idx_query (query(100)),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS download_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT DEFAULT NULL,
+            content_id VARCHAR(255) NOT NULL,
+            content_title VARCHAR(500) DEFAULT NULL,
+            content_type VARCHAR(50) DEFAULT NULL,
+            downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_downloaded_at (downloaded_at),
+            INDEX idx_content_id (content_id),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
 }
 
 /**
@@ -186,6 +217,8 @@ function applyTestSchema(\PDO $pdo): void
 function truncateTestTables(\PDO $pdo): void
 {
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+    $pdo->exec('TRUNCATE TABLE search_log');
+    $pdo->exec('TRUNCATE TABLE download_log');
     $pdo->exec('TRUNCATE TABLE lesson_plans');
     $pdo->exec('TRUNCATE TABLE content_meta');
     $pdo->exec('TRUNCATE TABLE watch_history');

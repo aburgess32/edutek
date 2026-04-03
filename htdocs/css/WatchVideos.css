@@ -926,10 +926,40 @@
    LESSON PLAN PLAYLIST (FRE-45)
    ============================ */
 
+/* Colored accent bar + tinted background for the whole LP section */
+.sidebar-section--lp {
+  --lp-color: #4ECDC4;  /* fallback, overridden by inline style */
+  border-left: 4px solid var(--lp-color);
+  border-bottom: none;
+  background: color-mix(in srgb, var(--lp-color) 6%, var(--wp-surface));
+  border-radius: var(--wp-radius-md);
+  margin: 8px;
+  overflow: hidden;
+}
+
+/* Active indicator label */
+.lp-playlist__active-label {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wp-surface);
+  background: var(--lp-color);
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .lp-playlist__header {
-  background: var(--wp-accent-highlight);
-  border-radius: var(--wp-radius-sm);
+  background: color-mix(in srgb, var(--lp-color) 12%, transparent);
+  border-radius: 0;
   padding: 14px 12px;
+}
+
+.lp-playlist__header:hover {
+  background: color-mix(in srgb, var(--lp-color) 18%, transparent);
 }
 
 .lp-playlist__icon {
@@ -952,13 +982,18 @@
   position: relative;
 }
 
+.lp-playlist__item.playlist-item--active {
+  background: color-mix(in srgb, var(--lp-color) 15%, transparent);
+  border-left-color: var(--lp-color);
+}
+
 .lp-playlist__item .playlist-item__thumb {
   width: 80px;
   height: 45px;
 }
 
 .lp-playlist__items::-webkit-scrollbar { width: 4px; }
-.lp-playlist__items::-webkit-scrollbar-thumb { background: var(--wp-border); border-radius: 2px; }
+.lp-playlist__items::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--lp-color) 30%, var(--wp-border)); border-radius: 2px; }
 
 /* ============================
    UP NEXT BADGE (FRE-45)

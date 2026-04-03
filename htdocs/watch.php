@@ -342,14 +342,15 @@
 
       <?php // ── FRE-45: Lesson Plan Playlist (collapsible) ── ?>
       <?php if ($lessonPlan && !empty($lpItems)): ?>
-      <details class="sidebar-section" open>
-        <summary class="sidebar-section__header lp-playlist__header"
-                 style="border-left: 3px solid <?php echo htmlspecialchars($lessonPlan['color'] ?? '#4ECDC4'); ?>;">
+      <details class="sidebar-section sidebar-section--lp" open
+               style="--lp-color: <?php echo htmlspecialchars($lessonPlan['color'] ?? '#4ECDC4'); ?>;">
+        <summary class="sidebar-section__header lp-playlist__header">
           <span class="lp-playlist__icon"><?php echo $lessonPlan['icon'] ?? '📚'; ?></span>
           <div class="sidebar-section__header-text">
             <h3 class="sidebar-section__title"><?php echo htmlspecialchars($lessonPlan['title']); ?></h3>
             <span class="sidebar-section__count"><?php echo count($lpItems); ?> item<?php echo count($lpItems) !== 1 ? 's' : ''; ?></span>
           </div>
+          <span class="lp-playlist__active-label">Active Plan</span>
           <svg class="sidebar-section__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </summary>
         <div class="sidebar-section__items lp-playlist__items">

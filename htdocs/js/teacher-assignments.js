@@ -479,7 +479,7 @@
     fetch('/api/lesson_plans.php?action=list')
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        var plans = data.plans || [];
+        var plans = Array.isArray(data) ? data : (data.plans || []);
         select.innerHTML = '';
         if (plans.length === 0) {
           var empty = document.createElement('option');

@@ -5,6 +5,7 @@
   <link href="css/index.css" rel="stylesheet">
   <link href="css/tiles.css" rel="stylesheet">
   <link href="css/login.css" rel="stylesheet">
+  <link href="css/teacher-assignments.css" rel="stylesheet">
 <?php
     include_once "navhome.php";
 
@@ -128,6 +129,16 @@
         endif; // !empty($cwItems)
     endif; // isLoggedIn && !isGuest
     ?>
+
+    <?php
+    // FRE-52: My Assignments section (students only)
+    if (isLoggedIn() && !isGuest() && !isTeacher()):
+    ?>
+    <section class="my-assignments-section" id="my-assignments-root" aria-label="My Assignments">
+        <!-- Populated by student-assignments.js -->
+    </section>
+    <script src="/js/student-assignments.js"></script>
+    <?php endif; ?>
 
     <!-- Choose Your Path: Segment Tiles -->
     <div class="tiles-section-header">

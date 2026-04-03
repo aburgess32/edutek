@@ -258,6 +258,171 @@ try {
         $summary['download_log_created'] = 0;
     }
 
+    // ── 7. Seed lesson_assignments and lesson_progress (FRE-49/FRE-51) ──
+    // Ensure tables exist
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS lesson_assignments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lesson_plan_id INT NOT NULL,
+            teacher_id INT NOT NULL,
+            assigned_to INT DEFAULT NULL,
+            mode ENUM('guided', 'individual') NOT NULL DEFAULT 'individual',
+            status ENUM('active', 'completed', 'archived') NOT NULL DEFAULT 'active',
+            due_date DATE DEFAULT NULL,
+            notes TEXT DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_teacher_id (teacher_id),
+            INDEX idx_assigned_to (assigned_to),
+            INDEX idx_lesson_plan (lesson_plan_id),
+            INDEX idx_status (status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS lesson_progress (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            assignment_id INT NOT NULL,
+            student_id INT NOT NULL,
+            content_id VARCHAR(255) NOT NULL,
+            status ENUM('not_started', 'in_progress', 'completed') NOT NULL DEFAULT 'not_started',
+            progress_pct INT NOT NULL DEFAULT 0,
+            time_spent INT NOT NULL DEFAULT 0,
+            last_position INT NOT NULL DEFAULT 0,
+            completed_at TIMESTAMP NULL DEFAULT NULL,
+            last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_assignment_student_content (assignment_id, student_id, content_id),
+            INDEX idx_student_id (student_id),
+            INDEX idx_content_id (content_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    $assignCount = (int) $pdo->query("SELECT COUNT(*) FROM lesson_assignments")->fetchColumn();
+
+    if ($assignCount < 2 && count($studentIds) > 0) {
+        $teacherId = (int) $_SESSION['user_id'];
+
+        // Get existing lesson plans (or create sample ones)
+        $planRows = $pdo->query("SELECT id, content_ids FROM lesson_plans ORDER BY id LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($planRows) && count($contentIds) >= 3) {
+            // Create sample lesson plans
+            $samplePlans = [
+                ['Math Fundamentals', array_slice($contentIds, 0, 3)],
+                ['Science Explorer', array_slice($contentIds, 1, 4)],
+            ];
+            $planInsert = $pdo->prepare("INSERT INTO lesson_plans (teacher_id, title, content_ids) VALUES (:tid, :title, :cids)");
+            foreach ($samplePlans as $sp) {
+                $planInsert->execute([':tid' => $teacherId, ':title' => $sp[0], ':cids' => json_encode($sp[1])]);
+                $planRows[] = ['id' => (int) $pdo->lastInsertId(), 'content_ids' => json_encode($sp[1])];
+            }
+            $summary['lesson_plans_created'] = count($samplePlans);
+        }
+
+        // Assign teacher_students if not already
+        $tsCount = (int) $pdo->query("SELECT COUNT(*) FROM teacher_students WHERE teacher_id = {$teacherId}")->fetchColumn();
+        if ($tsCount === 0 && count($studentIds) > 0) {
+            $tsInsert = $pdo->prepare("INSERT IGNORE INTO teacher_students (teacher_id, student_id) VALUES (:tid, :sid)");
+            foreach ($studentIds as $sid) {
+                $tsInsert->execute([':tid' => $teacherId, ':sid' => $sid]);
+            }
+            $summary['teacher_students_assigned'] = count($studentIds);
+        }
+
+        $assignmentsCreated = 0;
+        $progressCreated = 0;
+
+        foreach ($planRows as $planRow) {
+            $planId = (int) $planRow['id'];
+            $planContentIds = json_decode($planRow['content_ids'], true);
+            if (!is_array($planContentIds)) continue;
+
+            // Create a whole-class assignment (individual mode)
+            $dueDate = date('Y-m-d', strtotime('+7 days'));
+            $pdo->prepare("
+                INSERT INTO lesson_assignments (lesson_plan_id, teacher_id, assigned_to, mode, status, due_date, notes)
+                VALUES (:pid, :tid, NULL, 'individual', 'active', :due, 'Complete all items at your own pace')
+            ")->execute([':pid' => $planId, ':tid' => $teacherId, ':due' => $dueDate]);
+            $assignmentId = (int) $pdo->lastInsertId();
+            $assignmentsCreated++;
+
+            // Create progress rows for each student x content item
+            $progInsert = $pdo->prepare("
+                INSERT IGNORE INTO lesson_progress (assignment_id, student_id, content_id, status, progress_pct, time_spent, last_position)
+                VALUES (:aid, :sid, :cid, :status, :pct, :time, :pos)
+            ");
+
+            foreach ($studentIds as $idx => $sid) {
+                foreach ($planContentIds as $cidx => $cid) {
+                    $cidStr = is_array($cid) ? ($cid['content_id'] ?? $cid['id'] ?? '') : (string) $cid;
+                    if ($cidStr === '') continue;
+
+                    // Vary progress: first students have more progress, later ones less
+                    $basePct = max(0, 90 - ($idx * 12) - ($cidx * 15));
+                    $pct = max(0, min(100, $basePct + rand(-10, 10)));
+                    $status = 'not_started';
+                    if ($pct >= 80) $status = 'completed';
+                    elseif ($pct > 0) $status = 'in_progress';
+
+                    $timeSpent = (int) ($pct * 5); // roughly proportional
+                    $lastPos = (int) ($pct * 6);   // rough video position
+
+                    $progInsert->execute([
+                        ':aid'    => $assignmentId,
+                        ':sid'    => (int) $sid,
+                        ':cid'    => $cidStr,
+                        ':status' => $status,
+                        ':pct'    => $pct,
+                        ':time'   => $timeSpent,
+                        ':pos'    => $lastPos,
+                    ]);
+                    $progressCreated++;
+                }
+            }
+        }
+
+        // Create one guided mode assignment from first plan if available
+        if (!empty($planRows)) {
+            $guidedPlan = $planRows[0];
+            $guidedContentIds = json_decode($guidedPlan['content_ids'], true);
+            if (is_array($guidedContentIds)) {
+                $pdo->prepare("
+                    INSERT INTO lesson_assignments (lesson_plan_id, teacher_id, assigned_to, mode, status, notes)
+                    VALUES (:pid, :tid, NULL, 'guided', 'active', 'Follow along in class today')
+                ")->execute([':pid' => (int) $guidedPlan['id'], ':tid' => $teacherId]);
+                $guidedAid = (int) $pdo->lastInsertId();
+                $assignmentsCreated++;
+
+                $progInsert = $pdo->prepare("
+                    INSERT IGNORE INTO lesson_progress (assignment_id, student_id, content_id, status, progress_pct, time_spent)
+                    VALUES (:aid, :sid, :cid, :status, :pct, :time)
+                ");
+                foreach ($studentIds as $sid) {
+                    foreach ($guidedContentIds as $cid) {
+                        $cidStr = is_array($cid) ? ($cid['content_id'] ?? $cid['id'] ?? '') : (string) $cid;
+                        if ($cidStr === '') continue;
+                        $pct = rand(0, 60);
+                        $status = $pct >= 80 ? 'completed' : ($pct > 0 ? 'in_progress' : 'not_started');
+                        $progInsert->execute([
+                            ':aid'    => $guidedAid,
+                            ':sid'    => (int) $sid,
+                            ':cid'    => $cidStr,
+                            ':status' => $status,
+                            ':pct'    => $pct,
+                            ':time'   => (int) ($pct * 3),
+                        ]);
+                        $progressCreated++;
+                    }
+                }
+            }
+        }
+
+        $summary['assignments_created'] = $assignmentsCreated;
+        $summary['progress_rows_created'] = $progressCreated;
+    } else {
+        $summary['assignments_created'] = 0;
+    }
+
     echo json_encode([
         'status'  => 'ok',
         'summary' => $summary,

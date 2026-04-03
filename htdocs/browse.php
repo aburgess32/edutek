@@ -1,6 +1,8 @@
-  <link href="css/tiles.css" rel="stylesheet">
 <?php
     include_once "navbar.php";
+?>
+  <link href="css/tiles.css" rel="stylesheet">
+<?php
     include_once "includes/tiles.php";
 
     $hostname = htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'localhost', ENT_QUOTES, 'UTF-8');

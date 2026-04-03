@@ -47,18 +47,20 @@
           '<div class="mini-dash-real-name">' + escapeHtml(displayName) + '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="mini-dash-section">' +
-        '<div class="mini-dash-tabs" id="mini-dash-tabs">' +
-          '<button class="mini-dash-tab active" data-type="videos">Videos</button>' +
-          '<button class="mini-dash-tab" data-type="audiobooks">Audiobooks</button>' +
-          '<button class="mini-dash-tab" data-type="media">Media</button>' +
+      '<div class="mini-dash-body">' +
+        '<div class="mini-dash-section">' +
+          '<div class="mini-dash-tabs" id="mini-dash-tabs">' +
+            '<button class="mini-dash-tab active" data-type="videos">Videos</button>' +
+            '<button class="mini-dash-tab" data-type="audiobooks">Audiobooks</button>' +
+            '<button class="mini-dash-tab" data-type="media">Media</button>' +
+          '</div>' +
+          '<div id="mini-dash-recent" class="mini-dash-placeholder">Loading&hellip;</div>' +
         '</div>' +
-        '<div id="mini-dash-recent" class="mini-dash-placeholder">Loading&hellip;</div>' +
-      '</div>' +
-      '<div class="mini-dash-section" style="padding-top:4px;">' +
-        '<div class="mini-dash-section-title">Screen Time</div>' +
-        '<div class="mini-dash-bar-label" id="mini-dash-screen-time">Total: -- min</div>' +
-        '<div class="mini-dash-bar-track"><div class="mini-dash-bar-fill" id="mini-dash-bar-fill" style="width:0%;background:' + avatarColor + ';"></div></div>' +
+        '<div class="mini-dash-section" style="padding-top:4px;">' +
+          '<div class="mini-dash-section-title">Screen Time</div>' +
+          '<div class="mini-dash-bar-label" id="mini-dash-screen-time">Total: -- min</div>' +
+          '<div class="mini-dash-bar-track"><div class="mini-dash-bar-fill" id="mini-dash-bar-fill" style="width:0%;background:' + avatarColor + ';"></div></div>' +
+        '</div>' +
       '</div>' +
       '<div class="mini-dash-footer">' +
         '<a href="/logout.php" class="mini-dash-switch" style="text-decoration:none;display:block;text-align:center;">Switch User</a>' +

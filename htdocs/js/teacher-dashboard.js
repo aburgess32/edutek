@@ -12,7 +12,6 @@
 
   var API_OVERVIEW = '/api/teacher/dashboard_overview.php';
   var API_USAGE    = '/api/teacher/dashboard_usage.php';
-  var API_SEED     = '/api/teacher/seed_dashboard.php';
   var API_GROUPS   = '/api/teacher/groups.php';
   var API_STUDENTS = '/api/teacher/students.php';
   var root = null;
@@ -147,7 +146,6 @@
       '<div class="quick-actions">' +
         '<button class="action-btn" onclick="window.location.hash=\'playlists\'">My Lesson Plans</button>' +
         '<button class="action-btn" onclick="window.location.href=\'/index.php\'">Browse Content</button>' +
-        '<button class="action-btn" id="d-seed-btn">Seed Test Data</button>' +
       '</div>';
   }
 
@@ -855,36 +853,6 @@
     return html + '</tbody></table></div></div>';
   }
 
-  // ─── Seed Button ────────────────────────────────────────────────────────────
-
-  function bindSeedButton() {
-    var btn = document.getElementById('d-seed-btn');
-    if (!btn) return;
-    btn.addEventListener('click', function() {
-      btn.textContent = 'Seeding...';
-      btn.disabled = true;
-
-      fetch(API_SEED, {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        btn.textContent = 'Done! Refreshing...';
-        setTimeout(function() {
-          init(root);
-        }, 500);
-      })
-      .catch(function(err) {
-        btn.textContent = 'Seed Failed';
-        setTimeout(function() {
-          btn.textContent = 'Seed Test Data';
-          btn.disabled = false;
-        }, 2000);
-      });
-    });
-  }
-
   // ─── FRE-47: Scope helpers ───────────────────────────────────────────────────────
 
   function loadScopeGroups() {
@@ -972,28 +940,10 @@
         '<div class="card" style="text-align:center;padding:40px">' +
           '<div style="font-size:16px;font-weight:700;margin-bottom:8px">Dashboard could not load</div>' +
           '<div style="font-size:14px;color:var(--teacher-muted);margin-bottom:16px">' +
-            'The API returned an error. Make sure the database tables exist.' +
+            'The API returned an error. Please check the database connection and try again.' +
           '</div>' +
-          '<button class="action-btn" id="d-seed-btn-err" style="max-width:200px;margin:0 auto">Seed Test Data</button>' +
-          '<div style="font-size:12px;color:var(--teacher-muted);margin-top:8px">This will create tables and sample data so you can test the dashboard.</div>' +
+          '<button class="action-btn" style="max-width:200px;margin:0 auto" onclick="window.TeacherDashboard.init(document.getElementById(\'dashboard-root\'))">Retry</button>' +
         '</div>';
-
-      var errBtn = document.getElementById('d-seed-btn-err');
-      if (errBtn) {
-        errBtn.addEventListener('click', function() {
-          errBtn.textContent = 'Seeding...';
-          errBtn.disabled = true;
-          fetch(API_SEED, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function(r) { return r.json(); })
-            .then(function() {
-              errBtn.textContent = 'Done! Refreshing...';
-              setTimeout(function() { init(root); }, 500);
-            })
-            .catch(function() {
-              errBtn.textContent = 'Failed - Check DB Connection';
-            });
-        });
-      }
     });
   }
 
@@ -1002,7 +952,6 @@
   function init(el) {
     root = el;
     root.innerHTML = renderSkeleton();
-    bindSeedButton();
     bindScopeSelect();
     loadScopeGroups();
     resolveDefaultScope().then(function() { loadDashboardData(); });

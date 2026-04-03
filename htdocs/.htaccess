@@ -99,7 +99,9 @@ DefaultLanguage en
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
     # Content Security Policy (offline: no CDNs needed)
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self'; connect-src 'self'; frame-ancestors 'self';"
+    # CDN domains listed as fallback sources — local vendor/ files load first.
+    # These are only hit when vendor/ is absent (e.g. cloud/demo deployments).
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' data: https://cdnjs.cloudflare.com; media-src 'self'; connect-src 'self'; frame-ancestors 'self';"
 
     # Permissions Policy
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"

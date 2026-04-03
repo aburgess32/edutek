@@ -46,6 +46,8 @@ $pdo->exec("
         lesson_plan_id INT NOT NULL,
         teacher_id INT NOT NULL,
         assigned_to INT DEFAULT NULL,
+        target_type ENUM('all', 'group', 'individual') NOT NULL DEFAULT 'all',
+        target_ids TEXT DEFAULT NULL,
         mode ENUM('guided', 'individual') NOT NULL DEFAULT 'individual',
         status ENUM('active', 'completed', 'archived') NOT NULL DEFAULT 'active',
         due_date DATE DEFAULT NULL,
@@ -58,6 +60,13 @@ $pdo->exec("
         INDEX idx_status (status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 ");
+// Add target_type/target_ids columns if missing (migration 0014)
+try {
+    $pdo->exec("ALTER TABLE lesson_assignments ADD COLUMN target_type ENUM('all', 'group', 'individual') NOT NULL DEFAULT 'all' AFTER assigned_to");
+} catch (PDOException $e) { /* column already exists */ }
+try {
+    $pdo->exec("ALTER TABLE lesson_assignments ADD COLUMN target_ids TEXT DEFAULT NULL AFTER target_type");
+} catch (PDOException $e) { /* column already exists */ }
 
 switch ($action) {
     case 'list':
@@ -92,7 +101,8 @@ function handleList(PDO $pdo): void
     $statusFilter = $_GET['status'] ?? '';
 
     $sql = "
-        SELECT la.id, la.lesson_plan_id, la.teacher_id, la.assigned_to, la.mode,
+        SELECT la.id, la.lesson_plan_id, la.teacher_id, la.assigned_to,
+               la.target_type, la.target_ids, la.mode,
                la.status, la.due_date, la.notes, la.created_at, la.updated_at,
                lp.title AS plan_title, lp.content_ids AS plan_content_ids,
                u.display_name AS assigned_to_name
@@ -114,27 +124,109 @@ function handleList(PDO $pdo): void
     $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Group legacy per-student rows (assigned_to set, target_type='all') into single entries
     $assignments = [];
+    $legacyBatches = []; // key: lesson_plan_id|mode|created_at  value: array of rows
+
     foreach ($rows as $row) {
-        $contentIds = json_decode($row['plan_content_ids'], true);
+        $isLegacyIndividual = ($row['assigned_to'] && $row['target_type'] === 'all');
+
+        if ($isLegacyIndividual) {
+            // Legacy row: group by plan + mode + created_at (same second = same batch)
+            $batchKey = $row['lesson_plan_id'] . '|' . $row['mode'] . '|' . substr($row['created_at'], 0, 16);
+            if (!isset($legacyBatches[$batchKey])) {
+                $legacyBatches[$batchKey] = [];
+            }
+            $legacyBatches[$batchKey][] = $row;
+        } else {
+            $contentIds = json_decode($row['plan_content_ids'], true);
+            if (!is_array($contentIds)) $contentIds = [];
+
+            $targetType = $row['target_type'] ?? 'all';
+            $targetIds = $row['target_ids'] ? json_decode($row['target_ids'], true) : null;
+
+            // Build target label
+            $targetLabel = 'Whole class';
+            $studentCount = null;
+            if ($targetType === 'individual' && is_array($targetIds)) {
+                $studentCount = count($targetIds);
+                if ($studentCount === 1) {
+                    $targetLabel = resolveStudentName($pdo, (int) $targetIds[0]);
+                } else {
+                    $targetLabel = $studentCount . ' students';
+                }
+            } elseif ($targetType === 'group' && is_array($targetIds)) {
+                $targetLabel = resolveGroupNames($pdo, $targetIds, $teacherId);
+            }
+
+            $assignments[] = [
+                'id'              => (int) $row['id'],
+                'lesson_plan_id'  => (int) $row['lesson_plan_id'],
+                'plan_title'      => $row['plan_title'],
+                'item_count'      => count($contentIds),
+                'teacher_id'      => (int) $row['teacher_id'],
+                'assigned_to'     => $row['assigned_to'] ? (int) $row['assigned_to'] : null,
+                'assigned_to_name' => $row['assigned_to_name'],
+                'target_type'     => $targetType,
+                'target_ids'      => $targetIds,
+                'target_label'    => $targetLabel,
+                'student_count'   => $studentCount,
+                'mode'            => $row['mode'],
+                'status'          => $row['status'],
+                'due_date'        => $row['due_date'],
+                'notes'           => $row['notes'],
+                'created_at'      => $row['created_at'],
+                'updated_at'      => $row['updated_at'],
+            ];
+        }
+    }
+
+    // Collapse legacy batches into single entries
+    foreach ($legacyBatches as $batchRows) {
+        $first = $batchRows[0];
+        $contentIds = json_decode($first['plan_content_ids'], true);
         if (!is_array($contentIds)) $contentIds = [];
 
+        $batchIds = [];
+        $studentNames = [];
+        foreach ($batchRows as $r) {
+            $batchIds[] = (int) $r['id'];
+            if ($r['assigned_to_name']) {
+                $studentNames[] = $r['assigned_to_name'];
+            }
+        }
+
+        $studentCount = count($batchRows);
+        $targetLabel = $studentCount === 1
+            ? ($studentNames[0] ?? 'Unknown')
+            : $studentCount . ' students';
+
         $assignments[] = [
-            'id'              => (int) $row['id'],
-            'lesson_plan_id'  => (int) $row['lesson_plan_id'],
-            'plan_title'      => $row['plan_title'],
+            'id'              => (int) $first['id'],
+            'lesson_plan_id'  => (int) $first['lesson_plan_id'],
+            'plan_title'      => $first['plan_title'],
             'item_count'      => count($contentIds),
-            'teacher_id'      => (int) $row['teacher_id'],
-            'assigned_to'     => $row['assigned_to'] ? (int) $row['assigned_to'] : null,
-            'assigned_to_name' => $row['assigned_to_name'],
-            'mode'            => $row['mode'],
-            'status'          => $row['status'],
-            'due_date'        => $row['due_date'],
-            'notes'           => $row['notes'],
-            'created_at'      => $row['created_at'],
-            'updated_at'      => $row['updated_at'],
+            'teacher_id'      => (int) $first['teacher_id'],
+            'assigned_to'     => null,
+            'assigned_to_name' => null,
+            'target_type'     => 'individual',
+            'target_ids'      => array_map(function ($r) { return (int) $r['assigned_to']; }, $batchRows),
+            'target_label'    => $targetLabel,
+            'student_count'   => $studentCount,
+            'legacy_batch_ids' => $batchIds,
+            'mode'            => $first['mode'],
+            'status'          => $first['status'],
+            'due_date'        => $first['due_date'],
+            'notes'           => $first['notes'],
+            'created_at'      => $first['created_at'],
+            'updated_at'      => $first['updated_at'],
         ];
     }
+
+    // Sort by created_at descending
+    usort($assignments, function ($a, $b) {
+        return strcmp($b['created_at'], $a['created_at']);
+    });
 
     echo json_encode(['assignments' => $assignments]);
 }
@@ -222,6 +314,8 @@ function handleDetail(PDO $pdo): void
             'plan_title'      => $row['plan_title'],
             'content_ids'     => $contentIds,
             'item_count'      => count($contentIds),
+            'target_type'     => $row['target_type'] ?? 'all',
+            'target_ids'      => isset($row['target_ids']) ? json_decode($row['target_ids'], true) : null,
             'mode'            => $row['mode'],
             'status'          => $row['status'],
             'due_date'        => $row['due_date'],
@@ -243,7 +337,8 @@ function handleForPlan(PDO $pdo): void
 
     $teacherId = (int) $_SESSION['user_id'];
     $stmt = $pdo->prepare("
-        SELECT la.id, la.mode, la.status, la.assigned_to, la.due_date, la.created_at,
+        SELECT la.id, la.mode, la.status, la.assigned_to, la.target_type, la.target_ids,
+               la.due_date, la.created_at,
                u.display_name AS assigned_to_name
         FROM lesson_assignments la
         LEFT JOIN users u ON u.id = la.assigned_to
@@ -293,8 +388,21 @@ function handleCreate(PDO $pdo): void
     $parsedGroups = $groupIds ? json_decode($groupIds, true) : [];
     if (!is_array($parsedGroups)) $parsedGroups = [];
 
-    // Resolve group members to individual student IDs
-    if (!empty($parsedGroups)) {
+    // Determine target_type and resolve students for progress initialization
+    $targetType = 'all';
+    $targetIds = null;
+    $resolvedStudentIds = [];
+
+    if (!empty($parsedStudents) && empty($parsedGroups)) {
+        // Individual students selected
+        $targetType = 'individual';
+        $targetIds = json_encode(array_map('intval', $parsedStudents));
+        $resolvedStudentIds = array_map('intval', $parsedStudents);
+    } elseif (!empty($parsedGroups)) {
+        // Groups selected — resolve members for progress init but store group IDs
+        $targetType = 'group';
+        $targetIds = json_encode(array_map('intval', $parsedGroups));
+
         $placeholders = implode(',', array_fill(0, count($parsedGroups), '?'));
         $stmt = $pdo->prepare("
             SELECT DISTINCT sgm.student_id
@@ -308,8 +416,13 @@ function handleCreate(PDO $pdo): void
         $stmt->execute($params);
         $groupStudentIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
         // Merge with any individually selected students, deduplicate
-        $parsedStudents = array_values(array_unique(array_merge($parsedStudents, $groupStudentIds)));
+        $resolvedStudentIds = array_values(array_unique(array_merge(
+            array_map('intval', $parsedStudents),
+            array_map('intval', $groupStudentIds)
+        )));
     }
+    // else: target_type stays 'all', resolvedStudentIds stays empty
+    // (initializeProgress will fetch all teacher's students)
 
     $validDueDate = null;
     if ($dueDate && $mode === 'individual') {
@@ -317,51 +430,32 @@ function handleCreate(PDO $pdo): void
         if ($validDueDate === '1970-01-01') $validDueDate = null;
     }
 
-    $createdIds = [];
+    // Always create ONE assignment row
+    $stmt = $pdo->prepare("
+        INSERT INTO lesson_assignments (lesson_plan_id, teacher_id, assigned_to, target_type, target_ids, mode, due_date, notes)
+        VALUES (:plan_id, :teacher_id, NULL, :target_type, :target_ids, :mode, :due_date, :notes)
+    ");
+    $stmt->execute([
+        ':plan_id'     => $planId,
+        ':teacher_id'  => $teacherId,
+        ':target_type' => $targetType,
+        ':target_ids'  => $targetIds,
+        ':mode'        => $mode,
+        ':due_date'    => $validDueDate,
+        ':notes'       => $notes ?: null,
+    ]);
+    $createdId = (int) $pdo->lastInsertId();
 
-    if (empty($parsedStudents)) {
-        // Whole class assignment (assigned_to = NULL)
-        $stmt = $pdo->prepare("
-            INSERT INTO lesson_assignments (lesson_plan_id, teacher_id, assigned_to, mode, due_date, notes)
-            VALUES (:plan_id, :teacher_id, NULL, :mode, :due_date, :notes)
-        ");
-        $stmt->execute([
-            ':plan_id'    => $planId,
-            ':teacher_id' => $teacherId,
-            ':mode'       => $mode,
-            ':due_date'   => $validDueDate,
-            ':notes'      => $notes ?: null,
-        ]);
-        $createdIds[] = (int) $pdo->lastInsertId();
-    } else {
-        // Individual student assignments
-        $stmt = $pdo->prepare("
-            INSERT INTO lesson_assignments (lesson_plan_id, teacher_id, assigned_to, mode, due_date, notes)
-            VALUES (:plan_id, :teacher_id, :assigned_to, :mode, :due_date, :notes)
-        ");
-        foreach ($parsedStudents as $sid) {
-            $stmt->execute([
-                ':plan_id'     => $planId,
-                ':teacher_id'  => $teacherId,
-                ':assigned_to' => (int) $sid,
-                ':mode'        => $mode,
-                ':due_date'    => $validDueDate,
-                ':notes'       => $notes ?: null,
-            ]);
-            $createdIds[] = (int) $pdo->lastInsertId();
-        }
-    }
-
-    // Initialize lesson_progress rows for each assignment
+    // Initialize lesson_progress rows
     $contentIds = json_decode($plan['content_ids'], true);
     if (is_array($contentIds) && count($contentIds) > 0) {
-        initializeProgress($pdo, $createdIds, $parsedStudents, $contentIds, $teacherId);
+        initializeProgress($pdo, [$createdId], $resolvedStudentIds, $contentIds, $teacherId);
     }
 
     echo json_encode([
         'ok'             => true,
-        'assignment_ids' => $createdIds,
-        'count'          => count($createdIds),
+        'assignment_ids' => [$createdId],
+        'count'          => 1,
     ]);
 }
 
@@ -413,6 +507,19 @@ function handleUpdate(PDO $pdo): void
     $sql = "UPDATE lesson_assignments SET " . implode(', ', $updates) . " WHERE id = :id";
     $pdo->prepare($sql)->execute($params);
 
+    // Also update legacy batch siblings if batch_ids provided by the frontend
+    $batchIds = $_POST['legacy_batch_ids'] ?? '';
+    $parsedBatch = $batchIds ? json_decode($batchIds, true) : [];
+    if (is_array($parsedBatch) && count($parsedBatch) > 0) {
+        foreach ($parsedBatch as $batchId) {
+            $bid = (int) $batchId;
+            if ($bid > 0 && $bid !== $assignmentId) {
+                $params[':id'] = $bid;
+                $pdo->prepare($sql)->execute($params);
+            }
+        }
+    }
+
     echo json_encode(['ok' => true]);
 }
 
@@ -436,6 +543,19 @@ function handleDelete(PDO $pdo): void
         return;
     }
 
+    // Also delete legacy batch siblings if batch_ids provided
+    $batchIds = $_POST['legacy_batch_ids'] ?? '';
+    $parsedBatch = $batchIds ? json_decode($batchIds, true) : [];
+    if (is_array($parsedBatch)) {
+        foreach ($parsedBatch as $batchId) {
+            $bid = (int) $batchId;
+            if ($bid > 0 && $bid !== $assignmentId) {
+                $pdo->prepare("DELETE FROM lesson_assignments WHERE id = :id AND teacher_id = :tid")
+                    ->execute([':id' => $bid, ':tid' => $teacherId]);
+            }
+        }
+    }
+
     echo json_encode(['ok' => true]);
 }
 
@@ -446,10 +566,41 @@ function handleDelete(PDO $pdo): void
 function getAssignmentStudents(PDO $pdo, int $assignmentId, ?int $assignedTo, int $teacherId): array
 {
     if ($assignedTo) {
-        // Individual assignment
+        // Legacy individual assignment
         $stmt = $pdo->prepare("SELECT id, display_name, avatar_name, avatar_color FROM users WHERE id = :id");
         $stmt->execute([':id' => $assignedTo]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Check target_type for new-style assignments
+    $tStmt = $pdo->prepare("SELECT target_type, target_ids FROM lesson_assignments WHERE id = :id");
+    $tStmt->execute([':id' => $assignmentId]);
+    $tRow = $tStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($tRow && $tRow['target_type'] === 'individual' && $tRow['target_ids']) {
+        $ids = json_decode($tRow['target_ids'], true);
+        if (is_array($ids) && count($ids) > 0) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = $pdo->prepare("SELECT id, display_name, avatar_name, avatar_color FROM users WHERE id IN ($placeholders) ORDER BY display_name");
+            $stmt->execute(array_map('intval', $ids));
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    }
+
+    if ($tRow && $tRow['target_type'] === 'group' && $tRow['target_ids']) {
+        $groupIds = json_decode($tRow['target_ids'], true);
+        if (is_array($groupIds) && count($groupIds) > 0) {
+            $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+            $stmt = $pdo->prepare("
+                SELECT DISTINCT u.id, u.display_name, u.avatar_name, u.avatar_color
+                FROM student_group_members sgm
+                JOIN users u ON u.id = sgm.student_id
+                WHERE sgm.group_id IN ($placeholders)
+                ORDER BY u.display_name
+            ");
+            $stmt->execute(array_map('intval', $groupIds));
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 
     // Whole class — get all teacher's students
@@ -462,6 +613,27 @@ function getAssignmentStudents(PDO $pdo, int $assignmentId, ?int $assignedTo, in
     ");
     $stmt->execute([':tid' => $teacherId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function resolveStudentName(PDO $pdo, int $studentId): string
+{
+    $stmt = $pdo->prepare("SELECT display_name FROM users WHERE id = :id");
+    $stmt->execute([':id' => $studentId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ? $row['display_name'] : 'Unknown';
+}
+
+function resolveGroupNames(PDO $pdo, array $groupIds, int $teacherId): string
+{
+    if (empty($groupIds)) return 'Whole class';
+    $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+    $params = array_map('intval', $groupIds);
+    $params[] = $teacherId;
+    $stmt = $pdo->prepare("SELECT name FROM student_groups WHERE id IN ($placeholders) AND teacher_id = ? ORDER BY name");
+    $stmt->execute($params);
+    $names = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    if (empty($names)) return count($groupIds) . ' groups';
+    return implode(', ', $names);
 }
 
 function initializeProgress(PDO $pdo, array $assignmentIds, array $studentIds, array $contentIds, int $teacherId): void

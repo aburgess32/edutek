@@ -204,11 +204,14 @@ function handleMyAssignments(PDO $pdo): void
 {
     $userId = (int) $_SESSION['user_id'];
 
-    // Get assignments where student is specifically assigned OR whole-class assignments
-    // from teachers who have this student
+    // Get assignments visible to this student:
+    // 1. Legacy: assigned_to = this student
+    // 2. New target_type='all': whole-class from teacher who has this student
+    // 3. New target_type='individual': target_ids JSON contains this student ID
+    // 4. New target_type='group': student is member of one of the target groups
     $stmt = $pdo->prepare("
         SELECT la.id AS assignment_id, la.lesson_plan_id, la.mode, la.status AS assignment_status,
-               la.due_date, la.notes, la.created_at,
+               la.due_date, la.notes, la.created_at, la.target_type, la.target_ids,
                lp.title AS plan_title, lp.content_ids AS plan_content_ids,
                u.display_name AS teacher_name
         FROM lesson_assignments la
@@ -217,13 +220,31 @@ function handleMyAssignments(PDO $pdo): void
         WHERE la.status = 'active'
           AND (
             la.assigned_to = :uid1
-            OR (la.assigned_to IS NULL AND la.teacher_id IN (
+            OR (la.assigned_to IS NULL AND la.target_type = 'all' AND la.teacher_id IN (
                 SELECT teacher_id FROM teacher_students WHERE student_id = :uid2
             ))
+            OR (la.assigned_to IS NULL AND la.target_type = 'individual'
+                AND (la.target_ids LIKE CONCAT('%[', :uid3, ']%')
+                  OR la.target_ids LIKE CONCAT('%[', :uid3a, ',%')
+                  OR la.target_ids LIKE CONCAT('%,', :uid3b, ']%')
+                  OR la.target_ids LIKE CONCAT('%,', :uid3c, ',%')))
+            OR (la.assigned_to IS NULL AND la.target_type = 'group'
+                AND EXISTS (
+                    SELECT 1 FROM student_group_members sgm
+                    WHERE sgm.student_id = :uid4
+                      AND (la.target_ids LIKE CONCAT('%[', sgm.group_id, ']%')
+                        OR la.target_ids LIKE CONCAT('%[', sgm.group_id, ',%')
+                        OR la.target_ids LIKE CONCAT('%,', sgm.group_id, ']%')
+                        OR la.target_ids LIKE CONCAT('%,', sgm.group_id, ',%'))
+                ))
           )
         ORDER BY la.created_at DESC
     ");
-    $stmt->execute([':uid1' => $userId, ':uid2' => $userId]);
+    $stmt->execute([
+        ':uid1' => $userId, ':uid2' => $userId,
+        ':uid3' => $userId, ':uid3a' => $userId, ':uid3b' => $userId, ':uid3c' => $userId,
+        ':uid4' => $userId,
+    ]);
 
     $assignments = [];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -406,15 +427,30 @@ function checkAssignmentCompletion(PDO $pdo, int $assignmentId, int $studentId):
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($row && (int) $row['total'] > 0 && (int) $row['completed'] >= (int) $row['total']) {
-        // All items completed — check if this was an individual assignment
-        $aStmt = $pdo->prepare("SELECT assigned_to FROM lesson_assignments WHERE id = :id");
+        $aStmt = $pdo->prepare("SELECT assigned_to, target_type, target_ids FROM lesson_assignments WHERE id = :id");
         $aStmt->execute([':id' => $assignmentId]);
         $aRow = $aStmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($aRow && (int) ($aRow['assigned_to'] ?? 0) === $studentId) {
-            // Individual assignment — mark completed
+        if (!$aRow) return;
+
+        // Legacy individual assignment
+        if ((int) ($aRow['assigned_to'] ?? 0) === $studentId) {
             $pdo->prepare("UPDATE lesson_assignments SET status = 'completed' WHERE id = :id")
                 ->execute([':id' => $assignmentId]);
+            return;
         }
+
+        // New-style: check if ALL students in the assignment are done
+        $targetType = $aRow['target_type'] ?? 'all';
+        if ($targetType === 'individual') {
+            $targetIds = json_decode($aRow['target_ids'] ?? '[]', true);
+            if (is_array($targetIds) && count($targetIds) === 1 && (int) $targetIds[0] === $studentId) {
+                // Single individual — mark completed
+                $pdo->prepare("UPDATE lesson_assignments SET status = 'completed' WHERE id = :id")
+                    ->execute([':id' => $assignmentId]);
+            }
+        }
+        // For multi-student and group/all assignments, don't auto-complete
+        // the assignment row — teacher controls that.
     }
 }

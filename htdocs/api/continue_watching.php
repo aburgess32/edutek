@@ -27,19 +27,26 @@ try {
     $pdo = getDbConnection();
     $stmt = $pdo->prepare("
         SELECT
-            content_id,
-            content_title,
-            thumbnail_path,
-            progress_seconds,
-            duration_seconds,
-            last_watched
-        FROM watch_history
-        WHERE user_id = :uid
-          AND duration_seconds > 0
-        ORDER BY last_watched DESC
+            wh.content_id,
+            wh.content_title,
+            wh.thumbnail_path,
+            wh.progress_seconds,
+            wh.duration_seconds,
+            wh.last_watched
+        FROM watch_history wh
+        INNER JOIN (
+            SELECT content_id, MAX(last_watched) AS max_lw
+            FROM watch_history
+            WHERE user_id = :uid1 AND duration_seconds > 0
+            GROUP BY content_id
+        ) latest ON wh.content_id = latest.content_id
+                   AND wh.last_watched = latest.max_lw
+        WHERE wh.user_id = :uid2
+          AND wh.duration_seconds > 0
+        ORDER BY wh.last_watched DESC
         LIMIT 10
     ");
-    $stmt->execute([':uid' => $userId]);
+    $stmt->execute([':uid1' => $userId, ':uid2' => $userId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $results = [];

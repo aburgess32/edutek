@@ -40,26 +40,36 @@ try {
     // Build type filter clause
     if ($type === 'media') {
         // Media = anything NOT starting with videos/ or audiobooks/
-        $typeClause = "AND content_id NOT LIKE 'videos/%' AND content_id NOT LIKE 'audiobooks/%'";
-        $params = [':uid' => $userId];
+        $typeClause = "AND wh.content_id NOT LIKE 'videos/%' AND wh.content_id NOT LIKE 'audiobooks/%'";
+        $innerTypeClause = "AND content_id NOT LIKE 'videos/%' AND content_id NOT LIKE 'audiobooks/%'";
+        $params = [':uid1' => $userId, ':uid2' => $userId];
     } else {
-        $typeClause = "AND content_id LIKE :prefix";
-        $params = [':uid' => $userId, ':prefix' => $type . '/%'];
+        $typeClause = "AND wh.content_id LIKE :prefix1";
+        $innerTypeClause = "AND content_id LIKE :prefix2";
+        $params = [':uid1' => $userId, ':uid2' => $userId, ':prefix1' => $type . '/%', ':prefix2' => $type . '/%'];
     }
 
-    // Recent content (all, regardless of progress)
+    // Recent content (all, regardless of progress) — deduplicated by content_id
     $stmt = $pdo->prepare("
         SELECT
-            content_id,
-            content_title,
-            progress_seconds,
-            duration_seconds,
-            last_watched
-        FROM watch_history
-        WHERE user_id = :uid
-          AND duration_seconds > 0
+            wh.content_id,
+            wh.content_title,
+            wh.progress_seconds,
+            wh.duration_seconds,
+            wh.last_watched
+        FROM watch_history wh
+        INNER JOIN (
+            SELECT content_id, MAX(last_watched) AS max_lw
+            FROM watch_history
+            WHERE user_id = :uid1 AND duration_seconds > 0
+              $innerTypeClause
+            GROUP BY content_id
+        ) latest ON wh.content_id = latest.content_id
+                   AND wh.last_watched = latest.max_lw
+        WHERE wh.user_id = :uid2
+          AND wh.duration_seconds > 0
           $typeClause
-        ORDER BY last_watched DESC
+        ORDER BY wh.last_watched DESC
         LIMIT 5
     ");
     $stmt->execute($params);

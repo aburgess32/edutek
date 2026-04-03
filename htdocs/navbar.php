@@ -1,3 +1,9 @@
+<?php
+// Auth & session MUST be loaded before any HTML output to avoid
+// "Cannot start session when headers already sent" errors.
+include_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -24,8 +30,6 @@
   }
   </style>
 </head>
-<?php include_once __DIR__ . '/includes/auth.php'; ?>
-<?php require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex(); ?>
 <body class="fixed-nav sticky-footer" id="page-top"
   data-mode="<?php echo htmlspecialchars(getMode(), ENT_QUOTES, 'UTF-8'); ?>"
   data-user-role="<?php echo htmlspecialchars($_SESSION['user_role'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"

@@ -406,9 +406,7 @@
             <div class="playlist-item__info">
               <span class="playlist-item__title"><?php echo htmlspecialchars($lpItem['title'] ?? $lpFileName); ?></span>
               <div class="playlist-item__meta">
-                <?php if ($lpDurStr): ?>
-                <span class="playlist-item__duration"><?php echo $lpDurStr; ?></span>
-                <?php endif; ?>
+                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($lpItem['content_id']); ?>"><?php echo $lpDurStr ?: '--:--'; ?></span>
               </div>
             </div>
           </a>

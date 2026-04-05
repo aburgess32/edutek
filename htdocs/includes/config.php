@@ -45,6 +45,12 @@ define('SITE_TITLE', env('SITE_TITLE', 'EduPak Learning Hub'));
 define('CONTENT_PATH', env('CONTENT_PATH', __DIR__ . '/../videos/'));
 
 // ──────────────────────────────────────────────────────────
+// Deployment
+// ──────────────────────────────────────────────────────────
+define('DEPLOY_SECRET', env('DEPLOY_SECRET', ''));
+define('CONTENT_DIRS', env('CONTENT_DIRS', 'videos,khan,Wiki,Kiwix,images'));
+
+// ──────────────────────────────────────────────────────────
 // PHP Error Display (based on APP_DEBUG)
 // ──────────────────────────────────────────────────────────
 if (APP_DEBUG) {

@@ -22,7 +22,8 @@
  *
  * Usage:
  *   require_once __DIR__ . '/env.php';
- *   load_env(dirname(__DIR__, 2) . '/.env');
+ *   load_env(dirname(__DIR__) . '/.env');
+load_env(dirname(__DIR__, 2) . '/.env');
  *   $debug = env('APP_DEBUG', false);
  *
  * @package EduPak
@@ -182,5 +183,7 @@ function env(string $key, $default = null, bool $cast = true)
     return $value;
 }
 
-// Auto-load the project .env on include (two levels up from htdocs/includes/)
+// Auto-load the project .env on include
+// Try app directory first (Edutek/), then project root (htdocs/)
+load_env(dirname(__DIR__) . '/.env');
 load_env(dirname(__DIR__, 2) . '/.env');

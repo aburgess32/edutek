@@ -2,7 +2,7 @@
 // Auth & session MUST be loaded before any HTML output to avoid
 // "Cannot start session when headers already sent" errors.
 include_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
+// require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex(); // Disabled: use CLI content-indexer.php instead
 ?>
 <!DOCTYPE html>
 <html lang="en">

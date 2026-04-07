@@ -80,7 +80,7 @@ foreach ($videos as $row) {
     $vidNum++;
 
     // Normalize path: ensure forward slashes, strip leading slash
-    $filePath = ltrim(str_replace(chr(92), '/', \$row['file_path']), '/');
+    $filePath = ltrim(str_replace(chr(92), '/', $row['file_path']), '/');
     $filePath = ltrim($filePath, '/');
 
     $baseName  = basename($filePath);

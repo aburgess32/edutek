@@ -235,6 +235,14 @@ $teacherId = (int)($user['id'] ?? 0);
     });
   })();
   </script>
+  <script>
+    window.EDUTEK_BASE = (function() {
+      var p = window.location.pathname;
+      var idx = p.indexOf('/Edutek');
+      if (idx !== -1) return p.substring(0, idx + '/Edutek'.length);
+      return '';
+    })();
+  </script>
   <script src="js/search-typeahead.js"></script>
   <script src="js/teacher-dashboard.js"></script>
   <script src="js/lesson-publish.js"></script>

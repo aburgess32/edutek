@@ -21,6 +21,16 @@ $planId = (int) ($_GET['plan'] ?? 0);
 $plan = null;
 $items = [];
 
+if ($planId <= 0) {
+    // No plan specified — show a friendly message instead of a 404
+    include_once "navbar.php";
+    echo '<div style="text-align:center;padding:60px 20px;"><h2>Select a Playlist</h2>';
+    echo '<p style="color:#888;">Choose a lesson plan from the teacher dashboard to view it as a playlist.</p>';
+    echo '<a href="browse.php" style="color:#6366f1;">Browse Content</a></div>';
+    include_once "footer.php";
+    exit;
+}
+
 if ($planId > 0) {
     try {
         $pdo = getDbConnection();

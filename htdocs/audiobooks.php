@@ -5,6 +5,9 @@
 <?php
     //nabvbar
     include_once"navbar.php";
+    require_once "includes/page-cache.php";
+    $cacheFile = pageCache_start("audiobooks-" . md5($_SERVER["QUERY_STRING"] ?? ""));
+    if ($cacheFile === null) { exit; }
     //nabvbar
     ?>
     
@@ -80,4 +83,5 @@
     renderBreadcrumb($crumbs);
 
     include_once"footer.php";
+    pageCache_end($cacheFile);
 ?>

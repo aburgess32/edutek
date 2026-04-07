@@ -15,6 +15,7 @@ include_once __DIR__ . '/includes/auth.php';
   <meta name="author" content="">
   <title>Edutek Global</title>
   <!-- Bootstrap core CSS-->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" onerror="this.href='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css'">
   <!-- Custom fonts for this template-->
   <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'">

@@ -3,6 +3,9 @@
 <?php
     // navbar
     include_once "navbar.php";
+    require_once "includes/page-cache.php";
+    $cacheFile = pageCache_start("tutorials-" . md5($_SERVER["QUERY_STRING"] ?? ""));
+    if ($cacheFile === null) { exit; } // served from cache
 
     $cipher = "BF-CBC";
     $iv_length = openssl_cipher_iv_length($cipher);
@@ -183,4 +186,5 @@ function toggleSection(btn) {
     renderBreadcrumb($crumbs);
 
     include_once "footer.php";
+    pageCache_end($cacheFile);
 ?>

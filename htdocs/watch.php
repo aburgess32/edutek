@@ -2,7 +2,8 @@
     include_once "includes/auth.php";
 ?>
   <!-- FRE-41: Watch Page Facelift — Fonts + CSS -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Plus Jakarta Sans (skip on offline devices) -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" onerror="this.remove()">
   <link href="css/WatchVideos.css" rel="stylesheet">
   <script src="ajax/jquery.min.js"></script>
     <script src="ajax/popper.min.js"></script>

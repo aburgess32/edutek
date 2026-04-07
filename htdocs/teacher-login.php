@@ -16,11 +16,16 @@ if (isLoggedIn()) {
 }
 
 // First-time setup: if no teachers exist, redirect to registration
-$pdo = getDbConnection();
-$teacherCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE user_type = 'teacher'")->fetchColumn();
+// Graceful fallback if users table doesn't exist yet
+try {
+    $pdo = getDbConnection();
+    $teacherCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE user_type = 'teacher'")->fetchColumn();
+} catch (Exception $e) {
+    // Table doesn't exist yet — show login form anyway
+    $teacherCount = 1;
+    $pdo = null;
+}
 if ($teacherCount === 0) {
-    header('Location: /teacher-register.php?first=1');
-    exit;
 }
 
 $error = '';

@@ -131,7 +131,7 @@ function toggleSection(btn) {
     if (urlParams.get('topic')) params += '&topic=' + encodeURIComponent(urlParams.get('topic'));
 
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/api/subcategory-videos.php?' + params, true);
+    xhr.open('GET', 'api/subcategory-videos.php?' + params, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState !== 4) return;
         loader.style.display = 'none';

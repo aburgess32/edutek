@@ -257,7 +257,7 @@ try {
                 $subjStmt = $pdo->prepare("
                     SELECT cm.category AS subject, COUNT(*) AS cnt
                     FROM watch_history wh
-                    JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_0900_ai_ci = wh.content_id COLLATE utf8mb4_0900_ai_ci
+                    JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_general_ci = wh.content_id COLLATE utf8mb4_general_ci
                     WHERE wh.user_id = ? AND cm.category IS NOT NULL AND cm.category != ''
                     GROUP BY cm.category
                     ORDER BY cnt DESC

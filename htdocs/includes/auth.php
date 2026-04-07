@@ -46,7 +46,7 @@ if (!empty($_SESSION['user_id']) && !empty($_SESSION['last_activity'])) {
             );
         }
         session_destroy();
-        header('Location: /login.php?expired=1');
+        header('Location: login.php?expired=1');
         exit;
     }
 }
@@ -115,7 +115,7 @@ function getDbConnection(): PDO
 function requireLogin(): void
 {
     if (!isLoggedIn()) {
-        header('Location: /login.php');
+        header('Location: login.php');
         exit;
     }
 }
@@ -126,7 +126,7 @@ function requireLogin(): void
 function requireTeacher(): void
 {
     if (!isTeacher()) {
-        header('Location: /');
+        header('Location: index.php');
         exit;
     }
 }

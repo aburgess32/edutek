@@ -11,7 +11,7 @@ include_once __DIR__ . '/includes/auth.php';
 
 // Already logged in? Go to teacher hub
 if (isLoggedIn()) {
-    header('Location: /teacher.php');
+    header('Location: teacher.php');
     exit;
 }
 
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'teacher'
             );
             updateLastActive($pdo, (int) $teacher['id']);
-            header('Location: /teacher.php');
+            header('Location: teacher.php');
             exit;
         } else {
             $error = 'Invalid email or password.';

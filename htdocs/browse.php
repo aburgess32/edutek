@@ -12,7 +12,7 @@
 
     // Validate segment key
     if ($segKey === '' || !isset($segments[$segKey])) {
-        header('Location: /');
+        header('Location: index.php');
         exit;
     }
 

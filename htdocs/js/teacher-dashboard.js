@@ -10,10 +10,10 @@
 (function() {
   'use strict';
 
-  var API_OVERVIEW = '/api/teacher/dashboard_overview.php';
-  var API_USAGE    = '/api/teacher/dashboard_usage.php';
-  var API_GROUPS   = '/api/teacher/groups.php';
-  var API_STUDENTS = '/api/teacher/students.php';
+  var API_OVERVIEW = (window.EDUTEK_BASE || '') + '/api/teacher/dashboard_overview.php';
+  var API_USAGE    = (window.EDUTEK_BASE || '') + '/api/teacher/dashboard_usage.php';
+  var API_GROUPS   = (window.EDUTEK_BASE || '') + '/api/teacher/groups.php';
+  var API_STUDENTS = (window.EDUTEK_BASE || '') + '/api/teacher/students.php';
   var root = null;
   var currentScope = 'all';  // FRE-47: 'all', 'mine', or group ID
 
@@ -287,7 +287,7 @@
     var el = document.getElementById('d-assignments');
     if (!el) return;
 
-    fetchJSON('/api/lesson_assignments.php?action=list&status=active').then(function(data) {
+    fetchJSON((window.EDUTEK_BASE || '') + '/api/lesson_assignments.php?action=list&status=active').then(function(data) {
       var assignments = data.assignments || [];
       if (assignments.length === 0) {
         el.innerHTML = '<div class="card-title">' + icon('doc') + ' Assignment Progress</div>' +
@@ -327,7 +327,7 @@
 
       // Load progress for each shown assignment
       shown.forEach(function(a) {
-        fetchJSON('/api/lesson_progress.php?action=summary&assignment_id=' + a.id).then(function(prog) {
+        fetchJSON((window.EDUTEK_BASE || '') + '/api/lesson_progress.php?action=summary&assignment_id=' + a.id).then(function(prog) {
           var ringEl = document.getElementById('d-assign-ring-' + a.id);
           if (!ringEl) return;
           var pct = prog.overall_pct || 0;

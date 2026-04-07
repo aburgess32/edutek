@@ -13,8 +13,8 @@
 (function () {
   'use strict';
 
-  var API_ASSIGNMENTS = '/api/lesson_assignments.php';
-  var API_PROGRESS = '/api/lesson_progress.php';
+  var API_ASSIGNMENTS = (window.EDUTEK_BASE || '') + '/api/lesson_assignments.php';
+  var API_PROGRESS = (window.EDUTEK_BASE || '') + '/api/lesson_progress.php';
   var root = null;
   var guidedPollTimer = null;
 
@@ -481,7 +481,7 @@
     });
 
     // Fetch lesson plans
-    fetch('/api/lesson_plans.php?action=list')
+    fetch((window.EDUTEK_BASE || '') + '/api/lesson_plans.php?action=list')
       .then(function (r) { return r.json(); })
       .then(function (data) {
         var plans = Array.isArray(data) ? data : (data.plans || []);

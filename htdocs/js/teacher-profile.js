@@ -90,7 +90,7 @@ window.TeacherProfile = (function() {
                 }
                 saveBtn.disabled = true;
                 saveBtn.textContent = 'Saving...';
-                postApi('/api/teacher/profile.php', { action: 'update_name', display_name: newName })
+                postApi((window.EDUTEK_BASE || '') + '/api/teacher/profile.php', { action: 'update_name', display_name: newName })
                     .then(function(res) {
                         saveBtn.disabled = false;
                         saveBtn.textContent = 'Save Name';
@@ -159,7 +159,7 @@ window.TeacherProfile = (function() {
                 }
                 saveBtn.disabled = true;
                 saveBtn.textContent = 'Saving...';
-                postApi('/api/teacher/profile.php', {
+                postApi((window.EDUTEK_BASE || '') + '/api/teacher/profile.php', {
                     action: 'change_password',
                     current_password: currentPw.value,
                     new_password: newPw.value,
@@ -209,7 +209,7 @@ window.TeacherProfile = (function() {
                 }
                 resetBtn.disabled = true;
                 resetBtn.textContent = 'Resetting...';
-                postApi('/api/teacher/reset-password.php', {
+                postApi((window.EDUTEK_BASE || '') + '/api/teacher/reset-password.php', {
                     target_email: emailInput.value,
                     new_password: newPw.value
                 }).then(function(res) {

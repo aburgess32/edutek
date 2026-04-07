@@ -113,6 +113,15 @@ include_once __DIR__ . '/includes/auth.php';
 
       
     <!-- Bootstrap core JavaScript-->
+    <script>
+      // Global base path for API calls — auto-detected from current URL
+      window.EDUTEK_BASE = (function() {
+        var p = window.location.pathname;
+        var idx = p.indexOf('/Edutek');
+        if (idx !== -1) return p.substring(0, idx + '/Edutek'.length);
+        return '';
+      })();
+    </script>
     <script src="vendor/jquery/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"><\/script>')</script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

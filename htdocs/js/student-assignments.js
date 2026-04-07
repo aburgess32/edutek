@@ -10,8 +10,8 @@
 (function () {
   'use strict';
 
-  var API_PROGRESS = '/api/lesson_progress.php';
-  var HEARTBEAT_URL = '/api/progress_heartbeat.php';
+  var API_PROGRESS = (window.EDUTEK_BASE || '') + '/api/lesson_progress.php';
+  var HEARTBEAT_URL = (window.EDUTEK_BASE || '') + '/api/progress_heartbeat.php';
   var heartbeatTimer = null;
 
   /* ── Helpers ───────────────────────────────────────────────────────── */

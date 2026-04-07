@@ -3,13 +3,7 @@
 <?php
     // navbar
     include_once "navbar.php";
-    require_once "includes/loading.php";
-    loadingStart('Loading tutorials...');
-    require_once "includes/page-cache.php";
-    $cacheFile = pageCache_start("tutorials-" . md5($_SERVER["QUERY_STRING"] ?? ""));
-    if ($cacheFile === null) { loadingEnd(); exit; } // served from cache
-
-    require_once "includes/tutorial-renderer.php";
+    require_once __DIR__ . '/includes/db-content.php';
 
     $cipher = "BF-CBC";
     $iv_length = openssl_cipher_iv_length($cipher);
@@ -19,16 +13,25 @@
     $decryption_iv = "91011121";
     $decryption_key = "hfjfydjnvhbjfi";
 
-    $enc = [$cipher, $encryption_key, $options, $iv];
+    // Helper: encrypt a value for URL params
+    function encParam($val, $cipher, $key, $opts, $iv) {
+        return str_replace('=', '[equal]', base64_encode(openssl_encrypt($val, $cipher, $key, $opts, $iv)));
+    }
+
+    // Helper: turn a filename into a human-readable title
+    function prettyName($filename) {
+        $name = pathinfo($filename, PATHINFO_FILENAME);
+        $name = str_replace(['_', '-'], ' ', $name);
+        $name = preg_replace('/\s+/', ' ', trim($name));
+        return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
+    }
 
     // Encrypted GET-param keys (same as before)
-    $encryption2 = tutRenderer_encParam("course", $cipher, $encryption_key, $options, $iv);
-    $videolink1  = tutRenderer_encParam("videolink1",  $cipher, $encryption_key, $options, $iv);
-    $videoname1  = tutRenderer_encParam("videoname1",  $cipher, $encryption_key, $options, $iv);
-    $videolink   = tutRenderer_encParam("videolink",   $cipher, $encryption_key, $options, $iv);
-    $videoname   = tutRenderer_encParam("videoname",   $cipher, $encryption_key, $options, $iv);
-
-    $encKeys = [$encryption2, $videolink1, $videoname1, $videolink, $videoname];
+    $encryption2 = encParam("course", $cipher, $encryption_key, $options, $iv);
+    $videolink1  = encParam("videolink1",  $cipher, $encryption_key, $options, $iv);
+    $videoname1  = encParam("videoname1",  $cipher, $encryption_key, $options, $iv);
+    $videolink   = encParam("videolink",   $cipher, $encryption_key, $options, $iv);
+    $videoname   = encParam("videoname",   $cipher, $encryption_key, $options, $iv);
 
     $file = $_GET[$encryption2];
     $decryption = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $file)), $cipher, $decryption_key, $options, $iv);
@@ -38,184 +41,115 @@
     if (isset($_GET['seg'])   && $_GET['seg']   !== '') { $bcQuery .= '&seg='   . urlencode($_GET['seg']); }
     if (isset($_GET['topic']) && $_GET['topic'] !== '') { $bcQuery .= '&topic=' . urlencode($_GET['topic']); }
 
-    $dd2 = "videos/" . $decryption . "/";
-
-    // FRE-54: Render only the first 20 sections (server-side pagination)
-    $pageLimit = 20;
-    $result = renderTutorialSections($dd2, 0, $pageLimit, $encKeys, $enc, $bcQuery);
-
-    loadingEnd();
+    // FRE-54: Query subcategories from the database instead of glob()
+    $pdo = getDbConnection();
+    $subcategories = getSubcategories($pdo, $decryption);
+    $totalVideos = getCategoryVideoCount($pdo, $decryption);
 ?>
 
 <!-- Page header -->
 <div class="tutorials-header">
     <span class="fa fa-fw fa-bookmark"></span><?php echo htmlspecialchars($decryption); ?> Tutorials
+    <span class="tut-header-count">(<?php echo $totalVideos; ?> video<?php echo $totalVideos !== 1 ? 's' : ''; ?>)</span>
 </div>
-
-<div id="tutorial-sections">
-<?php echo $result['html']; ?>
-</div>
-
-<?php if ($result['total'] === 0): ?>
-    <div class="tut-empty">No tutorials found in this category.</div>
-<?php elseif ($result['hasMore']): ?>
-<div id="load-more-container"
-     data-course="<?php echo htmlspecialchars($file); ?>"
-     data-offset="<?php echo $result['loaded']; ?>"
-     data-total="<?php echo $result['total']; ?>"
-     data-seg="<?php echo htmlspecialchars($_GET['seg'] ?? ''); ?>"
-     data-topic="<?php echo htmlspecialchars($_GET['topic'] ?? ''); ?>">
-    <button id="load-more-btn" onclick="loadMoreSections()">
-        Load More (showing <?php echo $result['loaded']; ?> of <?php echo $result['total']; ?> sections)
-    </button>
-</div>
-<?php endif; ?>
 
 <?php
-    if (ob_get_level()) ob_flush();
-    flush();
+    $sectionIdx = 0;
+
+    foreach ($subcategories as $sub) {
+        $folderName = $sub['subcategory'];
+        $videoCount = (int) $sub['video_count'];
+        $firstThumb = $sub['first_thumb'];
+
+        $sectionIdx++;
+
+        // Section thumbnail from DB
+        $thumbSrc = 'images/sample.png';
+        if (!empty($firstThumb)) {
+            $thumbSrc = str_replace('\\', '/', $firstThumb);
+            $thumbSrc = ltrim($thumbSrc, '/');
+        }
+?>
+
+<div class="tut-section" id="tut-sec-<?php echo $sectionIdx; ?>"
+     data-category="<?php echo htmlspecialchars($decryption); ?>"
+     data-subcategory="<?php echo htmlspecialchars($folderName); ?>">
+    <button class="tut-section-toggle" onclick="toggleSection(this)" aria-expanded="false">
+        <img src="<?php echo htmlspecialchars($thumbSrc); ?>" alt="" class="tut-thumb" loading="lazy">
+        <div class="tut-section-info">
+            <p class="tut-section-title"><?php echo htmlspecialchars(prettyName($folderName)); ?></p>
+            <div class="tut-section-count"><?php echo $videoCount; ?> video<?php echo $videoCount !== 1 ? 's' : ''; ?></div>
+        </div>
+        <span class="fa fa-chevron-down tut-chevron"></span>
+    </button>
+    <div class="tut-section-body">
+        <ul class="tut-video-list">
+            <!-- FRE-54: Videos loaded via AJAX on expand -->
+        </ul>
+        <div class="tut-loading" style="display:none; text-align:center; padding:20px;">
+            <span class="fa fa-spinner fa-spin"></span> Loading videos&hellip;
+        </div>
+    </div>
+</div>
+
+<?php } // end foreach
+
+    if ($sectionIdx === 0) {
+        echo '<div class="tut-empty">No tutorials found in this category.</div>';
+    }
 ?>
 
 <script>
+/**
+ * FRE-54: Toggle section and lazy-load videos via AJAX.
+ */
 function toggleSection(btn) {
     var section = btn.closest('.tut-section');
     section.classList.toggle('open');
     var expanded = section.classList.contains('open');
     btn.setAttribute('aria-expanded', expanded);
-}
 
-function loadMoreSections() {
-    var container = document.getElementById('load-more-container');
-    var btn = document.getElementById('load-more-btn');
-    if (!container || !btn) return;
+    if (!expanded) return;
 
-    var course = container.getAttribute('data-course');
-    var offset = parseInt(container.getAttribute('data-offset'), 10);
-    var total  = parseInt(container.getAttribute('data-total'), 10);
-    var seg    = container.getAttribute('data-seg');
-    var topic  = container.getAttribute('data-topic');
+    // If videos are already loaded, do nothing
+    var videoList = section.querySelector('.tut-video-list');
+    if (videoList.children.length > 0) return;
 
-    // Show loading state
-    btn.disabled = true;
-    btn.innerHTML = '<span class="load-more-spinner"></span> Loading...';
+    // Load videos via AJAX
+    var category    = section.getAttribute('data-category');
+    var subcategory = section.getAttribute('data-subcategory');
+    var loader      = section.querySelector('.tut-loading');
 
-    var url = 'api/tutorials-page.php?course=' + encodeURIComponent(course)
-            + '&offset=' + offset + '&limit=20';
-    if (seg)   url += '&seg='   + encodeURIComponent(seg);
-    if (topic) url += '&topic=' + encodeURIComponent(topic);
+    loader.style.display = 'block';
+
+    var params = 'category=' + encodeURIComponent(category)
+               + '&subcategory=' + encodeURIComponent(subcategory);
+
+    // Pass breadcrumb context if present
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('seg'))   params += '&seg='   + encodeURIComponent(urlParams.get('seg'));
+    if (urlParams.get('topic')) params += '&topic=' + encodeURIComponent(urlParams.get('topic'));
 
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onload = function() {
+    xhr.open('GET', '/api/subcategory-videos.php?' + params, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4) return;
+        loader.style.display = 'none';
+
         if (xhr.status === 200) {
             try {
                 var data = JSON.parse(xhr.responseText);
-                // Append new sections before the Load More button
-                var sections = document.getElementById('tutorial-sections');
-                sections.insertAdjacentHTML('beforeend', data.html);
-
-                // Trigger lazy-load for any new thumbnail placeholders
-                initLazyThumbs(sections);
-
-                if (data.hasMore) {
-                    container.setAttribute('data-offset', data.loaded);
-                    btn.disabled = false;
-                    btn.textContent = 'Load More (showing ' + data.loaded + ' of ' + data.total + ' sections)';
-                } else {
-                    container.style.display = 'none';
-                }
-            } catch(e) {
-                btn.disabled = false;
-                btn.textContent = 'Error loading — tap to retry';
+                videoList.innerHTML = data.html;
+            } catch (e) {
+                videoList.innerHTML = '<li class="tut-video-item" style="color:#999;">Failed to load videos.</li>';
             }
         } else {
-            btn.disabled = false;
-            btn.textContent = 'Error loading — tap to retry';
+            videoList.innerHTML = '<li class="tut-video-item" style="color:#999;">Failed to load videos.</li>';
         }
-    };
-    xhr.onerror = function() {
-        btn.disabled = false;
-        btn.textContent = 'Error loading — tap to retry';
     };
     xhr.send();
 }
-
-// Lazy-load thumbnails for videos that don't have cached thumbs yet
-function initLazyThumbs(root) {
-    var imgs = (root || document).querySelectorAll('img[data-video-src]');
-    var queue = [];
-    for (var i = 0; i < imgs.length; i++) {
-        // Only queue images that haven't been processed
-        if (!imgs[i].getAttribute('data-thumb-queued')) {
-            imgs[i].setAttribute('data-thumb-queued', '1');
-            queue.push(imgs[i]);
-        }
-    }
-    function processNext() {
-        if (queue.length === 0) return;
-        var img = queue.shift();
-        var videoSrc = img.getAttribute('data-video-src');
-        if (!videoSrc) { processNext(); return; }
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'api/generate-thumb.php?video=' + encodeURIComponent(videoSrc), true);
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    if (data.thumb) {
-                        img.src = data.thumb;
-                        img.removeAttribute('data-video-src');
-                    }
-                } catch(e) {}
-            }
-            processNext();
-        };
-        xhr.onerror = function() { processNext(); };
-        xhr.send();
-    }
-    // Process 2 thumbnails at a time
-    processNext();
-    processNext();
-}
-
-// Initial lazy-load on page load
-initLazyThumbs();
 </script>
-
-<style>
-#load-more-container {
-    text-align: center;
-    padding: 20px 0 30px;
-}
-#load-more-btn {
-    background: #6366f1;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 32px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-#load-more-btn:hover:not(:disabled) {
-    background: #4f46e5;
-}
-#load-more-btn:disabled {
-    opacity: 0.7;
-    cursor: wait;
-}
-.load-more-spinner {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: edupak-spin 0.8s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
-}
-</style>
 
 <?php
     // FRE-12: Breadcrumb
@@ -224,5 +158,4 @@ initLazyThumbs();
     renderBreadcrumb($crumbs);
 
     include_once "footer.php";
-    pageCache_end($cacheFile);
 ?>

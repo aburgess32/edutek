@@ -12,6 +12,12 @@
   border-bottom: 3px solid #ff6b9d;
 }
 .tutorials-header .fa { margin-right: 8px; }
+.tutorials-header .tut-header-count {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-left: 6px;
+}
 
 /* ---- Accordion section (one per subfolder) ---- */
 .tut-section {
@@ -85,7 +91,7 @@
   transition: max-height 0.35s ease;
 }
 .tut-section.open .tut-section-body {
-  max-height: 2000px;
+  max-height: none;
 }
 
 /* ---- Video list inside accordion ---- */
@@ -146,6 +152,15 @@
   margin-left: 8px;
   text-transform: uppercase;
   flex-shrink: 0;
+}
+
+/* ---- Loading spinner inside accordion ---- */
+.tut-loading {
+  color: #999;
+  font-size: 14px;
+}
+.tut-loading .fa-spinner {
+  margin-right: 6px;
 }
 
 /* ---- Empty state ---- */

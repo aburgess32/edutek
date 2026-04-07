@@ -9,6 +9,8 @@
     $cacheFile = pageCache_start("tutorials-" . md5($_SERVER["QUERY_STRING"] ?? ""));
     if ($cacheFile === null) { loadingEnd(); exit; } // served from cache
 
+    require_once "includes/tutorial-renderer.php";
+
     $cipher = "BF-CBC";
     $iv_length = openssl_cipher_iv_length($cipher);
     $options = 0;
@@ -17,40 +19,16 @@
     $decryption_iv = "91011121";
     $decryption_key = "hfjfydjnvhbjfi";
 
-    // Helper: encrypt a value for URL params
-    function encParam($val, $cipher, $key, $opts, $iv) {
-        return str_replace('=', '[equal]', base64_encode(openssl_encrypt($val, $cipher, $key, $opts, $iv)));
-    }
-
-    // Helper: turn a filename into a human-readable title
-    function prettyName($filename) {
-        $name = pathinfo($filename, PATHINFO_FILENAME);
-        $name = str_replace(['_', '-'], ' ', $name);
-        $name = preg_replace('/\s+/', ' ', trim($name));
-        return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
-    }
-
-    // Helper: return cached thumbnail or fallback placeholder.
-    // Never generates thumbnails on page load — use api/generate-thumb.php instead.
-    function videoThumb($videoPath, $fallback = 'images/sample.png') {
-        $dir = dirname($videoPath);
-        $thumbDir = $dir . '/thumbs';
-        $base = pathinfo($videoPath, PATHINFO_FILENAME);
-        $thumbFile = $thumbDir . '/' . $base . '.jpg';
-
-        // Only return cached thumb — never generate on page load
-        if (file_exists($thumbFile)) {
-            return $thumbFile;
-        }
-        return $fallback;
-    }
+    $enc = [$cipher, $encryption_key, $options, $iv];
 
     // Encrypted GET-param keys (same as before)
-    $encryption2 = encParam("course", $cipher, $encryption_key, $options, $iv);
-    $videolink1  = encParam("videolink1",  $cipher, $encryption_key, $options, $iv);
-    $videoname1  = encParam("videoname1",  $cipher, $encryption_key, $options, $iv);
-    $videolink   = encParam("videolink",   $cipher, $encryption_key, $options, $iv);
-    $videoname   = encParam("videoname",   $cipher, $encryption_key, $options, $iv);
+    $encryption2 = tutRenderer_encParam("course", $cipher, $encryption_key, $options, $iv);
+    $videolink1  = tutRenderer_encParam("videolink1",  $cipher, $encryption_key, $options, $iv);
+    $videoname1  = tutRenderer_encParam("videoname1",  $cipher, $encryption_key, $options, $iv);
+    $videolink   = tutRenderer_encParam("videolink",   $cipher, $encryption_key, $options, $iv);
+    $videoname   = tutRenderer_encParam("videoname",   $cipher, $encryption_key, $options, $iv);
+
+    $encKeys = [$encryption2, $videolink1, $videoname1, $videolink, $videoname];
 
     $file = $_GET[$encryption2];
     $decryption = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $file)), $cipher, $decryption_key, $options, $iv);
@@ -60,9 +38,11 @@
     if (isset($_GET['seg'])   && $_GET['seg']   !== '') { $bcQuery .= '&seg='   . urlencode($_GET['seg']); }
     if (isset($_GET['topic']) && $_GET['topic'] !== '') { $bcQuery .= '&topic=' . urlencode($_GET['topic']); }
 
-    $dd2    = "videos/" . $decryption . "/";
-    $length = strlen($dd2);
-    $ff2    = glob($dd2 . "*");
+    $dd2 = "videos/" . $decryption . "/";
+
+    // FRE-54: Render only the first 20 sections (server-side pagination)
+    $pageLimit = 20;
+    $result = renderTutorialSections($dd2, 0, $pageLimit, $encKeys, $enc, $bcQuery);
 
     loadingEnd();
 ?>
@@ -72,88 +52,28 @@
     <span class="fa fa-fw fa-bookmark"></span><?php echo htmlspecialchars($decryption); ?> Tutorials
 </div>
 
-<?php
-    $videoExts  = ['mp4','mov','wmv','flv','avi','webm','mkv','f4v'];
-    $sectionIdx = 0;
-
-    foreach ($ff2 as $value) {
-        if (!is_dir($value)) continue;
-
-        $folderName  = substr($value, $length);
-        $subFiles    = glob($value . "/*");
-        $length12    = strlen($value . "/");
-
-        // Filter to video files only
-        $videoFiles = [];
-        foreach ($subFiles as $sf) {
-            $ext = strtolower(pathinfo($sf, PATHINFO_EXTENSION));
-            if (in_array($ext, $videoExts)) {
-                $videoFiles[] = $sf;
-            }
-        }
-        if (count($videoFiles) === 0) continue;
-
-        $sectionIdx++;
-
-        // Encrypted params for the section-level link (plays first video)
-        $encFolderName = encParam($folderName, $cipher, $encryption_key, $options, $iv);
-        $encFolderPath = encParam($value,      $cipher, $encryption_key, $options, $iv);
-        $sectionHref = "watch.php?&{$videolink1}=&{$videoname1}=&{$videolink}={$encFolderPath}&{$videoname}={$encFolderName}{$bcQuery}";
-
-        // Section thumbnail: use first video's auto-generated thumbnail
-        $firstVidThumb = videoThumb($videoFiles[0]);
-        $thumbSrc = htmlspecialchars($firstVidThumb);
-        $lazyAttr = ($firstVidThumb === 'images/sample.png') ? ' data-video-src="' . htmlspecialchars($videoFiles[0]) . '"' : '';
-?>
-
-<div class="tut-section" id="tut-sec-<?php echo $sectionIdx; ?>">
-    <button class="tut-section-toggle" onclick="toggleSection(this)" aria-expanded="false">
-        <img src="<?php echo $thumbSrc; ?>" alt="" class="tut-thumb"<?php echo $lazyAttr; ?>>
-        <div class="tut-section-info">
-            <p class="tut-section-title"><?php echo htmlspecialchars(prettyName($folderName)); ?></p>
-            <div class="tut-section-count"><?php echo count($videoFiles); ?> video<?php echo count($videoFiles) !== 1 ? 's' : ''; ?></div>
-        </div>
-        <span class="fa fa-chevron-down tut-chevron"></span>
-    </button>
-    <div class="tut-section-body">
-        <ul class="tut-video-list">
-<?php
-        $vidNum = 0;
-        foreach ($videoFiles as $vf) {
-            $vidNum++;
-            $baseName = substr($vf, $length12);
-            $ext      = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
-
-            $encFilePath = encParam($value . "/", $cipher, $encryption_key, $options, $iv);
-            $encFileName = encParam($folderName,   $cipher, $encryption_key, $options, $iv);
-            $encVidPath  = encParam($vf,           $cipher, $encryption_key, $options, $iv);
-            $encVidName  = encParam($baseName,     $cipher, $encryption_key, $options, $iv);
-            $vidHref = "watch.php?&{$videolink}={$encFilePath}&{$videoname}={$encFileName}&{$videolink1}={$encVidPath}&{$videoname1}={$encVidName}{$bcQuery}";
-            $vidThumb = videoThumb($vf);
-            $vidThumbSrc = htmlspecialchars($vidThumb);
-            $vidLazyAttr = ($vidThumb === 'images/sample.png') ? ' data-video-src="' . htmlspecialchars($vf) . '"' : '';
-?>
-            <li class="tut-video-item">
-                <span class="tut-vid-num"><?php echo $vidNum; ?></span>
-                <img src="<?php echo $vidThumbSrc; ?>" alt="" class="tut-vid-thumb"<?php echo $vidLazyAttr; ?>>
-                <a href="<?php echo $vidHref; ?>" class="tut-vid-name" title="<?php echo htmlspecialchars($baseName); ?>">
-                    <?php echo htmlspecialchars(prettyName($baseName)); ?>
-                </a>
-                <span class="tut-vid-ext"><?php echo $ext; ?></span>
-            </li>
-<?php   } ?>
-        </ul>
-    </div>
+<div id="tutorial-sections">
+<?php echo $result['html']; ?>
 </div>
+
+<?php if ($result['total'] === 0): ?>
+    <div class="tut-empty">No tutorials found in this category.</div>
+<?php elseif ($result['hasMore']): ?>
+<div id="load-more-container"
+     data-course="<?php echo htmlspecialchars($file); ?>"
+     data-offset="<?php echo $result['loaded']; ?>"
+     data-total="<?php echo $result['total']; ?>"
+     data-seg="<?php echo htmlspecialchars($_GET['seg'] ?? ''); ?>"
+     data-topic="<?php echo htmlspecialchars($_GET['topic'] ?? ''); ?>">
+    <button id="load-more-btn" onclick="loadMoreSections()">
+        Load More (showing <?php echo $result['loaded']; ?> of <?php echo $result['total']; ?> sections)
+    </button>
+</div>
+<?php endif; ?>
 
 <?php
     if (ob_get_level()) ob_flush();
     flush();
-} // end foreach
-
-    if ($sectionIdx === 0) {
-        echo '<div class="tut-empty">No tutorials found in this category.</div>';
-    }
 ?>
 
 <script>
@@ -164,12 +84,72 @@ function toggleSection(btn) {
     btn.setAttribute('aria-expanded', expanded);
 }
 
+function loadMoreSections() {
+    var container = document.getElementById('load-more-container');
+    var btn = document.getElementById('load-more-btn');
+    if (!container || !btn) return;
+
+    var course = container.getAttribute('data-course');
+    var offset = parseInt(container.getAttribute('data-offset'), 10);
+    var total  = parseInt(container.getAttribute('data-total'), 10);
+    var seg    = container.getAttribute('data-seg');
+    var topic  = container.getAttribute('data-topic');
+
+    // Show loading state
+    btn.disabled = true;
+    btn.innerHTML = '<span class="load-more-spinner"></span> Loading...';
+
+    var url = 'api/tutorials-page.php?course=' + encodeURIComponent(course)
+            + '&offset=' + offset + '&limit=20';
+    if (seg)   url += '&seg='   + encodeURIComponent(seg);
+    if (topic) url += '&topic=' + encodeURIComponent(topic);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                // Append new sections before the Load More button
+                var sections = document.getElementById('tutorial-sections');
+                sections.insertAdjacentHTML('beforeend', data.html);
+
+                // Trigger lazy-load for any new thumbnail placeholders
+                initLazyThumbs(sections);
+
+                if (data.hasMore) {
+                    container.setAttribute('data-offset', data.loaded);
+                    btn.disabled = false;
+                    btn.textContent = 'Load More (showing ' + data.loaded + ' of ' + data.total + ' sections)';
+                } else {
+                    container.style.display = 'none';
+                }
+            } catch(e) {
+                btn.disabled = false;
+                btn.textContent = 'Error loading — tap to retry';
+            }
+        } else {
+            btn.disabled = false;
+            btn.textContent = 'Error loading — tap to retry';
+        }
+    };
+    xhr.onerror = function() {
+        btn.disabled = false;
+        btn.textContent = 'Error loading — tap to retry';
+    };
+    xhr.send();
+}
+
 // Lazy-load thumbnails for videos that don't have cached thumbs yet
-(function() {
-    var imgs = document.querySelectorAll('img[data-video-src]');
+function initLazyThumbs(root) {
+    var imgs = (root || document).querySelectorAll('img[data-video-src]');
     var queue = [];
     for (var i = 0; i < imgs.length; i++) {
-        queue.push(imgs[i]);
+        // Only queue images that haven't been processed
+        if (!imgs[i].getAttribute('data-thumb-queued')) {
+            imgs[i].setAttribute('data-thumb-queued', '1');
+            queue.push(imgs[i]);
+        }
     }
     function processNext() {
         if (queue.length === 0) return;
@@ -196,8 +176,46 @@ function toggleSection(btn) {
     // Process 2 thumbnails at a time
     processNext();
     processNext();
-})();
+}
+
+// Initial lazy-load on page load
+initLazyThumbs();
 </script>
+
+<style>
+#load-more-container {
+    text-align: center;
+    padding: 20px 0 30px;
+}
+#load-more-btn {
+    background: #6366f1;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#load-more-btn:hover:not(:disabled) {
+    background: #4f46e5;
+}
+#load-more-btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+.load-more-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: edupak-spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+</style>
 
 <?php
     // FRE-12: Breadcrumb

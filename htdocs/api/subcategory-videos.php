@@ -80,11 +80,11 @@ foreach ($videos as $row) {
     $vidNum++;
 
     // Normalize path: ensure forward slashes, strip leading slash
-    $filePath = str_replace('\\', '/', $row['file_path']);
+    $filePath = ltrim(str_replace(chr(92), '/', \$row['file_path']), '/');
     $filePath = ltrim($filePath, '/');
 
     $baseName  = basename($filePath);
-    $folderPath = dirname($filePath) . '/';
+    $folderPath = rtrim(dirname($filePath), '/') . '/';
     $folderName = $subcategory;
     $ext = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
 

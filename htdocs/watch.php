@@ -76,7 +76,7 @@
           : '';
   }
 
-  $dd2 = $file . "/";
+  $dd2 = rtrim($file, "/") . "/";
   $length = strlen($dd2);
   $ff2 = (glob($dd2 . "*", GLOB_BRACE));
   $ray = array();

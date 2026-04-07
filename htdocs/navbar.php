@@ -117,8 +117,8 @@ include_once __DIR__ . '/includes/auth.php';
       // Global base path for API calls — auto-detected from current URL
       window.EDUTEK_BASE = (function() {
         var p = window.location.pathname;
-        var idx = p.indexOf('/Edutek');
-        if (idx !== -1) return p.substring(0, idx + '/Edutek'.length);
+        var idx = p.toLowerCase().indexOf('/edutek');
+        if (idx !== -1) return p.substring(0, idx + '/edutek'.length);
         return '';
       })();
     </script>

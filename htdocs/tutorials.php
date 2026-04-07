@@ -3,9 +3,11 @@
 <?php
     // navbar
     include_once "navbar.php";
+    require_once "includes/loading.php";
+    loadingStart('Loading tutorials...');
     require_once "includes/page-cache.php";
     $cacheFile = pageCache_start("tutorials-" . md5($_SERVER["QUERY_STRING"] ?? ""));
-    if ($cacheFile === null) { exit; } // served from cache
+    if ($cacheFile === null) { loadingEnd(); exit; } // served from cache
 
     $cipher = "BF-CBC";
     $iv_length = openssl_cipher_iv_length($cipher);
@@ -28,43 +30,19 @@
         return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
     }
 
-    // Helper: generate a thumbnail from a video at the 10-second mark.
-    // Caches in a thumbs/ directory next to the video. Returns path or fallback.
+    // Helper: return cached thumbnail or fallback placeholder.
+    // Never generates thumbnails on page load — use api/generate-thumb.php instead.
     function videoThumb($videoPath, $fallback = 'images/sample.png') {
         $dir = dirname($videoPath);
         $thumbDir = $dir . '/thumbs';
         $base = pathinfo($videoPath, PATHINFO_FILENAME);
         $thumbFile = $thumbDir . '/' . $base . '.jpg';
 
-        // Return cached thumbnail if it exists
+        // Only return cached thumb — never generate on page load
         if (file_exists($thumbFile)) {
             return $thumbFile;
         }
-
-        // Ensure thumbs directory exists
-        if (!is_dir($thumbDir)) {
-            @mkdir($thumbDir, 0755, true);
-        }
-
-        // Generate thumbnail at 10s mark (fall back to 1s for short videos)
-        $cmd = sprintf(
-            'ffmpeg -ss 10 -i %s -frames:v 1 -update 1 -vf "scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2" -q:v 4 %s 2>/dev/null',
-            escapeshellarg($videoPath),
-            escapeshellarg($thumbFile)
-        );
-        @exec($cmd);
-
-        // If 10s failed (video shorter than 10s), try 1s
-        if (!file_exists($thumbFile)) {
-            $cmd = sprintf(
-                'ffmpeg -ss 1 -i %s -frames:v 1 -update 1 -vf "scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2" -q:v 4 %s 2>/dev/null',
-                escapeshellarg($videoPath),
-                escapeshellarg($thumbFile)
-            );
-            @exec($cmd);
-        }
-
-        return file_exists($thumbFile) ? $thumbFile : $fallback;
+        return $fallback;
     }
 
     // Encrypted GET-param keys (same as before)
@@ -85,6 +63,8 @@
     $dd2    = "videos/" . $decryption . "/";
     $length = strlen($dd2);
     $ff2    = glob($dd2 . "*");
+
+    loadingEnd();
 ?>
 
 <!-- Page header -->
@@ -123,11 +103,12 @@
         // Section thumbnail: use first video's auto-generated thumbnail
         $firstVidThumb = videoThumb($videoFiles[0]);
         $thumbSrc = htmlspecialchars($firstVidThumb);
+        $lazyAttr = ($firstVidThumb === 'images/sample.png') ? ' data-video-src="' . htmlspecialchars($videoFiles[0]) . '"' : '';
 ?>
 
 <div class="tut-section" id="tut-sec-<?php echo $sectionIdx; ?>">
     <button class="tut-section-toggle" onclick="toggleSection(this)" aria-expanded="false">
-        <img src="<?php echo $thumbSrc; ?>" alt="" class="tut-thumb">
+        <img src="<?php echo $thumbSrc; ?>" alt="" class="tut-thumb"<?php echo $lazyAttr; ?>>
         <div class="tut-section-info">
             <p class="tut-section-title"><?php echo htmlspecialchars(prettyName($folderName)); ?></p>
             <div class="tut-section-count"><?php echo count($videoFiles); ?> video<?php echo count($videoFiles) !== 1 ? 's' : ''; ?></div>
@@ -148,11 +129,13 @@
             $encVidPath  = encParam($vf,           $cipher, $encryption_key, $options, $iv);
             $encVidName  = encParam($baseName,     $cipher, $encryption_key, $options, $iv);
             $vidHref = "watch.php?&{$videolink}={$encFilePath}&{$videoname}={$encFileName}&{$videolink1}={$encVidPath}&{$videoname1}={$encVidName}{$bcQuery}";
-            $vidThumbSrc = htmlspecialchars(videoThumb($vf));
+            $vidThumb = videoThumb($vf);
+            $vidThumbSrc = htmlspecialchars($vidThumb);
+            $vidLazyAttr = ($vidThumb === 'images/sample.png') ? ' data-video-src="' . htmlspecialchars($vf) . '"' : '';
 ?>
             <li class="tut-video-item">
                 <span class="tut-vid-num"><?php echo $vidNum; ?></span>
-                <img src="<?php echo $vidThumbSrc; ?>" alt="" class="tut-vid-thumb">
+                <img src="<?php echo $vidThumbSrc; ?>" alt="" class="tut-vid-thumb"<?php echo $vidLazyAttr; ?>>
                 <a href="<?php echo $vidHref; ?>" class="tut-vid-name" title="<?php echo htmlspecialchars($baseName); ?>">
                     <?php echo htmlspecialchars(prettyName($baseName)); ?>
                 </a>
@@ -163,7 +146,10 @@
     </div>
 </div>
 
-<?php } // end foreach
+<?php
+    if (ob_get_level()) ob_flush();
+    flush();
+} // end foreach
 
     if ($sectionIdx === 0) {
         echo '<div class="tut-empty">No tutorials found in this category.</div>';
@@ -177,6 +163,40 @@ function toggleSection(btn) {
     var expanded = section.classList.contains('open');
     btn.setAttribute('aria-expanded', expanded);
 }
+
+// Lazy-load thumbnails for videos that don't have cached thumbs yet
+(function() {
+    var imgs = document.querySelectorAll('img[data-video-src]');
+    var queue = [];
+    for (var i = 0; i < imgs.length; i++) {
+        queue.push(imgs[i]);
+    }
+    function processNext() {
+        if (queue.length === 0) return;
+        var img = queue.shift();
+        var videoSrc = img.getAttribute('data-video-src');
+        if (!videoSrc) { processNext(); return; }
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'api/generate-thumb.php?video=' + encodeURIComponent(videoSrc), true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.thumb) {
+                        img.src = data.thumb;
+                        img.removeAttribute('data-video-src');
+                    }
+                } catch(e) {}
+            }
+            processNext();
+        };
+        xhr.onerror = function() { processNext(); };
+        xhr.send();
+    }
+    // Process 2 thumbnails at a time
+    processNext();
+    processNext();
+})();
 </script>
 
 <?php

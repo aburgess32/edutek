@@ -2,6 +2,8 @@
   <link href="css/tiles.css" rel="stylesheet">
 <?php
     include_once "navbar.php";
+    require_once "includes/loading.php";
+    loadingStart('Loading categories...');
     include_once "includes/tiles.php";
 
     $hostname = htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'localhost', ENT_QUOTES, 'UTF-8');
@@ -23,6 +25,8 @@
 
     // Light-colored segments need dark text on topic tiles
     $lightColors = ['#F7C948', '#F5D76E', '#FFD700'];
+
+    loadingEnd();
 ?>
 
 <div class="tiles-page">

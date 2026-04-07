@@ -235,12 +235,12 @@ $teacherId = (int)($user['id'] ?? 0);
     });
   })();
   </script>
-  <script src="/js/search-typeahead.js"></script>
-  <script src="/js/teacher-dashboard.js"></script>
-  <script src="/js/lesson-publish.js"></script>
-  <script src="/js/lesson-builder.js"></script>
-  <script src="/js/teacher-assignments.js"></script>
-  <script src="/js/teacher-students.js"></script>
-  <script src="/js/teacher-profile.js"></script>
+  <script src="js/search-typeahead.js"></script>
+  <script src="js/teacher-dashboard.js"></script>
+  <script src="js/lesson-publish.js"></script>
+  <script src="js/lesson-builder.js"></script>
+  <script src="js/teacher-assignments.js"></script>
+  <script src="js/teacher-students.js"></script>
+  <script src="js/teacher-profile.js"></script>
 </body>
 </html>

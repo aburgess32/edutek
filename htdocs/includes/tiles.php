@@ -185,7 +185,7 @@ function getSegments(): array
             $segments[$segKey]['topics'][] = [
                 'slug'         => 'playlist-' . $plan['id'],
                 'label'        => $plan['title'],
-                'icon'         => $plan['icon'] ?? '📚',
+                'icon'         => $plan['icon'] ?? 'ðŸ“š',
                 'color'        => $plan['color'] ?? '#4ECDC4',
                 'type'         => 'playlist',
                 'content_path' => null,
@@ -252,13 +252,13 @@ function buildTopicHref(array $topic, string $hostname, string $segKey = '', str
         $bcParams .= '&topic=' . urlencode($topicSlug);
     }
 
-    // Port-based service links (no breadcrumb context — external service)
+    // Port-based service links (no breadcrumb context â€” external service)
     if ($href !== null && strpos($href, '__PORT_') === 0) {
         $port = str_replace(['__PORT_', '__'], '', $href);
         return 'http://' . $hostname . ':' . $port . '/';
     }
 
-    // Explicit href (direct link) — append breadcrumb context if it's an internal PHP page
+    // Explicit href (direct link) â€” append breadcrumb context if it's an internal PHP page
     if ($href !== null && $href !== '') {
         if ($bcParams !== '' && preg_match('/\.php/', $href)) {
             $sep = (strpos($href, '?') !== false) ? '&' : '?';
@@ -279,10 +279,10 @@ function buildTopicHref(array $topic, string $hostname, string $segKey = '', str
         return $route;
     }
 
-    // Video type with null href — generate encrypted tutorials.php link
+    // Video type with null href â€” generate encrypted tutorials.php link
     if ($type === 'video') {
         $contentPath = $topic['content_path'] ?? '';
-        // Extract folder name from content_path (e.g. "videos/Primary Multiplication" → "Primary Multiplication")
+        // Extract folder name from content_path (e.g. "videos/Primary Multiplication" â†’ "Primary Multiplication")
         $folderName = basename($contentPath);
         if ($folderName === '') {
             $folderName = $label;
@@ -380,7 +380,7 @@ function getAllContent(): array
             continue;
         }
         $port = $svc['port'] ?? null;
-        $href = $port ? ('http://' . $hostname . ':' . $port . '/') : '#';
+        $href = $svc['href'] ?? ($port ? ('http://' . $hostname . ':' . $port . '/') : '#');
 
         $items[] = [
             'label' => $svc['label'] ?? $slug,
@@ -492,7 +492,7 @@ function getFeaturedContent(): array
             }
         }
 
-        // Fallback bg_image: topic image → segment image → default header
+        // Fallback bg_image: topic image â†’ segment image â†’ default header
         if (empty($item['bg_image']) || !file_exists(__DIR__ . '/../' . $item['bg_image'])) {
             $topic = $topic ?? findTopicBySlugGlobal($item['slug'] ?? '');
             $item['bg_image'] = ($topic['image'] ?? '') ?: 'assets/img/header.jpg';

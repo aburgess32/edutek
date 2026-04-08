@@ -240,7 +240,8 @@ function generateThumbnail(string $videoPath, int $timeout = 15): ?string
  */
 function indexContent(string $contentRoot, int $maxThumbnails = 0): array
 {
-    $contentRoot = rtrim($contentRoot, '/');
+    // Normalize to forward slashes for cross-platform consistency
+    $contentRoot = rtrim(str_replace('\\', '/', $contentRoot), '/');
 
     if (!is_dir($contentRoot)) {
         return [
@@ -254,8 +255,9 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
     }
 
     // Resolve htdocs root for computing web-accessible relative paths
-    $htdocsRoot = realpath(__DIR__ . '/..');
-    $realContentRoot = realpath($contentRoot);
+    // Normalize to forward slashes (Windows realpath returns backslashes)
+    $htdocsRoot = str_replace('\\', '/', realpath(__DIR__ . '/..'));
+    $realContentRoot = str_replace('\\', '/', realpath($contentRoot));
 
     // Determine the web-relative prefix.
     // If the content dir is inside htdocs, strip htdocs path to get "videos/..."
@@ -316,7 +318,7 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
             continue;
         }
 
-        $fullPath  = $fileInfo->getPathname();
+        $fullPath  = str_replace('\\', '/', $fileInfo->getPathname());
         $extension = strtolower($fileInfo->getExtension());
 
         // Only index known content types

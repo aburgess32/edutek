@@ -802,13 +802,14 @@
         var playerSection = el('div', { className: 'sr-preview-player' });
         var videoEl = null;
 
-        if (result.content_type === 'video' && result.file_path) {
+        var videoPath = result.file_path || result.content_id || '';
+        if (result.content_type === 'video' && videoPath) {
             videoEl = document.createElement('video');
             videoEl.className = 'sr-preview-video';
             videoEl.controls = true;
             videoEl.preload = 'metadata';
             videoEl.setAttribute('controlsList', 'nodownload');
-            videoEl.src = '/' + result.file_path.replace(/^\/+/, '');
+            videoEl.src = '/' + videoPath.replace(/^\/+/, '');
             playerSection.appendChild(videoEl);
 
             // Playback speed controls

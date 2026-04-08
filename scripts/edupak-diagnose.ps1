@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # EduPak Diagnostic Suite
 # ============================================================
 # Tests all critical functionality after an update.
@@ -92,6 +92,45 @@ try {
     if ($LASTEXITCODE -eq 0) { $dbSt = "PASS"; $dbDet = "edupak DB accessible" } else { $dbDet = "edupak DB not found" }
 } catch { $dbDet = $_.Exception.Message }
 $results += [PSCustomObject]@{ Test = "edupak database"; Status = $dbSt; HTTP = "N/A"; Detail = $dbDet }
+
+
+# ── External AP (Joowin CF-EW72) checks ──
+$gw = $null
+$apSt = "FAIL"; $apDet = ""
+try {
+    $gw = (Get-NetIPConfiguration -InterfaceAlias "Ethernet" -ErrorAction SilentlyContinue).IPv4DefaultGateway.NextHop
+    if ($gw) {
+        $ping = Test-Connection -ComputerName $gw -Count 2 -Quiet
+        if ($ping) { $apSt = "PASS"; $apDet = "AP at $gw" } else { $apDet = "AP $gw not responding" }
+    } else { $apDet = "No Ethernet gateway found" }
+} catch { $apDet = $_.Exception.Message }
+$results += [PSCustomObject]@{ Test = "AP gateway ping"; Status = $apSt; HTTP = "N/A"; Detail = $apDet }
+
+$apAdminSt = "FAIL"; $apAdminDet = ""
+try {
+    if ($gw) {
+        $r = Invoke-WebRequest -Uri "http://$gw/" -TimeoutSec 5 -UseBasicParsing
+        if ($r.StatusCode -eq 200) { $apAdminSt = "PASS"; $apAdminDet = "Admin at http://$gw/" } else { $apAdminDet = "HTTP $($r.StatusCode)" }
+    } else { $apAdminDet = "Skipped - no gateway" }
+} catch { $apAdminDet = $_.Exception.Message }
+$results += [PSCustomObject]@{ Test = "AP admin panel"; Status = $apAdminSt; HTTP = "N/A"; Detail = $apAdminDet }
+
+$netSt = "FAIL"; $netDet = ""
+try {
+    $ethIP = (Get-NetIPAddress -InterfaceAlias "Ethernet" -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress
+    if ($ethIP) {
+        $r = Invoke-WebRequest -Uri "http://$ethIP/" -TimeoutSec 10 -UseBasicParsing
+        if ($r.StatusCode -eq 200) { $netSt = "PASS"; $netDet = "App at http://$ethIP/" } else { $netDet = "HTTP $($r.StatusCode)" }
+    } else { $netDet = "No Ethernet IP found" }
+} catch { $netDet = $_.Exception.Message }
+$results += [PSCustomObject]@{ Test = "App via network IP"; Status = $netSt; HTTP = "N/A"; Detail = $netDet }
+
+$fwSt = "FAIL"; $fwDet = ""
+try {
+    $rules = Get-NetFirewallRule -Direction Inbound -Action Allow -Enabled True -ErrorAction SilentlyContinue | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -eq 80 -or $_.LocalPort -eq "Any" }
+    if ($rules) { $fwSt = "PASS"; $fwDet = "Port 80 inbound allowed" } else { $fwDet = "No inbound rule for port 80" }
+} catch { $fwDet = $_.Exception.Message }
+$results += [PSCustomObject]@{ Test = "Firewall port 80"; Status = $fwSt; HTTP = "N/A"; Detail = $fwDet }
 
 # Results
 Write-Host ""

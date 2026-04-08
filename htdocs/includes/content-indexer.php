@@ -330,9 +330,10 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
         $relativePath = ltrim(str_replace($contentRoot, '', $fullPath), '/');
         $parts        = explode('/', $relativePath);
 
-        // Extract category from first-level folder, subcategory from second-level
-        $category    = (count($parts) >= 2) ? $parts[0] : '';
-        $subcategory = (count($parts) >= 3) ? $parts[1] : '';
+        // First-level folder is the content-type bucket (videos/, khan/, etc.)
+        // Actual categories start at the second level
+        $category    = (count($parts) >= 3) ? $parts[1] : '';
+        $subcategory = (count($parts) >= 4) ? $parts[2] : '';
 
         // Build web-accessible path (e.g. "videos/Math/Algebra/intro.mp4")
         $webPath = $webPrefix ? $webPrefix . '/' . $relativePath : $relativePath;

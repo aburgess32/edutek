@@ -798,7 +798,12 @@
             videoEl.controls = true;
             videoEl.preload = 'metadata';
             videoEl.setAttribute('controlsList', 'nodownload');
-            videoEl.src = videoPath.replace(/^\/+/, '');
+            // Normalize path: decode any existing %xx sequences, then
+            // re-encode so spaces, parens, brackets etc. resolve correctly
+            // on all browsers (especially low-spec Android tablets).
+            var cleanPath = videoPath.replace(/^\/+/, '');
+            try { cleanPath = decodeURI(cleanPath); } catch(e) {}
+            videoEl.src = encodeURI(cleanPath);
             playerSection.appendChild(videoEl);
 
             // Playback speed controls

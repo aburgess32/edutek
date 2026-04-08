@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 # EduPak Diagnostic Suite
 # ============================================================
 # Tests all critical functionality after an update.
@@ -13,7 +13,14 @@
 # ============================================================
 
 $ErrorActionPreference = "Continue"
-$baseUrl = "http://localhost/Edutek"
+# Auto-detect: if DocumentRoot points to Edutek/, use root; otherwise use /Edutek
+$XR = if (Test-Path "D:\xampp") { "D:\xampp" } elseif (Test-Path "C:\xampp") { "C:\xampp" } else { "" }
+$httpdConf = "$XR\apache\conf\httpd.conf"
+if ((Test-Path $httpdConf) -and (Get-Content $httpdConf -Raw) -match 'DocumentRoot ".*?/Edutek"') {
+    $baseUrl = "http://localhost"
+} else {
+    $baseUrl = "http://localhost/Edutek"
+}
 $results = @()
 
 function Test-Endpoint {
@@ -50,10 +57,9 @@ $results += Test-Endpoint -Name "Watch page" -Url "$baseUrl/watch.php"
 $results += Test-Endpoint -Name "Audiobooks" -Url "$baseUrl/audiobooks.php"
 $results += Test-Endpoint -Name "Khan Academy" -Url "$baseUrl/khan/index.html"
 $results += Test-Endpoint -Name "Wikipedia" -Url "$baseUrl/Wiki/index.html"
-$results += Test-Endpoint -Name "Kiwix" -Url "$baseUrl/Kiwix/"
+$results += Test-Endpoint -Name "Kiwix" -Url "$baseUrl/kiwix/"
 
 # File system checks
-$XR = if (Test-Path "D:\xampp") { "D:\xampp" } elseif (Test-Path "C:\xampp") { "C:\xampp" } else { "" }
 $AD = "$XR\htdocs\Edutek"
 
 $envSt = if (Test-Path "$AD\.env") { "PASS" } else { "FAIL" }
@@ -94,7 +100,7 @@ try {
 $results += [PSCustomObject]@{ Test = "edupak database"; Status = $dbSt; HTTP = "N/A"; Detail = $dbDet }
 
 
-# ── External AP (Joowin CF-EW72) checks ──
+# â”€â”€ External AP (Joowin CF-EW72) checks â”€â”€
 $gw = $null
 $apSt = "FAIL"; $apDet = ""
 try {

@@ -188,6 +188,9 @@ try {
     }
 
     // Log the search query for dashboard analytics (FRE-39)
+    // FRE-55: Allow clients to suppress logging for intermediate keystrokes
+    $shouldLog = !isset($_GET['log']) || $_GET['log'] !== '0';
+    if ($shouldLog) {
     try {
         // Ensure search_log table exists (auto-create on first use)
         $pdo->exec("
@@ -244,6 +247,7 @@ try {
             error_log('search_log fallback insert failed: ' . $e2->getMessage());
         }
     }
+    } // end $shouldLog
 
     echo json_encode([
         'results' => $items,

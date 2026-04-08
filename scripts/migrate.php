@@ -53,12 +53,12 @@ ensure_migrations_table($pdo);
 $command = $argv[1] ?? 'help';
 $arg2    = $argv[2] ?? null;
 
-match ($command) {
-    'up'       => cmd_up($pdo),
-    'status'   => cmd_status($pdo),
-    'rollback' => cmd_rollback($pdo, (int) ($arg2 ?? 1)),
-    default    => cmd_help(),
-};
+switch ($command) {
+    case 'up': cmd_up($pdo); break;
+    case 'status': cmd_status($pdo); break;
+    case 'rollback': cmd_rollback($pdo, (int) ($arg2 ?? 1)); break;
+    default: cmd_help(); break;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Commands
@@ -317,7 +317,7 @@ function db_connect(): PDO
     $pass = getenv('DB_PASS') ?: (defined('DB_PASS') ? DB_PASS : '');
     $port = getenv('DB_PORT') ?: (defined('DB_PORT') ? DB_PORT : '3306');
 
-    $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
+    $dsn = "mysql:host={$host}port={$port};dbname={$name};charset=utf8mb4";
 
     try {
         $pdo = new PDO($dsn, $user, $pass, [
@@ -410,7 +410,7 @@ function output(string $text, string $colour = ''): void
     $codes = ['green' => "\033[32m", 'yellow' => "\033[33m", 'red' => "\033[31m"];
     $reset = "\033[0m";
 
-    if ($colour && isset($codes[$colour]) && posix_isatty(STDOUT)) {
+    if ($colour && isset($codes[$colour]) && function_exists('posix_isatty') && posix_isatty(STDOUT)) {
         echo $codes[$colour] . $text . $reset . PHP_EOL;
     } else {
         echo $text . PHP_EOL;

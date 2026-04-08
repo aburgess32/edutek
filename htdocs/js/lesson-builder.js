@@ -45,7 +45,7 @@
     // API helpers
     // ─────────────────────────────────────────────────────────────────────────
     function apiGet(action, params) {
-        var url = '/api/lesson_plans.php?action=' + encodeURIComponent(action);
+        var url = (window.EDUTEK_BASE || '') + '/api/lesson_plans.php?action=' + encodeURIComponent(action);
         if (params) {
             Object.keys(params).forEach(function (k) {
                 url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
@@ -63,12 +63,12 @@
                 body.append(k, data[k]);
             });
         }
-        return fetch('/api/lesson_plans.php', { method: 'POST', body: body })
+        return fetch((window.EDUTEK_BASE || '') + '/api/lesson_plans.php', { method: 'POST', body: body })
             .then(function (r) { return r.json(); });
     }
 
     function searchApi(term) {
-        return fetch('/api/search.php?q=' + encodeURIComponent(term))
+        return fetch((window.EDUTEK_BASE || '') + '/api/search.php?q=' + encodeURIComponent(term))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 // Support both old array format and new {results, total, query} format
@@ -1228,7 +1228,7 @@
         var listEl = document.getElementById('assign-students');
         if (!listEl) return;
 
-        fetch('/api/teacher/students.php?action=list')
+        fetch((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=list')
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 var students = data.students || [];
@@ -1261,7 +1261,7 @@
         var panelEl = document.getElementById('assign-panel-groups');
         if (!panelEl) return;
 
-        fetch('/api/teacher/groups.php?action=list')
+        fetch((window.EDUTEK_BASE || '') + '/api/teacher/groups.php?action=list')
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 var groups = data.groups || [];
@@ -1334,7 +1334,7 @@
         body.append('student_ids', JSON.stringify(studentIds));
         body.append('group_ids', JSON.stringify(groupIds));
 
-        fetch('/api/lesson_assignments.php', { method: 'POST', body: body })
+        fetch((window.EDUTEK_BASE || '') + '/api/lesson_assignments.php', { method: 'POST', body: body })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.ok) {

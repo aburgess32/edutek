@@ -5,17 +5,23 @@
 <?php
     //nabvbar
     include_once"navbar.php";
-    //nabvbar
+    require_once "includes/loading.php";
+    loadingStart('Loading music...');
+    require_once "includes/page-cache.php";
+    $cacheFile = pageCache_start("music-" . md5($_SERVER["QUERY_STRING"] ?? ""));
+    if ($cacheFile === null) { loadingEnd(); exit; }
+
+    loadingEnd();
     ?>
-    
+
         <!--contens are here-->
-        
+
         <!--result found number-->
     <div class="SaveWrapper">
         <span class="fa fa-fw fa-bookmark"></span>Gosple Music
     </div>
         <!--//result found number-->
-        
+
         <?php
         $cipher = "BF-CBC";
         $iv_length = openssl_cipher_iv_length($cipher);
@@ -31,22 +37,15 @@
         $videoname = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname", $cipher, $encryption_key, $options, $iv)));
 
         $dd2 = "videos/Music/";
+        $audioExts = ['mp3', 'wav', 'wma', 'm4a'];
 
-        $ff2 = (glob($dd2 . "*"));
+        $ff2 = glob($dd2 . "*");
         $length = strlen($dd2);
         foreach ($ff2 as $value) {
             if (is_dir($value)) {
-                $f2a = (scandir($value));
-       //echo count($ff2);
-       //$folders = 0;
-                $files1 = 0;
-                foreach ($f2a as $vala) {
-                         $exta = pathinfo($vala, PATHINFO_EXTENSION);
-
-                    if ($exta == 'mp3' or $exta == 'wav' or $exta == 'wma' or $exta == 'mp3' or $exta == 'm4a') {
-                        $files1++;
-                    }
-                }
+                // Single glob with extension filter instead of scandir + manual filter
+                $audioFiles = glob($value . "/*.{" . implode(',', $audioExts) . "}", GLOB_BRACE);
+                $files1 = count($audioFiles);
                 if ($files1 > 0) {
                            $encryptvalue = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value, $cipher, $encryption_key, $options, $iv)));
                            $value1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(substr($value, $length), $cipher, $encryption_key, $options, $iv)));
@@ -62,12 +61,11 @@
 					<b class="rtitle"><b>' . strtoupper(substr($value, $length)) . '</b></b>
 				</p>
 				<label class="rdesc">
-					<small>(' . count(glob($value . "/*", GLOB_BRACE)) . ' Parts)</small>
+					<small>(' . $files1 . ' Parts)</small>
 				</label>
 			</a>
 		</div>
 	</div>';
-                } else {
                 }
             }
         }
@@ -75,4 +73,5 @@
 
 <?php
     include_once"footer.php";
+    pageCache_end($cacheFile);
 ?>

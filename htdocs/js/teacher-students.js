@@ -99,7 +99,7 @@
   // ──────────────────────────────────────────────────────────
 
   function loadStudents() {
-    var url = '/api/teacher/students.php?action=list&sort=' + state.sortBy +
+    var url = (window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=list&sort=' + state.sortBy +
       '&page=' + state.page + '&per_page=' + state.perPage;
     if (state.activeGroupFilter !== null) url += '&group_id=' + state.activeGroupFilter;
     if (state.search) url += '&search=' + encodeURIComponent(state.search);
@@ -112,7 +112,7 @@
   }
 
   function loadGroups() {
-    return api('/api/teacher/groups.php?action=list').then(function (data) {
+    return api((window.EDUTEK_BASE || '') + '/api/teacher/groups.php?action=list').then(function (data) {
       state.groups = data.groups || [];
       state.ungroupedCount = data.ungrouped_count || 0;
     });
@@ -408,7 +408,7 @@
         var sid = parseInt(this.getAttribute('data-sid'), 10);
         var name = this.getAttribute('data-name');
         if (confirm('Remove ' + name + ' from your student list? They can still use EduPak.')) {
-          api('/api/teacher/students.php?action=remove', {
+          api((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=remove', {
             method: 'POST',
             body: JSON.stringify({ action: 'remove', student_id: sid }),
           }).then(function () {
@@ -442,7 +442,7 @@
         var groupId = parseInt(gid, 10);
         var label = groupId === 0 ? 'Ungrouped' : this.options[this.selectedIndex].textContent;
         if (confirm('Move ' + ids.length + ' student(s) to "' + label + '"?')) {
-          api('/api/teacher/students.php?action=batch_group', {
+          api((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=batch_group', {
             method: 'POST',
             body: JSON.stringify({ action: 'batch_group', student_ids: ids, group_id: groupId || null }),
           }).then(function () {
@@ -460,7 +460,7 @@
         var ids = selectedIds();
         if (ids.length === 0) return;
         if (confirm('Remove ' + ids.length + ' student(s) from your list?')) {
-          api('/api/teacher/students.php?action=remove_bulk', {
+          api((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=remove_bulk', {
             method: 'POST',
             body: JSON.stringify({ action: 'remove_bulk', student_ids: ids }),
           }).then(function () {
@@ -485,7 +485,7 @@
   // ──────────────────────────────────────────────────────────
 
   function openAddModal() {
-    api('/api/teacher/students.php?action=available').then(function (data) {
+    api((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=available').then(function (data) {
       var students = data.students || [];
       var overlay = document.createElement('div');
       overlay.className = 'stu-modal-overlay';
@@ -590,7 +590,7 @@
             if (ids.length === 0) return;
             assignBtn.disabled = true;
             assignBtn.textContent = 'Assigning ' + ids.length + '...';
-            api('/api/teacher/students.php?action=assign', {
+            api((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=assign', {
               method: 'POST',
               body: JSON.stringify({ action: 'assign', student_ids: ids }),
             }).then(function () {
@@ -695,7 +695,7 @@
       goBtn.textContent = 'Importing...';
       $('#stu-import-result', overlay).innerHTML = '<span class="stu-import-info">Processing...</span>';
 
-      api('/api/teacher/students.php?action=import_csv', {
+      api((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=import_csv', {
         method: 'POST',
         body: JSON.stringify({ action: 'import_csv', csv_text: text }),
       }).then(function (res) {
@@ -728,7 +728,7 @@
   // ──────────────────────────────────────────────────────────
 
   function openDetail(studentId) {
-    api('/api/teacher/students.php?action=detail&id=' + studentId).then(function (s) {
+    api((window.EDUTEK_BASE || '') + '/api/teacher/students.php?action=detail&id=' + studentId).then(function (s) {
       var overlay = document.createElement('div');
       overlay.className = 'stu-modal-overlay stu-detail-overlay';
 
@@ -837,12 +837,12 @@
         groupSel.addEventListener('change', function () {
           var gid = parseInt(this.value, 10);
           if (gid) {
-            api('/api/teacher/groups.php?action=assign', {
+            api((window.EDUTEK_BASE || '') + '/api/teacher/groups.php?action=assign', {
               method: 'POST',
               body: JSON.stringify({ action: 'assign', group_id: gid, student_ids: [studentId] }),
             }).then(reload);
           } else {
-            api('/api/teacher/groups.php?action=unassign', {
+            api((window.EDUTEK_BASE || '') + '/api/teacher/groups.php?action=unassign', {
               method: 'POST',
               body: JSON.stringify({ action: 'unassign', student_id: studentId }),
             }).then(reload);
@@ -912,7 +912,7 @@
           var gid = parseInt(this.getAttribute('data-gid'), 10);
           var name = this.getAttribute('data-name');
           if (confirm('Delete "' + name + '"? Members will become ungrouped.')) {
-            api('/api/teacher/groups.php?action=delete', {
+            api((window.EDUTEK_BASE || '') + '/api/teacher/groups.php?action=delete', {
               method: 'POST',
               body: JSON.stringify({ action: 'delete', id: gid }),
             }).then(function () {
@@ -931,7 +931,7 @@
           var name = nameInput.value.trim();
           if (!name) { nameInput.focus(); return; }
           createBtn.disabled = true;
-          api('/api/teacher/groups.php?action=create', {
+          api((window.EDUTEK_BASE || '') + '/api/teacher/groups.php?action=create', {
             method: 'POST',
             body: JSON.stringify({ action: 'create', name: name, color: colorInput.value }),
           }).then(function () {

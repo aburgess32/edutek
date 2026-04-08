@@ -15,7 +15,7 @@ include_once __DIR__ . '/includes/auth.php';
 
 // Already logged in? Go home
 if (isLoggedIn()) {
-    header('Location: /');
+    header('Location: index.php');
     exit;
 }
 ?>

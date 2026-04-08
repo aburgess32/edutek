@@ -174,7 +174,7 @@ function handleStudentDetail(PDO $pdo): void
                cm.title AS content_title, cm.content_type, cm.duration_seconds,
                cm.thumbnail_path
         FROM lesson_progress lp
-        LEFT JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_0900_ai_ci = lp.content_id COLLATE utf8mb4_0900_ai_ci
+        LEFT JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_general_ci = lp.content_id COLLATE utf8mb4_general_ci
         WHERE lp.assignment_id = :aid AND lp.student_id = :sid
         ORDER BY lp.id ASC
     ");

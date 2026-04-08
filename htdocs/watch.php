@@ -2,8 +2,9 @@
     include_once "includes/auth.php";
 ?>
   <!-- FRE-41: Watch Page Facelift — Fonts + CSS -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="css/WatchVideos.css" rel="stylesheet">
+  <!-- Google Fonts: Plus Jakarta Sans (skip on offline devices) -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" onerror="this.remove()">
+  <!-- WatchVideos.css moved after navbar to prevent override -->
   <script src="ajax/jquery.min.js"></script>
     <script src="ajax/popper.min.js"></script>
     <script src="ajax/ajax.js"></script>
@@ -11,6 +12,10 @@
 <?php
     //navbar
     include_once"navbar.php";
+?>
+  <!-- FRE-54: Load WatchVideos.css AFTER navbar to ensure it overrides base styles -->
+  <link href="css/WatchVideos.css" rel="stylesheet">
+<?php
     $cipher = "BF-CBC";
   $iv_length = openssl_cipher_iv_length($cipher);
   $options = 0;
@@ -71,7 +76,7 @@
           : '';
   }
 
-  $dd2 = $file . "/";
+  $dd2 = rtrim($file, "/") . "/";
   $length = strlen($dd2);
   $ff2 = (glob($dd2 . "*", GLOB_BRACE));
   $ray = array();
@@ -569,7 +574,7 @@ if (!empty($filea)) {
     var thumbnailPath = <?php echo json_encode($cwThumbPath); ?>;
     var lastReported = 0;
     var INTERVAL = 30;
-    var apiUrl = '/api/update_progress.php';
+    var apiUrl = (window.EDUTEK_BASE || '') + '/api/update_progress.php';
 
     function sendProgress() {
         if (!video.duration || video.duration <= 0) return;

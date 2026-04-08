@@ -5,17 +5,23 @@
 <?php
     //nabvbar
     include_once"navbar.php";
-    //nabvbar
+    require_once "includes/loading.php";
+    loadingStart('Loading books...');
+    require_once "includes/page-cache.php";
+    $cacheFile = pageCache_start("books-" . md5($_SERVER["QUERY_STRING"] ?? ""));
+    if ($cacheFile === null) { loadingEnd(); exit; }
+
+    loadingEnd();
     ?>
-    
+
         <!--contens are here-->
-        
+
         <!--result found number-->
     <div class="SaveWrapper">
         <span class="fa fa-fw fa-bookmark"></span> Books
     </div>
         <!--//result found number-->
-        
+
         <?php
 
         $cipher = "BF-CBC";
@@ -33,18 +39,12 @@
 
         $dd2 = "videos/Books/";
 
-        $ff2 = (glob($dd2 . "*"));
+        $ff2 = glob($dd2 . "*");
         foreach ($ff2 as $value) {
             if (is_dir($value)) {
-                $f2a = (scandir($value));
-                $files1 = 0;
-                foreach ($f2a as $vala) {
-                         $exta = pathinfo($vala, PATHINFO_EXTENSION);
-
-                    if ($exta == 'pdf') {
-                        $files1++;
-                    }
-                }
+                // Single glob with extension filter instead of scandir + manual filter
+                $pdfFiles = glob($value . "/*.pdf");
+                $files1 = count($pdfFiles);
                 if ($files1 > 0) {
                             $encryptvalue = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value, $cipher, $encryption_key, $options, $iv)));
                            $value1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt(substr($value, 16), $cipher, $encryption_key, $options, $iv)));
@@ -59,12 +59,11 @@
 					<b class="rtitle"><b>' . substr($value, 13) . '</b></b>
 				</p>
 				<label class="rdesc">
-					<small>(' . number_format(count(glob($value . "/*", GLOB_BRACE)) / 2) . ' Parts)</small>
+					<small>(' . number_format($files1 / 2) . ' Parts)</small>
 				</label>
 			</a>
 		</div>
 	</div>';
-                } else {
                 }
             }
         }
@@ -72,4 +71,5 @@
 
 <?php
     include_once"footer.php";
+    pageCache_end($cacheFile);
 ?>

@@ -1,373 +1,367 @@
 {
-  "segments": {
-    "early_learners": {
-      "label": "Early Learners",
-      "description": "Foundation skills, stories, and play",
-      "icon": "🌱",
-      "color": "#FF6B35",
-      "gradient": "linear-gradient(135deg, #FF6B35 0%, #FF8F65 100%)",
-      "image": "assets/tiles/seg_early_learners.webp",
-      "sort_order": 1,
-      "topics": [
-        {
-          "slug": "primary-multiplication",
-          "label": "Primary Multiplication",
-          "icon": "🔢",
-          "color": "#4ECDC4",
-          "type": "video",
-          "content_path": "videos/Primary Multiplication",
-          "href": null,
-          "image": "assets/tiles/primary-multiplication.webp"
+    "segments": {
+        "early_learners": {
+            "label": "Early Learners",
+            "description": "Foundation skills, stories, and play",
+            "icon": "🌱",
+            "color": "#FF6B35",
+            "gradient": "linear-gradient(135deg, #FF6B35 0%, #FF8F65 100%)",
+            "image": "assets/tiles/seg_early_learners.webp",
+            "sort_order": 1,
+            "topics": [
+                {
+                    "slug": "primary-multiplication",
+                    "label": "Primary Multiplication",
+                    "icon": "🔢",
+                    "color": "#4ECDC4",
+                    "type": "video",
+                    "content_path": "videos/Primary Multiplication",
+                    "href": null,
+                    "image": "assets/tiles/primary-multiplication.webp"
+                },
+                {
+                    "slug": "comic-books",
+                    "label": "Comic Books",
+                    "icon": "📚",
+                    "color": "#FF6B6B",
+                    "type": "book",
+                    "content_path": "videos/Comic Books",
+                    "href": "Comic_books.php",
+                    "image": "assets/tiles/comic-books.webp"
+                },
+                {
+                    "slug": "audiobooks",
+                    "label": "Audiobooks",
+                    "icon": "🎧",
+                    "color": "#A78BFA",
+                    "type": "audio",
+                    "content_path": "videos/Audiobooks",
+                    "href": "audiobooks.php",
+                    "image": "assets/tiles/audiobooks.webp"
+                },
+                {
+                    "slug": "khan",
+                    "label": "Khan Academy",
+                    "icon": "🎓",
+                    "color": "#14B8A6",
+                    "type": "service",
+                    "content_path": "service/khan",
+                    "href": "khan/"
+                },
+                {
+                    "slug": "kiwix-khan",
+                    "label": "Kiwix Khan",
+                    "icon": "📖",
+                    "color": "#06B6D4",
+                    "type": "service",
+                    "content_path": "service/kiwix-khan",
+                    "href": "__PORT_7862__"
+                }
+            ]
         },
-        {
-          "slug": "comic-books",
-          "label": "Comic Books",
-          "icon": "📚",
-          "color": "#FF6B6B",
-          "type": "book",
-          "content_path": "videos/Comic Books",
-          "href": "Comic_books.php",
-          "image": "assets/tiles/comic-books.webp"
+        "explorers": {
+            "label": "Explorers",
+            "description": "Curiosity-driven, broad topics",
+            "icon": "🧭",
+            "color": "#4ECDC4",
+            "gradient": "linear-gradient(135deg, #4ECDC4 0%, #44B3AA 100%)",
+            "image": "assets/tiles/seg_explorers.webp",
+            "sort_order": 2,
+            "topics": [
+                {
+                    "slug": "audiobooks",
+                    "label": "Audiobooks",
+                    "icon": "🎧",
+                    "color": "#A78BFA",
+                    "type": "audio",
+                    "content_path": "videos/Audiobooks",
+                    "href": "audiobooks.php",
+                    "image": "assets/tiles/audiobooks.webp"
+                },
+                {
+                    "slug": "comic-books",
+                    "label": "Comic Books",
+                    "icon": "📚",
+                    "color": "#FF6B6B",
+                    "type": "book",
+                    "content_path": "videos/Comic Books",
+                    "href": "Comic_books.php",
+                    "image": "assets/tiles/comic-books.webp"
+                },
+                {
+                    "slug": "generative-ai",
+                    "label": "Generative AI",
+                    "icon": "🤖",
+                    "color": "#8B5CF6",
+                    "type": "video",
+                    "content_path": "videos/Generative AI with LLMs",
+                    "href": null,
+                    "image": "assets/tiles/generative-ai.webp"
+                },
+                {
+                    "slug": "wiki",
+                    "label": "Wiki",
+                    "icon": "🌍",
+                    "color": "#64748B",
+                    "type": "service",
+                    "content_path": "service/kiwix-wiki",
+                    "href": "__PORT_7865__"
+                },
+                {
+                    "slug": "khan",
+                    "label": "Khan Academy",
+                    "icon": "🎓",
+                    "color": "#14B8A6",
+                    "type": "service",
+                    "content_path": "service/khan",
+                    "href": "khan/"
+                },
+                {
+                    "slug": "ai-tools",
+                    "label": "AI Tools",
+                    "icon": "⚡",
+                    "color": "#F59E0B",
+                    "type": "service",
+                    "content_path": "service/ai-tools",
+                    "href": "__PORT_7860__"
+                }
+            ]
         },
-        {
-          "slug": "audiobooks",
-          "label": "Audiobooks",
-          "icon": "🎧",
-          "color": "#A78BFA",
-          "type": "audio",
-          "content_path": "videos/Audiobooks",
-          "href": "audiobooks.php",
-          "image": "assets/tiles/audiobooks.webp"
+        "advanced": {
+            "label": "Advanced",
+            "description": "Vocational, professional, deep learning",
+            "icon": "⚙️",
+            "color": "#1A535C",
+            "gradient": "linear-gradient(135deg, #1A535C 0%, #2D7A86 100%)",
+            "image": "assets/tiles/seg_advanced.webp",
+            "sort_order": 3,
+            "topics": [
+                {
+                    "slug": "electrical-engineering",
+                    "label": "Electrical Engineering",
+                    "icon": "🔌",
+                    "color": "#EF4444",
+                    "type": "video",
+                    "content_path": "videos/Electrical Engineering",
+                    "href": null,
+                    "image": "assets/tiles/electrical-engineering.webp"
+                },
+                {
+                    "slug": "hotel-management",
+                    "label": "Hotel Management",
+                    "icon": "🏨",
+                    "color": "#F97316",
+                    "type": "video",
+                    "content_path": "videos/Hotel Management & Catering",
+                    "href": null,
+                    "image": "assets/tiles/hotel-management.webp"
+                },
+                {
+                    "slug": "generative-ai",
+                    "label": "Generative AI",
+                    "icon": "🤖",
+                    "color": "#8B5CF6",
+                    "type": "video",
+                    "content_path": "videos/Generative AI with LLMs",
+                    "href": null,
+                    "image": "assets/tiles/generative-ai.webp"
+                },
+                {
+                    "slug": "kiwix-medical",
+                    "label": "Kiwix Medical",
+                    "icon": "🏥",
+                    "color": "#10B981",
+                    "type": "service",
+                    "content_path": "service/kiwix-medical",
+                    "href": "__PORT_7864__"
+                },
+                {
+                    "slug": "wiki",
+                    "label": "Wiki",
+                    "icon": "🌍",
+                    "color": "#64748B",
+                    "type": "service",
+                    "content_path": "service/kiwix-wiki",
+                    "href": "__PORT_7865__"
+                }
+            ]
         },
-        {
-          "slug": "khan",
-          "label": "Khan Academy",
-          "icon": "🎓",
-          "color": "#14B8A6",
-          "type": "service",
-          "content_path": "service/khan",
-          "href": "khan/"
+        "educators": {
+            "label": "Educators",
+            "description": "Teaching tools and lesson resources",
+            "icon": "📋",
+            "color": "#F7C948",
+            "gradient": "linear-gradient(135deg, #F7C948 0%, #F5D76E 100%)",
+            "image": "assets/tiles/seg_educators.webp",
+            "sort_order": 4,
+            "topics": [
+                {
+                    "slug": "khan",
+                    "label": "Khan Academy",
+                    "icon": "🎓",
+                    "color": "#14B8A6",
+                    "type": "service",
+                    "content_path": "service/khan",
+                    "href": "khan/"
+                },
+                {
+                    "slug": "kiwix-khan",
+                    "label": "Kiwix Khan",
+                    "icon": "📖",
+                    "color": "#06B6D4",
+                    "type": "service",
+                    "content_path": "service/kiwix-khan",
+                    "href": "__PORT_7862__"
+                },
+                {
+                    "slug": "wiki",
+                    "label": "Wiki",
+                    "icon": "🌍",
+                    "color": "#64748B",
+                    "type": "service",
+                    "content_path": "service/kiwix-wiki",
+                    "href": "__PORT_7865__"
+                },
+                {
+                    "slug": "kiwix-medical",
+                    "label": "Kiwix Medical",
+                    "icon": "🏥",
+                    "color": "#10B981",
+                    "type": "service",
+                    "content_path": "service/kiwix-medical",
+                    "href": "__PORT_7864__"
+                }
+            ]
         },
-        {
-          "slug": "kiwix-khan",
-          "label": "Kiwix Khan",
-          "icon": "📖",
-          "color": "#06B6D4",
-          "type": "service",
-          "content_path": "service/kiwix-khan",
-          "href": "__PORT_7862__"
+        "knowledge_power": {
+            "label": "Knowledge is Power",
+            "description": "Curated by your teacher",
+            "icon": "⭐",
+            "color": "#E63946",
+            "gradient": "linear-gradient(135deg, #E63946 0%, #FF6B6B 100%)",
+            "image": "assets/tiles/seg_knowledge_power.webp",
+            "sort_order": 5,
+            "topics": []
         }
-      ]
     },
-    "explorers": {
-      "label": "Explorers",
-      "description": "Curiosity-driven, broad topics",
-      "icon": "🧭",
-      "color": "#4ECDC4",
-      "gradient": "linear-gradient(135deg, #4ECDC4 0%, #44B3AA 100%)",
-      "image": "assets/tiles/seg_explorers.webp",
-      "sort_order": 2,
-      "topics": [
-        {
-          "slug": "audiobooks",
-          "label": "Audiobooks",
-          "icon": "🎧",
-          "color": "#A78BFA",
-          "type": "audio",
-          "content_path": "videos/Audiobooks",
-          "href": "audiobooks.php",
-          "image": "assets/tiles/audiobooks.webp"
+    "services": {
+        "kiwix-khan": {
+            "label": "Kiwix Khan",
+            "port": 8888,
+            "type": "service",
+            "icon": "📖"
         },
-        {
-          "slug": "comic-books",
-          "label": "Comic Books",
-          "icon": "📚",
-          "color": "#FF6B6B",
-          "type": "book",
-          "content_path": "videos/Comic Books",
-          "href": "Comic_books.php",
-          "image": "assets/tiles/comic-books.webp"
+        "kiwix-medical": {
+            "label": "Kiwix Medical",
+            "port": 8888,
+            "type": "service",
+            "icon": "🏥"
         },
-        {
-          "slug": "generative-ai",
-          "label": "Generative AI",
-          "icon": "🤖",
-          "color": "#8B5CF6",
-          "type": "video",
-          "content_path": "videos/Generative AI with LLMs",
-          "href": null,
-          "image": "assets/tiles/generative-ai.webp"
+        "kiwix-wiki": {
+            "label": "Kiwix Wiki",
+            "port": 8888,
+            "type": "service",
+            "icon": "🌍"
         },
-        {
-          "slug": "wiki",
-          "label": "Wiki",
-          "icon": "🌍",
-          "color": "#64748B",
-          "type": "service",
-          "content_path": "service/kiwix-wiki",
-          "href": "__PORT_7865__"
+        "ai-tools": {
+            "label": "AI Tools",
+            "port": 7860,
+            "type": "service",
+            "icon": "⚡"
         },
-        {
-          "slug": "khan",
-          "label": "Khan Academy",
-          "icon": "🎓",
-          "color": "#14B8A6",
-          "type": "service",
-          "content_path": "service/khan",
-          "href": "khan/"
+        "ai-image": {
+            "label": "AI Image Generation",
+            "port": 7861,
+            "type": "service",
+            "icon": "🎨"
         },
-        {
-          "slug": "ai-tools",
-          "label": "AI Tools",
-          "icon": "⚡",
-          "color": "#F59E0B",
-          "type": "service",
-          "content_path": "service/ai-tools",
-          "href": "__PORT_7860__"
+        "khan-interactive": {
+            "label": "Khan Interactive",
+            "port": 9061,
+            "type": "service",
+            "icon": "🧪"
         }
-      ]
     },
-    "advanced": {
-      "label": "Advanced",
-      "description": "Vocational, professional, deep learning",
-      "icon": "⚙️",
-      "color": "#1A535C",
-      "gradient": "linear-gradient(135deg, #1A535C 0%, #2D7A86 100%)",
-      "image": "assets/tiles/seg_advanced.webp",
-      "sort_order": 3,
-      "topics": [
-        {
-          "slug": "electrical-engineering",
-          "label": "Electrical Engineering",
-          "icon": "🔌",
-          "color": "#EF4444",
-          "type": "video",
-          "content_path": "videos/Electrical Engineering",
-          "href": null,
-          "image": "assets/tiles/electrical-engineering.webp"
+    "special_routes": {
+        "Audiobooks": "audiobooks.php",
+        "Books": "books.php",
+        "Comic Books": "Comic_books.php",
+        "Music": "music.php"
+    },
+    "type_badges": {
+        "video": {
+            "label": "Video",
+            "color": "#3B82F6"
         },
-        {
-          "slug": "hotel-management",
-          "label": "Hotel Management",
-          "icon": "🏨",
-          "color": "#F97316",
-          "type": "video",
-          "content_path": "videos/Hotel Management & Catering",
-          "href": null,
-          "image": "assets/tiles/hotel-management.webp"
+        "video_group": {
+            "label": "Video",
+            "color": "#3B82F6"
         },
-        {
-          "slug": "generative-ai",
-          "label": "Generative AI",
-          "icon": "🤖",
-          "color": "#8B5CF6",
-          "type": "video",
-          "content_path": "videos/Generative AI with LLMs",
-          "href": null,
-          "image": "assets/tiles/generative-ai.webp"
+        "audio": {
+            "label": "Audio",
+            "color": "#A78BFA"
         },
-        {
-          "slug": "kiwix-medical",
-          "label": "Kiwix Medical",
-          "icon": "🏥",
-          "color": "#10B981",
-          "type": "service",
-          "content_path": "service/kiwix-medical",
-          "href": "__PORT_7864__"
+        "book": {
+            "label": "Book",
+            "color": "#10B981"
         },
-        {
-          "slug": "wiki",
-          "label": "Wiki",
-          "icon": "🌍",
-          "color": "#64748B",
-          "type": "service",
-          "content_path": "service/kiwix-wiki",
-          "href": "__PORT_7865__"
+        "service": {
+            "label": "Tool",
+            "color": "#F59E0B"
+        },
+        "resource": {
+            "label": "Resource",
+            "color": "#64748B"
+        },
+        "mixed": {
+            "label": "Mixed",
+            "color": "#6B7280"
+        },
+        "playlist": {
+            "label": "Playlist",
+            "color": "#8B5CF6"
         }
-      ]
     },
-    "educators": {
-      "label": "Educators",
-      "description": "Teaching tools and lesson resources",
-      "icon": "📋",
-      "color": "#F7C948",
-      "gradient": "linear-gradient(135deg, #F7C948 0%, #F5D76E 100%)",
-      "image": "assets/tiles/seg_educators.webp",
-      "sort_order": 4,
-      "topics": [
+    "featured": [
         {
-          "slug": "khan",
-          "label": "Khan Academy",
-          "icon": "🎓",
-          "color": "#14B8A6",
-          "type": "service",
-          "content_path": "service/khan",
-          "href": "khan/"
+            "slug": "comic-books",
+            "headline": "Adventures Await",
+            "subhead": "Dive into stories that spark your imagination and make learning unforgettable.",
+            "cta_label": "Start Reading",
+            "cta_href": "Comic_books.php",
+            "bg_image": "assets/hero/hero-comics.webp",
+            "badge": "book",
+            "segment": "early_learners"
         },
         {
-          "slug": "kiwix-khan",
-          "label": "Kiwix Khan",
-          "icon": "📖",
-          "color": "#06B6D4",
-          "type": "service",
-          "content_path": "service/kiwix-khan",
-          "href": "__PORT_7862__"
+            "slug": "audiobooks",
+            "headline": "Listen & Learn",
+            "subhead": "Close your eyes and let audiobooks take you to worlds you’ve never imagined.",
+            "cta_label": "Listen Now",
+            "cta_href": "audiobooks.php",
+            "bg_image": "assets/hero/hero-audiobooks.webp",
+            "badge": "audio",
+            "segment": "explorers"
         },
         {
-          "slug": "wiki",
-          "label": "Wiki",
-          "icon": "🌍",
-          "color": "#64748B",
-          "type": "service",
-          "content_path": "service/kiwix-wiki",
-          "href": "__PORT_7865__"
+            "slug": "generative-ai",
+            "headline": "Build the Future",
+            "subhead": "Learn how AI is transforming the world — and how you can shape what comes next.",
+            "cta_label": "Watch Now",
+            "cta_href": null,
+            "bg_image": "assets/hero/hero-ai.webp",
+            "badge": "video",
+            "segment": "advanced"
         },
         {
-          "slug": "kiwix-medical",
-          "label": "Kiwix Medical",
-          "icon": "🏥",
-          "color": "#10B981",
-          "type": "service",
-          "content_path": "service/kiwix-medical",
-          "href": "__PORT_7864__"
+            "slug": "primary-multiplication",
+            "headline": "Master Your Numbers",
+            "subhead": "Fun, step-by-step multiplication videos that turn math into magic.",
+            "cta_label": "Watch Now",
+            "cta_href": null,
+            "bg_image": "assets/hero/hero-multiplication.webp",
+            "badge": "video",
+            "segment": "early_learners"
         }
-      ]
-    },
-    "knowledge_power": {
-      "label": "Knowledge is Power",
-      "description": "Curated by your teacher",
-      "icon": "⭐",
-      "color": "#E63946",
-      "gradient": "linear-gradient(135deg, #E63946 0%, #FF6B6B 100%)",
-      "image": "assets/tiles/seg_knowledge_power.webp",
-      "sort_order": 5,
-      "topics": []
-    }
-  },
-  "services": {
-    "kiwix-khan": {
-      "label": "Kiwix Khan",
-      "port": 7862,
-      "type": "service",
-      "icon": "📖"
-    },
-    "kiwix-khmer": {
-      "label": "Kiwix Khmer",
-      "port": 7863,
-      "type": "service",
-      "icon": "🌏"
-    },
-    "kiwix-medical": {
-      "label": "Kiwix Medical",
-      "port": 7864,
-      "type": "service",
-      "icon": "🏥"
-    },
-    "kiwix-wiki": {
-      "label": "Kiwix Wiki",
-      "port": 7865,
-      "type": "service",
-      "icon": "🌍"
-    },
-    "ai-tools": {
-      "label": "AI Tools",
-      "port": 7860,
-      "type": "service",
-      "icon": "⚡"
-    },
-    "ai-image": {
-      "label": "AI Image Generation",
-      "port": 7861,
-      "type": "service",
-      "icon": "🎨"
-    },
-    "khan-interactive": {
-      "label": "Khan Interactive",
-      "port": 9061,
-      "type": "service",
-      "icon": "🧪"
-    }
-  },
-  "special_routes": {
-    "Audiobooks": "audiobooks.php",
-    "Books": "books.php",
-    "Comic Books": "Comic_books.php",
-    "Music": "music.php"
-  },
-  "type_badges": {
-    "video": {
-      "label": "Video",
-      "color": "#3B82F6"
-    },
-    "video_group": {
-      "label": "Video",
-      "color": "#3B82F6"
-    },
-    "audio": {
-      "label": "Audio",
-      "color": "#A78BFA"
-    },
-    "book": {
-      "label": "Book",
-      "color": "#10B981"
-    },
-    "service": {
-      "label": "Tool",
-      "color": "#F59E0B"
-    },
-    "resource": {
-      "label": "Resource",
-      "color": "#64748B"
-    },
-    "mixed": {
-      "label": "Mixed",
-      "color": "#6B7280"
-    },
-    "playlist": {
-      "label": "Playlist",
-      "color": "#8B5CF6"
-    }
-  },
-  "featured": [
-    {
-      "slug": "comic-books",
-      "headline": "Adventures Await",
-      "subhead": "Dive into stories that spark your imagination and make learning unforgettable.",
-      "cta_label": "Start Reading",
-      "cta_href": "Comic_books.php",
-      "bg_image": "assets/hero/hero-comics.webp",
-      "badge": "book",
-      "segment": "early_learners"
-    },
-    {
-      "slug": "audiobooks",
-      "headline": "Listen & Learn",
-      "subhead": "Close your eyes and let audiobooks take you to worlds you’ve never imagined.",
-      "cta_label": "Listen Now",
-      "cta_href": "audiobooks.php",
-      "bg_image": "assets/hero/hero-audiobooks.webp",
-      "badge": "audio",
-      "segment": "explorers"
-    },
-    {
-      "slug": "generative-ai",
-      "headline": "Build the Future",
-      "subhead": "Learn how AI is transforming the world — and how you can shape what comes next.",
-      "cta_label": "Watch Now",
-      "cta_href": null,
-      "bg_image": "assets/hero/hero-ai.webp",
-      "badge": "video",
-      "segment": "advanced"
-    },
-    {
-      "slug": "primary-multiplication",
-      "headline": "Master Your Numbers",
-      "subhead": "Fun, step-by-step multiplication videos that turn math into magic.",
-      "cta_label": "Watch Now",
-      "cta_href": null,
-      "bg_image": "assets/hero/hero-multiplication.webp",
-      "badge": "video",
-      "segment": "early_learners"
-    }
-  ]
+    ]
 }

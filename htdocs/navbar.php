@@ -2,7 +2,7 @@
 // Auth & session MUST be loaded before any HTML output to avoid
 // "Cannot start session when headers already sent" errors.
 include_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
+// require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex(); // Disabled: use CLI content-indexer.php instead
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,6 +15,7 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
   <meta name="author" content="">
   <title>Edutek Global</title>
   <!-- Bootstrap core CSS-->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" onerror="this.href='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css'">
   <!-- Custom fonts for this template-->
   <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'">
@@ -95,7 +96,7 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
             <span class="nav-user-dot" style="background: <?php echo htmlspecialchars($_SESSION['avatar_color'] ?? '#FF6B35', ENT_QUOTES, 'UTF-8'); ?>;"></span>
             <span class="student-menu__name" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true"><?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?></span>
             <div class="student-menu__popup" role="menu">
-              <a href="/logout.php" class="student-menu__item" role="menuitem"><i class="fa fa-exchange"></i> Switch User</a>
+              <a href="logout.php" class="student-menu__item" role="menuitem"><i class="fa fa-exchange"></i> Switch User</a>
             </div>
           </span>
           <?php else: ?>
@@ -112,6 +113,15 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
 
       
     <!-- Bootstrap core JavaScript-->
+    <script>
+      // Global base path for API calls — auto-detected from current URL
+      window.EDUTEK_BASE = (function() {
+        var p = window.location.pathname;
+        var idx = p.toLowerCase().indexOf('/edutek');
+        if (idx !== -1) return p.substring(0, idx + '/edutek'.length);
+        return '';
+      })();
+    </script>
     <script src="vendor/jquery/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"><\/script>')</script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

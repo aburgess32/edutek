@@ -13,7 +13,7 @@ $appConfig = require __DIR__ . '/config/app.php';
 
 // Already logged in? Go to teacher hub
 if (isLoggedIn()) {
-    header('Location: /teacher.php');
+    header('Location: teacher.php');
     exit;
 }
 
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $userId = createTeacher($pdo, sanitize_name($formName), $formEmail, $password);
                 loginUser($userId, $formName, '', '#7C3AED', 'teacher');
                 updateLastActive($pdo, $userId);
-                header('Location: /teacher.php');
+                header('Location: teacher.php');
                 exit;
             } catch (PDOException $e) {
                 if ((int) $e->getCode() === 23000) {

@@ -11,16 +11,21 @@ include_once __DIR__ . '/includes/auth.php';
 
 // Already logged in? Go to teacher hub
 if (isLoggedIn()) {
-    header('Location: /teacher.php');
+    header('Location: teacher.php');
     exit;
 }
 
 // First-time setup: if no teachers exist, redirect to registration
-$pdo = getDbConnection();
-$teacherCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE user_type = 'teacher'")->fetchColumn();
+// Graceful fallback if users table doesn't exist yet
+try {
+    $pdo = getDbConnection();
+    $teacherCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE user_type = 'teacher'")->fetchColumn();
+} catch (Exception $e) {
+    // Table doesn't exist yet — show login form anyway
+    $teacherCount = 1;
+    $pdo = null;
+}
 if ($teacherCount === 0) {
-    header('Location: /teacher-register.php?first=1');
-    exit;
 }
 
 $error = '';
@@ -54,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'teacher'
             );
             updateLastActive($pdo, (int) $teacher['id']);
-            header('Location: /teacher.php');
+            header('Location: teacher.php');
             exit;
         } else {
             $error = 'Invalid email or password.';

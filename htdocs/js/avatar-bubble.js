@@ -63,7 +63,7 @@
         '</div>' +
       '</div>' +
       '<div class="mini-dash-footer">' +
-        '<a href="/logout.php" class="mini-dash-switch" style="text-decoration:none;display:block;text-align:center;">Switch User</a>' +
+        '<a href="' + (window.EDUTEK_BASE || '') + '/logout.php" class="mini-dash-switch" style="text-decoration:none;display:block;text-align:center;">Switch User</a>' +
       '</div>';
     document.body.appendChild(dash);
 
@@ -132,18 +132,18 @@
     goBtn.textContent = '...';
     goBtn.disabled = true;
 
-    fetch('/api/avatar-lookup.php?name=' + encodeURIComponent(val))
+    fetch((window.EDUTEK_BASE || '') + '/api/avatar-lookup.php?name=' + encodeURIComponent(val))
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.found) {
           showInlineConfirm(wrap, data);
         } else {
           // Not found — go to find-user page
-          window.location.href = '/find-user.php';
+          window.location.href = (window.EDUTEK_BASE || '') + '/find-user.php';
         }
       })
       .catch(function() {
-        window.location.href = '/find-user.php';
+        window.location.href = (window.EDUTEK_BASE || '') + '/find-user.php';
       })
       .finally(function() {
         goBtn.textContent = 'Go';
@@ -175,7 +175,7 @@
     document.getElementById('resign-yes').onclick = function() {
       this.textContent = '...';
       this.disabled = true;
-      fetch('/api/avatar-lookup.php', {
+      fetch((window.EDUTEK_BASE || '') + '/api/avatar-lookup.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.id })
@@ -233,7 +233,7 @@
       container.innerHTML = 'Loading&hellip;';
     }
 
-    fetch('/api/recent_videos.php?type=' + encodeURIComponent(type))
+    fetch((window.EDUTEK_BASE || '') + '/api/recent_videos.php?type=' + encodeURIComponent(type))
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (!container) return;

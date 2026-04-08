@@ -18,7 +18,7 @@ include_once __DIR__ . '/includes/auth.php';
 
 // Already logged in? Go home
 if (isLoggedIn()) {
-    header('Location: /');
+    header('Location: index.php');
     exit;
 }
 
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['avatar_name'])) {
                 $avatar = getAvatarByName($avatarName);
                 loginUser($userId, $name, $avatarName, $avatar['color'] ?? '#333', 'student', $ageRange);
                 updateLastActive($pdo, $userId);
-                header('Location: /');
+                header('Location: index.php');
                 exit;
             } catch (PDOException $e) {
                 // UNIQUE constraint violation = avatar taken

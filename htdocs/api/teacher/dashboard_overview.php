@@ -138,7 +138,7 @@ try {
                              ELSE 0 END
                     ), 0) AS avg_completion
                  FROM watch_history wh
-                 LEFT JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_0900_ai_ci = wh.content_id COLLATE utf8mb4_0900_ai_ci
+                 LEFT JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_general_ci = wh.content_id COLLATE utf8mb4_general_ci
                  GROUP BY wh.content_id
                  ORDER BY views DESC
                  LIMIT 5"
@@ -248,7 +248,7 @@ try {
             $topCategory = $pdo->query(
                 "SELECT cm.category, COUNT(*) AS cnt
                  FROM watch_history wh
-                 JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_0900_ai_ci = wh.content_id COLLATE utf8mb4_0900_ai_ci
+                 JOIN content_meta cm ON cm.content_id COLLATE utf8mb4_general_ci = wh.content_id COLLATE utf8mb4_general_ci
                  WHERE cm.category IS NOT NULL AND cm.category != ''
                  GROUP BY cm.category
                  ORDER BY cnt DESC

@@ -2,7 +2,7 @@
 // Auth & session MUST be loaded before any HTML output to avoid
 // "Cannot start session when headers already sent" errors.
 include_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
+// require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex(); // Disabled: use CLI content-indexer.php instead
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,7 +99,7 @@ function myFunction() {
             <span class="nav-user-dot" style="background: <?php echo htmlspecialchars($_SESSION['avatar_color'] ?? '#FF6B35', ENT_QUOTES, 'UTF-8'); ?>;"></span>
             <span class="student-menu__name" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true"><?php echo htmlspecialchars(getUserDisplay(), ENT_QUOTES, 'UTF-8'); ?></span>
             <div class="student-menu__popup" role="menu">
-              <a href="/logout.php" class="student-menu__item" role="menuitem"><i class="fa fa-exchange"></i> Switch User</a>
+              <a href="logout.php" class="student-menu__item" role="menuitem"><i class="fa fa-exchange"></i> Switch User</a>
             </div>
           </span>
           <?php else: ?>

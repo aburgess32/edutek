@@ -24,12 +24,12 @@ $teacherId = (int)($user['id'] ?? 0);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Hub – EduPak</title>
   <meta name="csrf-token" content="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
-  <link rel="stylesheet" href="/css/teacher.css">
-  <link rel="stylesheet" href="/css/playlist.css">
-  <link rel="stylesheet" href="/css/lesson-publish.css">
-  <link rel="stylesheet" href="/css/search-results.css">
-  <link rel="stylesheet" href="/css/teacher-students.css">
-  <link rel="stylesheet" href="/css/teacher-assignments.css">
+  <link rel="stylesheet" href="css/teacher.css">
+  <link rel="stylesheet" href="css/playlist.css">
+  <link rel="stylesheet" href="css/lesson-publish.css">
+  <link rel="stylesheet" href="css/search-results.css">
+  <link rel="stylesheet" href="css/teacher-students.css">
+  <link rel="stylesheet" href="css/teacher-assignments.css">
 </head>
 <body class="teacher-page" data-teacher-id="<?= $teacherId ?>" data-teacher-name="<?= $displayName ?>" data-teacher-email="<?= $teacherEmail ?>">
 
@@ -45,8 +45,8 @@ $teacherId = (int)($user['id'] ?? 0);
     <div class="teacher-menu teacher-menu--hub" id="teacherMenuHub">
       <span class="teacher-menu__name teacher-menu__name--hub" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true"><?= $displayName ?></span>
       <div class="teacher-menu__popup" role="menu">
-        <a href="/index.php" class="teacher-menu__item" role="menuitem">Browse Content</a>
-        <a href="/logout.php" class="teacher-menu__item" role="menuitem">Sign Out</a>
+        <a href="index.php" class="teacher-menu__item" role="menuitem">Browse Content</a>
+        <a href="logout.php" class="teacher-menu__item" role="menuitem">Sign Out</a>
       </div>
     </div>
   </header>
@@ -235,12 +235,20 @@ $teacherId = (int)($user['id'] ?? 0);
     });
   })();
   </script>
-  <script src="/js/search-typeahead.js"></script>
-  <script src="/js/teacher-dashboard.js"></script>
-  <script src="/js/lesson-publish.js"></script>
-  <script src="/js/lesson-builder.js"></script>
-  <script src="/js/teacher-assignments.js"></script>
-  <script src="/js/teacher-students.js"></script>
-  <script src="/js/teacher-profile.js"></script>
+  <script>
+    window.EDUTEK_BASE = (function() {
+      var p = window.location.pathname;
+      var idx = p.toLowerCase().indexOf('/edutek');
+      if (idx !== -1) return p.substring(0, idx + '/edutek'.length);
+      return '';
+    })();
+  </script>
+  <script src="js/search-typeahead.js"></script>
+  <script src="js/teacher-dashboard.js"></script>
+  <script src="js/lesson-publish.js"></script>
+  <script src="js/lesson-builder.js"></script>
+  <script src="js/teacher-assignments.js"></script>
+  <script src="js/teacher-students.js"></script>
+  <script src="js/teacher-profile.js"></script>
 </body>
 </html>

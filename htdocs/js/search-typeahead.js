@@ -114,7 +114,7 @@
         // --- Core functions ---
 
         function fetchSuggestions(term) {
-            fetch('/api/search-suggest.php?q=' + encodeURIComponent(term))
+            fetch((window.EDUTEK_BASE || '') + '/api/search-suggest.php?q=' + encodeURIComponent(term))
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     suggestions = data || { categories: [], content: [] };

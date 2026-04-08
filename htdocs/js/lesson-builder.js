@@ -25,7 +25,8 @@
         matchType: '',          // 'exact', 'prefix', 'alias', 'fuzzy', 'soundex'
         csrfToken: '',
         dragState: null,        // drag-reorder state
-        debounceTimer: null
+        debounceTimer: null,
+        logTimer: null
     };
 
     // Grab the CSRF token from the page meta tag or hidden input
@@ -67,8 +68,9 @@
             .then(function (r) { return r.json(); });
     }
 
-    function searchApi(term) {
-        return fetch('/api/search.php?q=' + encodeURIComponent(term))
+    function searchApi(term, shouldLog) {
+        var logParam = shouldLog ? '' : '&log=0';
+        return fetch('/api/search.php?q=' + encodeURIComponent(term) + logParam)
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 // Support both old array format and new {results, total, query} format
@@ -512,15 +514,21 @@
             var term = searchInput.value.trim();
             state.searchTerm = term;
             clearTimeout(state.debounceTimer);
+            clearTimeout(state.logTimer);
             if (term.length < 2) {
                 state.searchResults = [];
                 state.matchType = '';
                 renderSearchResults();
                 return;
             }
+            // Fast debounce for showing results (no logging)
             state.debounceTimer = setTimeout(function () {
-                performSearch(term);
+                performSearch(term, false);
             }, 300);
+            // Longer idle timer — if user stops typing for 2s, log the final query
+            state.logTimer = setTimeout(function () {
+                searchApi(term, true);
+            }, 2000);
         });
         // Handle typeahead category selection — trigger filtered search
         searchInput.addEventListener('typeahead:select-category', function (e) {
@@ -528,7 +536,9 @@
             if (cat && cat.name) {
                 searchInput.value = cat.name;
                 state.searchTerm = cat.name;
-                performSearch(cat.name);
+                clearTimeout(state.debounceTimer);
+                clearTimeout(state.logTimer);
+                performSearch(cat.name, true);
             }
         });
         // Handle typeahead content selection — trigger full search with that term
@@ -537,7 +547,21 @@
             if (item && item.title) {
                 searchInput.value = item.title;
                 state.searchTerm = item.title;
-                performSearch(item.title);
+                clearTimeout(state.debounceTimer);
+                clearTimeout(state.logTimer);
+                performSearch(item.title, true);
+            }
+        });
+        // Enter key — commit the search immediately with logging
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var term = searchInput.value.trim();
+                if (term.length >= 2) {
+                    clearTimeout(state.debounceTimer);
+                    clearTimeout(state.logTimer);
+                    performSearch(term, true);
+                }
             }
         });
         searchWrap.appendChild(searchInput);
@@ -555,11 +579,11 @@
         container.appendChild(renderSelectionBar());
     }
 
-    function performSearch(term) {
+    function performSearch(term, shouldLog) {
         var resultsEl = document.getElementById('lb-search-results');
         if (resultsEl) resultsEl.innerHTML = '<div class="sr-loading"><div class="sr-spinner"></div> Searching\u2026</div>';
 
-        searchApi(term).then(function (data) {
+        searchApi(term, shouldLog).then(function (data) {
             state.searchResults = Array.isArray(data.results) ? data.results : [];
             state.searchTotal = data.total || state.searchResults.length;
             state.searchQuery = data.query || term;

@@ -283,6 +283,7 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
             (:content_id, :title, :file_path, :content_type, :category, :subcategory, :source, :thumbnail_path)
         ON DUPLICATE KEY UPDATE
             title          = VALUES(title),
+            file_path      = VALUES(file_path),
             content_type   = VALUES(content_type),
             category       = VALUES(category),
             subcategory    = VALUES(subcategory),

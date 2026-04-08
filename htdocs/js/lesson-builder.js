@@ -513,22 +513,11 @@
         searchInput.addEventListener('input', function () {
             var term = searchInput.value.trim();
             state.searchTerm = term;
-            clearTimeout(state.debounceTimer);
-            clearTimeout(state.logTimer);
             if (term.length < 2) {
                 state.searchResults = [];
                 state.matchType = '';
                 renderSearchResults();
-                return;
             }
-            // Fast debounce for showing results (no logging)
-            state.debounceTimer = setTimeout(function () {
-                performSearch(term, false);
-            }, 300);
-            // Longer idle timer — if user stops typing for 2s, log the final query
-            state.logTimer = setTimeout(function () {
-                searchApi(term, true);
-            }, 2000);
         });
         // Handle typeahead category selection — trigger filtered search
         searchInput.addEventListener('typeahead:select-category', function (e) {
@@ -809,7 +798,7 @@
             videoEl.controls = true;
             videoEl.preload = 'metadata';
             videoEl.setAttribute('controlsList', 'nodownload');
-            videoEl.src = '/' + videoPath.replace(/^\/+/, '');
+            videoEl.src = videoPath.replace(/^\/+/, '');
             playerSection.appendChild(videoEl);
 
             // Playback speed controls

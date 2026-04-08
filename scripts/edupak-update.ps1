@@ -22,7 +22,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# ── Configuration ──
+# â”€â”€ Configuration â”€â”€
 $XAMPP_ROOT = if (Test-Path "D:\xampp") { "D:\xampp" } elseif (Test-Path "C:\xampp") { "C:\xampp" } else { throw "XAMPP not found" }
 $APP_DIR      = "$XAMPP_ROOT\htdocs\Edutek"
 $BACKUP_ROOT  = "D:\edupak-backups"
@@ -43,12 +43,12 @@ if (Test-Path $envFile) {
 $PROTECTED_FILES = @(".env")
 $UPDATE_DIRS = @("api", "includes", "css", "js", "admin", "assets", "fonts", "vendor", "ajax", "config")
 
-# ── Helpers ──
+# â”€â”€ Helpers â”€â”€
 function Write-Step($num, $total, $msg) { Write-Host "[$num/$total] $msg" -ForegroundColor Yellow }
 function Write-Ok($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Fail($msg) { Write-Host "  [FAIL] $msg" -ForegroundColor Red }
 
-# ── Banner ──
+# â”€â”€ Banner â”€â”€
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  EduPak Update Script" -ForegroundColor Cyan
@@ -85,7 +85,7 @@ if ($DryRun) {
     exit 0
 }
 
-# ── Step 1: Pre-flight MariaDB repair ──
+# â”€â”€ Step 1: Pre-flight MariaDB repair â”€â”€
 Write-Step 1 $totalSteps "Pre-flight: checking MariaDB CLI..."
 
 $mysqlTest = $null
@@ -113,7 +113,7 @@ if ($mysqlTest -notmatch "1") {
     Write-Ok "MariaDB CLI responding"
 }
 
-# ── Step 2: Stop Apache ──
+# â”€â”€ Step 2: Stop Apache â”€â”€
 Write-Step 2 $totalSteps "Stopping Apache..."
 try {
     Get-Process -Name "httpd" -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -123,7 +123,7 @@ try {
     Write-Warning "Could not stop Apache - it may not be running"
 }
 
-# ── Step 3: Backup ──
+# â”€â”€ Step 3: Backup â”€â”€
 Write-Step 3 $totalSteps "Creating backup..."
 
 if (-not $SkipBackup) {
@@ -164,7 +164,7 @@ if (-not $SkipBackup) {
     Write-Warning "Backup skipped"
 }
 
-# ── Step 4: Extract and sync ──
+# â”€â”€ Step 4: Extract and sync â”€â”€
 Write-Step 4 $totalSteps "Extracting archive and syncing files..."
 
 $tempDir = Join-Path $env:TEMP "edupak-update-$TIMESTAMP"
@@ -232,7 +232,26 @@ if (-not (Test-Path $envPath)) {
 
 Write-Ok "File sync complete"
 
-# ── Step 5: Restart Apache ──
+# ── Step 4g: Patch Apache DocumentRoot ──
+# Point DocumentRoot to Edutek/ so URLs like /logout.php resolve correctly
+# without needing /Edutek/ prefix in the URL path.
+$httpdConf = "$XAMPP_ROOT\apache\conf\httpd.conf"
+if (Test-Path $httpdConf) {
+    $confContent = Get-Content $httpdConf -Raw
+    if ($confContent -match 'DocumentRoot "D:/xampp/htdocs"') {
+        Copy-Item $httpdConf "$httpdConf.pre-edupak" -Force
+        $confContent = $confContent -replace 'DocumentRoot "D:/xampp/htdocs"', 'DocumentRoot "D:/xampp/htdocs/Edutek"'
+        $confContent = $confContent -replace '<Directory "D:/xampp/htdocs">', '<Directory "D:/xampp/htdocs/Edutek">'
+        [System.IO.File]::WriteAllText($httpdConf, $confContent, (New-Object System.Text.UTF8Encoding $false))
+        Write-Ok "Apache DocumentRoot set to Edutek/"
+    } elseif ($confContent -match 'DocumentRoot "D:/xampp/htdocs/Edutek"') {
+        Write-Ok "Apache DocumentRoot already set to Edutek/"
+    } else {
+        Write-Warning "Unexpected DocumentRoot in httpd.conf - check manually"
+    }
+}
+
+# â”€â”€ Step 5: Restart Apache â”€â”€
 Write-Step 5 $totalSteps "Starting Apache..."
 try {
     Start-Process $APACHE_BIN -WindowStyle Hidden
@@ -248,7 +267,7 @@ try {
     Write-Warning "Could not start Apache - try starting from XAMPP Control Panel"
 }
 
-# ── Step 6: Database migrations ──
+# â”€â”€ Step 6: Database migrations â”€â”€
 Write-Step 6 $totalSteps "Running database migrations..."
 
 if (-not $SkipMigrate) {
@@ -303,7 +322,7 @@ if (-not $SkipMigrate) {
     Write-Warning "Migrations skipped"
 }
 
-# ── Step 7: Diagnostics ──
+# â”€â”€ Step 7: Diagnostics â”€â”€
 Write-Step 7 $totalSteps "Running diagnostics..."
 
 if (-not $SkipDiagnose) {
@@ -320,7 +339,7 @@ if (-not $SkipDiagnose) {
     Write-Warning "Diagnostics skipped"
 }
 
-# ── Step 8: Cleanup ──
+# â”€â”€ Step 8: Cleanup â”€â”€
 Write-Step 8 $totalSteps "Cleaning up..."
 Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
 Write-Ok "Temp files cleaned"

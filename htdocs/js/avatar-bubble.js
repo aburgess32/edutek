@@ -63,7 +63,7 @@
         '</div>' +
       '</div>' +
       '<div class="mini-dash-footer">' +
-        '<a href="/logout.php" class="mini-dash-switch" style="text-decoration:none;display:block;text-align:center;">Switch User</a>' +
+        '<a href="' + (window.EDUTEK_BASE || '') + '/logout.php" class="mini-dash-switch" style="text-decoration:none;display:block;text-align:center;">Switch User</a>' +
       '</div>';
     document.body.appendChild(dash);
 
@@ -139,11 +139,11 @@
           showInlineConfirm(wrap, data);
         } else {
           // Not found — go to find-user page
-          window.location.href = '/find-user.php';
+          window.location.href = (window.EDUTEK_BASE || '') + '/find-user.php';
         }
       })
       .catch(function() {
-        window.location.href = '/find-user.php';
+        window.location.href = (window.EDUTEK_BASE || '') + '/find-user.php';
       })
       .finally(function() {
         goBtn.textContent = 'Go';

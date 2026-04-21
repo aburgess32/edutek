@@ -162,19 +162,15 @@ function myFunction() {
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin.min.js"></script>
-	    <script src="assets/js/jquery-1.10.2.js"></script>
-    <!--  Core Bootstrap Script -->
-    <script src="assets/js/bootstrap.js"></script>
-    <!--  Flexslider Scripts --> 
-         <script src="assets/js/jquery.flexslider.js"></script>
-     <!--  Scrolling Reveal Script -->
+    <!-- Custom scripts for all pages-->\n    <script src="js/sb-admin.min.js"></script>
+    <!--  Flexslider Scripts -->
+    <script src="assets/js/jquery.flexslider.js"></script>
+    <!--  Scrolling Reveal Script -->
     <script src="assets/js/scrollReveal.js"></script>
-    <!--  Scroll Scripts --> 
+    <!--  Scroll Scripts -->
     <script src="assets/js/jquery.easing.min.js"></script>
-    <!--  Custom Scripts --> 
-         <script src="assets/js/custom.js"></script>
+    <!--  Custom Scripts -->
+    <script src="assets/js/custom.js"></script>
     <!-- Custom scripts for this page-->
     <!-- Toggle between fixed and static navbar-->
     <script>

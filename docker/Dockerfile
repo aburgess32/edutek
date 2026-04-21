@@ -1,6 +1,6 @@
 # EduPak PHP Application Image
-# Base: PHP 7.4 with Apache (matches EduPak XAMPP deployment)
-FROM php:7.4-apache
+# Base: PHP 8.1 with Apache (matches composer.json requirement: >=8.1)
+FROM php:8.1-apache
 
 # Install system dependencies required for PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -22,7 +22,6 @@ RUN docker-php-ext-configure gd \
     --with-webp
 
 # Install PHP extensions needed by EduPak
-# Note: mbstring is included in the base php:8.1-apache image
 RUN docker-php-ext-install -j$(nproc) \
     gd \
     mysqli \

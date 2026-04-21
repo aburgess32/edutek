@@ -4,13 +4,13 @@
     // navbar
     include_once "navbar.php";
 
-    $cipher = "BF-CBC";
+    $cipher = CONTENT_CIPHER;
     $iv_length = openssl_cipher_iv_length($cipher);
     $options = 0;
-    $iv = "91011121";
-    $encryption_key = "hfjfydjnvhbjfi";
-    $decryption_iv = "91011121";
-    $decryption_key = "hfjfydjnvhbjfi";
+    $iv = CONTENT_CIPHER_IV;
+    $encryption_key = CONTENT_CIPHER_KEY;
+    $decryption_iv = CONTENT_CIPHER_IV;
+    $decryption_key = CONTENT_CIPHER_KEY;
 
     // Helper: encrypt a value for URL params
     function encParam($val, $cipher, $key, $opts, $iv) {

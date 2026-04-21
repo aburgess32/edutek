@@ -39,8 +39,15 @@ define('LOG_LEVEL', env('LOG_LEVEL', 'debug'));
 define('LOG_PATH', dirname(__DIR__, 2) . '/logs');
 
 // ──────────────────────────────────────────────────────────
-// Site
+// Content Encryption (BF-CBC link obfuscation)
 // ──────────────────────────────────────────────────────────
+// Key and IV used to obfuscate file path parameters in URLs.
+// Not intended as strong encryption — prevents casual URL manipulation only.
+// Override per-device via .env: CONTENT_CIPHER_KEY, CONTENT_CIPHER_IV
+define('CONTENT_CIPHER',     'BF-CBC');
+define('CONTENT_CIPHER_KEY', env('CONTENT_CIPHER_KEY', 'hfjfydjnvhbjfi'));
+define('CONTENT_CIPHER_IV',  env('CONTENT_CIPHER_IV',  '91011121'));
+
 define('SITE_TITLE', env('SITE_TITLE', 'EduPak Learning Hub'));
 define('CONTENT_PATH', env('CONTENT_PATH', __DIR__ . '/../videos/'));
 

@@ -38,8 +38,13 @@ help: ## Show this help message
 # Docker Lifecycle
 # ============================================================
 
+.PHONY: vendor
+vendor: ## Bootstrap frontend vendor assets (jQuery, Bootstrap, FA, Easing) from local assets/
+	@echo "$(GREEN)Setting up vendor assets...$(RESET)"
+	@bash scripts/setup-vendor.sh
+
 .PHONY: dev
-dev: ## Start all containers in the background
+dev: vendor ## Start all containers in the background (runs vendor setup first)
 	@echo "$(GREEN)Starting EduPak containers...$(RESET)"
 	$(DC) up -d
 

@@ -15,9 +15,9 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
   <meta name="author" content="">
   <title>Edutek Global</title>
   <!-- Bootstrap core CSS-->
-  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" onerror="this.href='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css'">
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom fonts for this template-->
-  <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'">
+  <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
   <!-- Custom styles for this template-->
   <link href="css/sb-admin.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
@@ -157,14 +157,11 @@ function myFunction() {
         <?php endif; ?>
     </div>
     </div>
-    <!-- Bootstrap core JavaScript-->
+    <!-- Bootstrap core JavaScript — all local, no CDN fallbacks (offline-first) -->
     <script src="vendor/jquery/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"><\/script>')</script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script>if(typeof jQuery!=='undefined'&&typeof jQuery.fn.tooltip==='undefined')document.write('<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"><\/script>')</script>
     <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-    <script>if(typeof jQuery!=='undefined'&&typeof jQuery.easing!=='undefined'&&typeof jQuery.easing.easeInOutExpo==='undefined')document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"><\/script>')</script>
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin.min.js"></script>
 	    <script src="assets/js/jquery-1.10.2.js"></script>

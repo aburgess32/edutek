@@ -12,10 +12,14 @@
 
 declare(strict_types=1);
 
-// BF-CBC encryption constants (matches index.php / tutorials.php)
-define('TILE_CIPHER', 'BF-CBC');
-define('TILE_IV', '91011121');
-define('TILE_ENC_KEY', 'hfjfydjnvhbjfi');
+// BF-CBC encryption constants — defined in includes/config.php
+// TILE_CIPHER / TILE_IV / TILE_ENC_KEY map to CONTENT_CIPHER / CONTENT_CIPHER_IV / CONTENT_CIPHER_KEY
+// Aliases kept for backward compatibility with callers using TILE_* names.
+if (!defined('TILE_CIPHER')) {
+    define('TILE_CIPHER',  CONTENT_CIPHER);
+    define('TILE_IV',      CONTENT_CIPHER_IV);
+    define('TILE_ENC_KEY', CONTENT_CIPHER_KEY);
+}
 
 /**
  * Hardcoded fallback segments when tiles.json is missing or corrupt.

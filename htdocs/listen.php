@@ -64,13 +64,13 @@ color: #ffffff;
     include_once"navbar.php";
     //nabvbar
 
-    $cipher = "BF-CBC";
+    $cipher = CONTENT_CIPHER;
     $iv_length = openssl_cipher_iv_length($cipher);
     $options = 0;
-    $iv = "91011121";
-    $encryption_key = "hfjfydjnvhbjfi";
-    $decryption_iv = "91011121";
-    $decryption_key = "hfjfydjnvhbjfi";
+    $iv = CONTENT_CIPHER_IV;
+    $encryption_key = CONTENT_CIPHER_KEY;
+    $decryption_iv = CONTENT_CIPHER_IV;
+    $decryption_key = CONTENT_CIPHER_KEY;
 
         $videolink1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink1", $cipher, $encryption_key, $options, $iv)));
         $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname1", $cipher, $encryption_key, $options, $iv)));

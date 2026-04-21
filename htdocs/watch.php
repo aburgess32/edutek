@@ -1,8 +1,8 @@
 <?php ob_start();
     include_once "includes/auth.php";
 ?>
-  <!-- FRE-41: Watch Page Facelift — Fonts + CSS -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FRE-41: Watch Page Facelift — CSS -->
+  <!-- NOTE: No external font CDN — EduPak is offline-first. System fonts only. -->
   <link href="css/WatchVideos.css" rel="stylesheet">
   <script src="ajax/jquery.min.js"></script>
     <script src="ajax/popper.min.js"></script>
@@ -11,13 +11,13 @@
 <?php
     //navbar
     include_once"navbar.php";
-    $cipher = "BF-CBC";
-  $iv_length = openssl_cipher_iv_length($cipher);
-  $options = 0;
-  $iv = "91011121";
-  $encryption_key = "hfjfydjnvhbjfi";
-  $decryption_iv = "91011121";
-  $decryption_key = "hfjfydjnvhbjfi";
+    $cipher         = CONTENT_CIPHER;
+  $iv_length      = openssl_cipher_iv_length($cipher);
+  $options        = 0;
+  $iv             = CONTENT_CIPHER_IV;
+  $encryption_key = CONTENT_CIPHER_KEY;
+  $decryption_iv  = CONTENT_CIPHER_IV;
+  $decryption_key = CONTENT_CIPHER_KEY;
 
     // FRE-12: Propagate breadcrumb context through watch.php links
     $bcQuery = '';

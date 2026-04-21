@@ -22,8 +22,8 @@
   --wp-shadow-md: 0 2px 8px rgba(0,0,0,0.08);
   --wp-shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
   --wp-transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  --wp-font-display: 'Plus Jakarta Sans', 'Helvetica Neue', sans-serif;
-  --wp-font-body: 'Plus Jakarta Sans', 'Helvetica Neue', sans-serif;
+  --wp-font-display: 'Helvetica Neue', Arial, sans-serif;
+  --wp-font-body: 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* ============================

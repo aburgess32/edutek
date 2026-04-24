@@ -79,9 +79,36 @@
     if (isset($_GET['seg'])   && $_GET['seg']   !== '') { $bcQuery .= '&seg='   . urlencode($_GET['seg']); }
     if (isset($_GET['topic']) && $_GET['topic'] !== '') { $bcQuery .= '&topic=' . urlencode($_GET['topic']); }
 
-    $dd2    = "videos/" . $decryption . "/";
-    $length = strlen($dd2);
-    $ff2    = glob($dd2 . "*");
+    // FRE-DB: Load subcategories and videos from content_meta (not filesystem)
+    $contentRoot = rtrim(CONTENT_PATH, '/');
+    $sectionIdx  = 0;
+
+    try {
+        require_once __DIR__ . '/includes/auth.php';
+        $pdo = getDbConnection();
+
+        // Get distinct subcategories for this category, ordered
+        $stmt = $pdo->prepare(
+            "SELECT DISTINCT subcategory FROM content_meta
+             WHERE category = :cat AND subcategory != ''
+             ORDER BY subcategory ASC"
+        );
+        $stmt->execute([':cat' => $decryption]);
+        $subcategories = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // Also get any files directly in the category (no subcategory)
+        $stmtDirect = $pdo->prepare(
+            "SELECT title, file_path, thumbnail_path FROM content_meta
+             WHERE category = :cat AND (subcategory = '' OR subcategory IS NULL)
+             ORDER BY title ASC"
+        );
+        $stmtDirect->execute([':cat' => $decryption]);
+        $directVideos = $stmtDirect->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (Exception $e) {
+        $subcategories = [];
+        $directVideos  = [];
+    }
 ?>
 
 <!-- Page header -->
@@ -90,44 +117,43 @@
 </div>
 
 <?php
-    $videoExts  = ['mp4','mov','wmv','flv','avi','webm','mkv','f4v'];
-    $sectionIdx = 0;
+    // Helper: build full server path from DB file_path
+    function contentServerPath($filePath, $contentRoot) {
+        return $contentRoot . '/' . ltrim($filePath, '/');
+    }
 
-    foreach ($ff2 as $value) {
-        if (!is_dir($value)) continue;
+    // Render subcategory sections from DB
+    foreach ($subcategories as $folderName) {
+        // Get all videos in this subcategory
+        $stmt2 = $pdo->prepare(
+            "SELECT title, file_path, thumbnail_path FROM content_meta
+             WHERE category = :cat AND subcategory = :sub
+             ORDER BY title ASC"
+        );
+        $stmt2->execute([':cat' => $decryption, ':sub' => $folderName]);
+        $videos = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 
-        $folderName  = substr($value, $length);
-        $subFiles    = glob($value . "/*");
-        $length12    = strlen($value . "/");
-
-        // Filter to video files only
-        $videoFiles = [];
-        foreach ($subFiles as $sf) {
-            $ext = strtolower(pathinfo($sf, PATHINFO_EXTENSION));
-            if (in_array($ext, $videoExts)) {
-                $videoFiles[] = $sf;
-            }
-        }
-        if (count($videoFiles) === 0) continue;
+        if (empty($videos)) continue;
 
         $sectionIdx++;
+        $sectionSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $folderName));
 
-        // Encrypted params for the section-level link (plays first video)
+        $folderPath    = $contentRoot . '/' . $decryption . '/' . $folderName . '/';
         $encFolderName = encParam($folderName, $cipher, $encryption_key, $options, $iv);
-        $encFolderPath = encParam($value,      $cipher, $encryption_key, $options, $iv);
-        $sectionHref = "watch.php?&{$videolink1}=&{$videoname1}=&{$videolink}={$encFolderPath}&{$videoname}={$encFolderName}{$bcQuery}";
+        $encFolderPath = encParam($folderPath, $cipher, $encryption_key, $options, $iv);
+        $sectionHref   = "watch.php?&{$videolink1}=&{$videoname1}=&{$videolink}={$encFolderPath}&{$videoname}={$encFolderName}{$bcQuery}";
 
-        // Section thumbnail: use first video's auto-generated thumbnail
-        $firstVidThumb = videoThumb($videoFiles[0]);
-        $thumbSrc = htmlspecialchars($firstVidThumb);
+        // Thumbnail: use DB thumbnail or fallback
+        $firstThumb = !empty($videos[0]['thumbnail_path']) ? $videos[0]['thumbnail_path'] : 'images/sample.png';
+        $thumbSrc   = htmlspecialchars($firstThumb);
 ?>
 
-<div class="tut-section" id="tut-sec-<?php echo $sectionIdx; ?>">
+<div class="tut-section" id="tut-sec-<?php echo htmlspecialchars($sectionSlug, ENT_QUOTES, 'UTF-8'); ?>">
     <button class="tut-section-toggle" onclick="toggleSection(this)" aria-expanded="false">
         <img src="<?php echo $thumbSrc; ?>" alt="" class="tut-thumb">
         <div class="tut-section-info">
-            <p class="tut-section-title"><?php echo htmlspecialchars(prettyName($folderName)); ?></p>
-            <div class="tut-section-count"><?php echo count($videoFiles); ?> video<?php echo count($videoFiles) !== 1 ? 's' : ''; ?></div>
+            <p class="tut-section-title"><?php echo htmlspecialchars($folderName); ?></p>
+            <div class="tut-section-count"><?php echo count($videos); ?> video<?php echo count($videos) !== 1 ? 's' : ''; ?></div>
         </div>
         <span class="fa fa-chevron-down tut-chevron"></span>
     </button>
@@ -135,23 +161,26 @@
         <ul class="tut-video-list">
 <?php
         $vidNum = 0;
-        foreach ($videoFiles as $vf) {
+        foreach ($videos as $vid) {
             $vidNum++;
-            $baseName = substr($vf, $length12);
-            $ext      = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
+            $filePath  = $vid['file_path'];
+            $fullPath  = $contentRoot . '/' . ltrim($filePath, '/');
+            $baseName  = basename($filePath);
+            $ext       = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
+            $title     = $vid['title'] ?: prettyName($baseName);
+            $thumbSrc  = htmlspecialchars($vid['thumbnail_path'] ?: 'images/sample.png');
 
-            $encFilePath = encParam($value . "/", $cipher, $encryption_key, $options, $iv);
-            $encFileName = encParam($folderName,   $cipher, $encryption_key, $options, $iv);
-            $encVidPath  = encParam($vf,           $cipher, $encryption_key, $options, $iv);
-            $encVidName  = encParam($baseName,     $cipher, $encryption_key, $options, $iv);
+            $encFilePath = encParam($folderPath,  $cipher, $encryption_key, $options, $iv);
+            $encFileName = encParam($folderName,  $cipher, $encryption_key, $options, $iv);
+            $encVidPath  = encParam($fullPath,    $cipher, $encryption_key, $options, $iv);
+            $encVidName  = encParam($baseName,    $cipher, $encryption_key, $options, $iv);
             $vidHref = "watch.php?&{$videolink}={$encFilePath}&{$videoname}={$encFileName}&{$videolink1}={$encVidPath}&{$videoname1}={$encVidName}{$bcQuery}";
-            $vidThumbSrc = htmlspecialchars(videoThumb($vf));
 ?>
             <li class="tut-video-item">
                 <span class="tut-vid-num"><?php echo $vidNum; ?></span>
-                <img src="<?php echo $vidThumbSrc; ?>" alt="" class="tut-vid-thumb">
+                <img src="<?php echo $thumbSrc; ?>" alt="" class="tut-vid-thumb">
                 <a href="<?php echo $vidHref; ?>" class="tut-vid-name" title="<?php echo htmlspecialchars($baseName); ?>">
-                    <?php echo htmlspecialchars(prettyName($baseName)); ?>
+                    <?php echo htmlspecialchars($title); ?>
                 </a>
                 <span class="tut-vid-ext"><?php echo $ext; ?></span>
             </li>
@@ -160,10 +189,10 @@
     </div>
 </div>
 
-<?php } // end foreach
+<?php } // end foreach subcategories
 
     if ($sectionIdx === 0) {
-        echo '<div class="tut-empty">No tutorials found in this category.</div>';
+        echo '<div class="tut-empty">No tutorials found in this category yet — content is still being indexed.</div>';
     }
 ?>
 

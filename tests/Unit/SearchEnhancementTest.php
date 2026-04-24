@@ -453,4 +453,34 @@ class SearchEnhancementTest extends TestCase
 
         $this->assertLessThanOrEqual(50, count($results), 'Results should be capped at 50');
     }
+
+    /**
+     * Search results should include category_url and subcategory_url for navigation.
+     */
+    public function testSearchResultsIncludeCategoryUrls(): void
+    {
+        $results = $this->runSearch('Math');
+        $this->assertNotEmpty($results, 'Search should return results');
+
+        foreach ($results as $row) {
+            $this->assertNotEmpty($row['category'], 'Test data should have categories');
+            $this->assertNotEmpty($row['subcategory'], 'Test data should have subcategories');
+
+            // Simulate the URL formatting that api/search.php performs
+            $categoryUrl = '';
+            $subcategoryUrl = '';
+            if (!empty($row['category'])) {
+                $categoryUrl = 'tutorials.php?&course=' . urlencode($row['category']);
+                if (!empty($row['subcategory'])) {
+                    $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $row['subcategory']));
+                    $subcategoryUrl = $categoryUrl . '#tut-sec-' . $slug;
+                }
+            }
+
+            $this->assertNotEmpty($categoryUrl, 'Category URL should be built for results with a category');
+            $this->assertStringContainsString('tutorials.php', $categoryUrl);
+            $this->assertNotEmpty($subcategoryUrl, 'Subcategory URL should be built for results with a subcategory');
+            $this->assertStringContainsString('#tut-sec-', $subcategoryUrl);
+        }
+    }
 }

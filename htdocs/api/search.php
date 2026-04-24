@@ -18,6 +18,7 @@
  */
 
 include_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/tiles.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -83,10 +84,10 @@ try {
                 cm.duration_seconds,
                 cm.thumbnail_path,
                 cm.file_path,
-                MATCH(cm.title, cm.category, cm.subcategory, cm.source) AGAINST(:q_score IN BOOLEAN MODE) AS relevance,
+                MATCH(cm.title, cm.description, cm.category, cm.subcategory, cm.source, cm.transcript_snippet) AGAINST(:q_score IN BOOLEAN MODE) AS relevance,
                 MATCH(cm.title) AGAINST(:q_title IN BOOLEAN MODE) AS title_relevance
             FROM content_meta cm
-            WHERE MATCH(cm.title, cm.category, cm.subcategory, cm.source) AGAINST(:q_match IN BOOLEAN MODE)
+            WHERE MATCH(cm.title, cm.description, cm.category, cm.subcategory, cm.source, cm.transcript_snippet) AGAINST(:q_match IN BOOLEAN MODE)
             {$typeClause}
             ORDER BY (relevance + title_relevance * 2) DESC
             LIMIT 20
@@ -151,6 +152,7 @@ try {
                 OR cm.category LIKE :like_category
                 OR cm.subcategory LIKE :like_subcategory
                 OR cm.source LIKE :like_source
+                OR cm.transcript_snippet LIKE :like_transcript
             )
             {$typeClause}
             ORDER BY cm.title ASC
@@ -162,6 +164,7 @@ try {
             ':like_category'    => $likeParam,
             ':like_subcategory' => $likeParam,
             ':like_source'      => $likeParam,
+            ':like_transcript'  => $likeParam,
         ]);
 
         $stmt = $pdo->prepare($sql);
@@ -171,13 +174,26 @@ try {
     }
 
     // Format output
+    $encCourseKey = tileEncrypt('course');
     $items = [];
     foreach ($results as $row) {
+        $categoryUrl = '';
+        $subcategoryUrl = '';
+        if (!empty($row['category'])) {
+            $categoryUrl = 'tutorials.php?&' . $encCourseKey . '=' . tileEncrypt($row['category']);
+            if (!empty($row['subcategory'])) {
+                $subcatSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $row['subcategory']));
+                $subcategoryUrl = $categoryUrl . '#tut-sec-' . $subcatSlug;
+            }
+        }
+
         $items[] = [
             'content_id'       => $row['content_id'],
             'title'            => $row['title'],
             'category'         => $row['category'],
             'subcategory'      => $row['subcategory'],
+            'category_url'     => $categoryUrl,
+            'subcategory_url'  => $subcategoryUrl,
             'source'           => $row['source'],
             'content_type'     => $row['content_type'],
             'duration_seconds' => $row['duration_seconds'] !== null ? (int) $row['duration_seconds'] : null,
@@ -312,7 +328,7 @@ function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
     foreach ($searchTerms as $term) {
         $paramName = ':alias_' . $i;
         $likeVal = '%' . $term . '%';
-        $conditions[] = "(cm.title LIKE {$paramName} OR cm.category LIKE {$paramName} OR cm.subcategory LIKE {$paramName} OR cm.source LIKE {$paramName})";
+        $conditions[] = "(cm.title LIKE {$paramName} OR cm.category LIKE {$paramName} OR cm.subcategory LIKE {$paramName} OR cm.source LIKE {$paramName} OR cm.transcript_snippet LIKE {$paramName})";
         $params[$paramName] = $likeVal;
         $i++;
     }
@@ -383,6 +399,7 @@ function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
             cm.title LIKE :lev_title
             OR cm.category LIKE :lev_cat
             OR cm.subcategory LIKE :lev_subcat
+            OR cm.transcript_snippet LIKE :lev_transcript
         )
         {$typeClause}
         LIMIT 200
@@ -392,6 +409,7 @@ function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
         ':lev_title'  => $likeVal,
         ':lev_cat'    => $likeVal,
         ':lev_subcat' => $likeVal,
+        ':lev_transcript' => $likeVal,
     ]);
 
     $stmt = $pdo->prepare($sql);

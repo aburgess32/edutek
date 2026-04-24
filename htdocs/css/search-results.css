@@ -194,6 +194,41 @@
   text-overflow: ellipsis;
 }
 
+.sr-card__breadcrumb-link {
+  color: var(--teacher-muted, #5a5a6e);
+  text-decoration: none;
+  transition: color 100ms ease, text-decoration 100ms ease;
+}
+
+.sr-card__breadcrumb-link:hover,
+.sr-card__breadcrumb-link:focus {
+  color: var(--accent, #4ECDC4);
+  text-decoration: underline;
+}
+
+.sr-card__breadcrumb-sep {
+  opacity: 0.5;
+  margin: 0 2px;
+}
+
+.sr-card__thumb-link {
+  display: block;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sr-card__title-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sr-card__title-link:hover .sr-card__title,
+.sr-card__title-link:focus .sr-card__title {
+  color: var(--accent, #4ECDC4);
+}
+
 .sr-card__meta {
   display: flex;
   align-items: center;

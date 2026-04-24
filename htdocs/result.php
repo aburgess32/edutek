@@ -78,7 +78,6 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
           thumb = '<span class="sr-card__thumb-placeholder"><i class="fa ' + iconCls + '"></i></span>';
         }
 
-        var breadcrumb = [item.category, item.subcategory].filter(Boolean).join(' / ');
         var duration = item.duration_seconds ? formatDuration(item.duration_seconds) : '';
         var badgeClass = 'sr-card__type-badge sr-card__type-badge--' + (item.content_type || 'video');
 
@@ -91,17 +90,36 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
           else href = 'watch.php?id=' + item.content_id;
         }
 
-        html += '<a class="sr-card" href="' + escAttr(href) + '">' +
-          '<div class="sr-card__thumb">' + thumb + '</div>' +
+        // Build breadcrumb with clickable category / subcategory links
+        var breadcrumbHtml = '';
+        if (item.category) {
+          var catLink = item.category_url
+            ? '<a class="sr-card__breadcrumb-link" href="' + escAttr(item.category_url) + '">' + escHtml(item.category) + '</a>'
+            : '<span>' + escHtml(item.category) + '</span>';
+          breadcrumbHtml = catLink;
+          if (item.subcategory) {
+            var subcatLink = item.subcategory_url
+              ? '<a class="sr-card__breadcrumb-link" href="' + escAttr(item.subcategory_url) + '">' + escHtml(item.subcategory) + '</a>'
+              : '<span>' + escHtml(item.subcategory) + '</span>';
+            breadcrumbHtml += ' <span class="sr-card__breadcrumb-sep">/</span> ' + subcatLink;
+          }
+        }
+
+        html += '<div class="sr-card">' +
+          '<a class="sr-card__thumb-link" href="' + escAttr(href) + '">' +
+            '<div class="sr-card__thumb">' + thumb + '</div>' +
+          '</a>' +
           '<div class="sr-card__info">' +
-            '<div class="sr-card__title">' + escHtml(item.title) + '</div>' +
-            (breadcrumb ? '<div class="sr-card__breadcrumb">' + escHtml(breadcrumb) + '</div>' : '') +
+            '<a class="sr-card__title-link" href="' + escAttr(href) + '">' +
+              '<div class="sr-card__title">' + escHtml(item.title) + '</div>' +
+            '</a>' +
+            (breadcrumbHtml ? '<div class="sr-card__breadcrumb">' + breadcrumbHtml + '</div>' : '') +
             '<div class="sr-card__meta">' +
               '<span class="' + badgeClass + '">' + escHtml(item.content_type) + '</span>' +
               (duration ? '<span class="sr-card__duration">' + duration + '</span>' : '') +
             '</div>' +
           '</div>' +
-        '</a>';
+        '</div>';
       });
 
       container.innerHTML = html + '</div>';

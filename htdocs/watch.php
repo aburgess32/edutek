@@ -95,6 +95,18 @@
       }
   }
 
+  // Normalize video path for web serving (Alias /content/ -> /content/)
+  $videoWebPath = $currentVideoSrc;
+  if ($videoWebPath !== '' && strpos($videoWebPath, '/content/') !== 0 && strpos($videoWebPath, 'content/') !== 0) {
+      $videoWebPath = '/content/' . ltrim($videoWebPath, '/');
+  }
+
+  // Normalize folder path for download links
+  $folderWebPath = $file;
+  if ($folderWebPath !== '' && strpos($folderWebPath, '/content/') !== 0 && strpos($folderWebPath, 'content/') !== 0) {
+      $folderWebPath = '/content/' . ltrim($folderWebPath, '/');
+  }
+
   // FRE-41: Count videos in this topic for the sidebar header
   $videoCount = 0;
   foreach ($ff2 as $v) {
@@ -243,7 +255,7 @@
       <div class="player-card">
         <!-- Video -->
         <div class="player-card__video-wrap">
-          <video class="Wvideo" id="wp-video" src="<?php echo htmlspecialchars($currentVideoSrc); ?>" autoplay></video>
+          <video class="Wvideo" id="wp-video" src="<?php echo htmlspecialchars($videoWebPath); ?>" autoplay></video>
           <!-- FRE-45: Up Next Toast Overlay -->
           <div class="up-next-toast" id="up-next-toast" style="display:none;">
             <span class="up-next-toast__label">Up Next</span>
@@ -271,7 +283,7 @@
         <div class="player-card__title-bar">
           <h1 class="player-card__title"><?php echo htmlspecialchars($currentVideoName); ?></h1>
           <?php if (in_array(pathinfo($currentVideoName, PATHINFO_EXTENSION), $video)): ?>
-          <a class="btn-download" href="<?php echo htmlspecialchars($file . '/' . $currentVideoName); ?>" download="<?php echo htmlspecialchars($currentVideoName); ?>">
+          <a class="btn-download" href="<?php echo htmlspecialchars(rtrim($folderWebPath, '/') . '/' . $currentVideoName); ?>" download="<?php echo htmlspecialchars($currentVideoName); ?>">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download
           </a>

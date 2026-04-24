@@ -37,6 +37,21 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Enable Apache mod_rewrite for .htaccess support
 RUN a2enmod rewrite
 
+# Enable OpenSSL 3.0 legacy provider (required for BF-CBC cipher used in tiles.php link encryption)
+RUN { \
+    echo 'openssl_conf = openssl_init'; \
+    echo '[openssl_init]'; \
+    echo 'providers = provider_sect'; \
+    echo '[provider_sect]'; \
+    echo 'default = default_sect'; \
+    echo 'legacy = legacy_sect'; \
+    echo '[default_sect]'; \
+    echo 'activate = 1'; \
+    echo '[legacy_sect]'; \
+    echo 'activate = 1'; \
+} > /usr/local/etc/openssl-legacy.cnf
+ENV OPENSSL_CONF=/usr/local/etc/openssl-legacy.cnf
+
 # PHP production-oriented settings tuned for low-memory tablet clients
 RUN { \
     echo 'opcache.enable=1'; \

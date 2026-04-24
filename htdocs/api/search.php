@@ -197,7 +197,7 @@ try {
             'source'           => $row['source'],
             'content_type'     => $row['content_type'],
             'duration_seconds' => $row['duration_seconds'] !== null ? (int) $row['duration_seconds'] : null,
-            'thumbnail_path'   => $row['thumbnail_path'],
+            'thumbnail_path'   => resolveContentUrl($row['thumbnail_path']),
             'file_path'        => $row['file_path'] ?? null,
             'match_type'       => $matchType,
         ];

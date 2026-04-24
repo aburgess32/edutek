@@ -3,6 +3,7 @@
 <?php
     // navbar
     include_once "navbar.php";
+    require_once __DIR__ . '/includes/tiles.php';
 
     $cipher = CONTENT_CIPHER;
     $iv_length = openssl_cipher_iv_length($cipher);
@@ -122,6 +123,18 @@
         return $contentRoot . '/' . ltrim($filePath, '/');
     }
 
+    // Helper: find a subcategory-level thumbnail at {contentRoot}/{category}/{subcategory}.{ext}
+    function findSubcategoryThumb($category, $subcategory, $contentRoot) {
+        $base = $contentRoot . '/' . $category . '/' . $subcategory;
+        foreach (['jpg', 'jpeg', 'png', 'webp'] as $ext) {
+            $path = $base . '.' . $ext;
+            if (file_exists($path)) {
+                return resolveContentUrl($category . '/' . $subcategory . '.' . $ext);
+            }
+        }
+        return null;
+    }
+
     // Render subcategory sections from DB
     foreach ($subcategories as $folderName) {
         // Get all videos in this subcategory
@@ -143,8 +156,15 @@
         $encFolderPath = encParam($folderPath, $cipher, $encryption_key, $options, $iv);
         $sectionHref   = "watch.php?&{$videolink1}=&{$videoname1}=&{$videolink}={$encFolderPath}&{$videoname}={$encFolderName}{$bcQuery}";
 
-        // Thumbnail: use DB thumbnail or fallback
-        $firstThumb = !empty($videos[0]['thumbnail_path']) ? $videos[0]['thumbnail_path'] : 'images/sample.png';
+        // Thumbnail: subcategory-level image > first video thumbnail > fallback
+        $subcatThumb = findSubcategoryThumb($decryption, $folderName, $contentRoot);
+        if ($subcatThumb) {
+            $firstThumb = $subcatThumb;
+        } elseif (!empty($videos[0]['thumbnail_path'])) {
+            $firstThumb = resolveContentUrl($videos[0]['thumbnail_path']);
+        } else {
+            $firstThumb = 'images/sample.png';
+        }
         $thumbSrc   = htmlspecialchars($firstThumb);
 ?>
 
@@ -168,7 +188,7 @@
             $baseName  = basename($filePath);
             $ext       = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
             $title     = $vid['title'] ?: prettyName($baseName);
-            $thumbSrc  = htmlspecialchars($vid['thumbnail_path'] ?: 'images/sample.png');
+            $thumbSrc  = htmlspecialchars($vid['thumbnail_path'] ? resolveContentUrl($vid['thumbnail_path']) : 'images/sample.png');
 
             $encFilePath = encParam($folderPath,  $cipher, $encryption_key, $options, $iv);
             $encFileName = encParam($folderName,  $cipher, $encryption_key, $options, $iv);

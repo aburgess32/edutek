@@ -257,13 +257,26 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
     // Resolve htdocs root for computing web-accessible relative paths
     // Normalize to forward slashes (Windows realpath returns backslashes)
     $htdocsRoot = str_replace('\\', '/', realpath(__DIR__ . '/..'));
+
+    // Safety check: if __DIR__ is outside htdocs (e.g. CLI script in /tmp),
+    // htdocsRoot will be '/' or some unrelated path — disable webPrefix.
     $realContentRoot = str_replace('\\', '/', realpath($contentRoot));
+    if (!$htdocsRoot || strlen($htdocsRoot) <= 1) {
+        $htdocsRoot = '';
+    }
 
     // Determine the web-relative prefix.
     // If the content dir is inside htdocs, strip htdocs path to get "videos/..."
     $webPrefix = '';
-    if ($htdocsRoot && $realContentRoot && strpos($realContentRoot, $htdocsRoot) === 0) {
+    if ($htdocsRoot && $realContentRoot && strlen($htdocsRoot) > 1 && strpos($realContentRoot, $htdocsRoot) === 0) {
         $webPrefix = ltrim(substr($realContentRoot, strlen($htdocsRoot)), '/');
+    }
+
+    // If content is outside htdocs (e.g. Docker mount at /content), use the
+    // content root folder name as the web prefix. An Apache Alias must map
+    // this prefix to the content root (see config/apache/edupak.conf).
+    if ($webPrefix === '' && $realContentRoot) {
+        $webPrefix = basename($realContentRoot);
     }
 
     $pdo = getDbConnection();
@@ -330,10 +343,10 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
         $relativePath = ltrim(str_replace($contentRoot, '', $fullPath), '/');
         $parts        = explode('/', $relativePath);
 
-        // First-level folder is the content-type bucket (videos/, khan/, etc.)
-        // Actual categories start at the second level
-        $category    = (count($parts) >= 3) ? $parts[1] : '';
-        $subcategory = (count($parts) >= 4) ? $parts[2] : '';
+        // Directory structure: <category>/<subcategory>/<file>
+        // (content root IS the categories root — no bucket prefix)
+        $category    = (count($parts) >= 2) ? $parts[0] : '';
+        $subcategory = (count($parts) >= 3) ? $parts[1] : '';
 
         // Build web-accessible path (e.g. "videos/Math/Algebra/intro.mp4")
         $webPath = $webPrefix ? $webPrefix . '/' . $relativePath : $relativePath;
@@ -401,4 +414,84 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
         'skipped'              => $skippedCount,
         'thumbnails_generated' => $thumbsGenerated,
     ];
+}
+
+/**
+ * Check whether whisper-cli is available on this system.
+ */
+function isWhisperAvailable(): bool
+{
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+    $output = [];
+    $code = -1;
+    @exec('whisper-cli -h 2>&1', $output, $code);
+    $available = ($code === 0);
+    return $available;
+}
+
+/**
+ * Resolve the path to the whisper model file.
+ */
+function getWhisperModelPath(): string
+{
+    return '/var/lib/whisper/models/ggml-base.bin';
+}
+
+/**
+ * Extract the first 30 seconds of audio from a video and transcribe it.
+ *
+ * @param string $videoPath Absolute path to the video file.
+ * @param string $modelPath Absolute path to the ggml model file.
+ * @param int    $timeout   Max seconds for the full pipeline.
+ * @return string|null Transcript text or null on failure.
+ */
+function transcribeVideoSnippet(string $videoPath, string $modelPath, int $timeout = 90): ?string
+{
+    if (!isFfmpegAvailable() || !isWhisperAvailable()) {
+        return null;
+    }
+    if (!file_exists($videoPath) || !is_readable($videoPath)) {
+        return null;
+    }
+    if (!file_exists($modelPath)) {
+        return null;
+    }
+
+    $tmpWav = sys_get_temp_dir() . '/whisper_' . uniqid() . '.wav';
+
+    // Extract 30s of mono 16kHz audio
+    $ffmpegCmd = sprintf(
+        'ffmpeg -i %s -t 30 -ar 16000 -ac 1 -vn %s -y 2>/dev/null',
+        escapeshellarg($videoPath),
+        escapeshellarg($tmpWav)
+    );
+    @exec($ffmpegCmd, $_, $ffmpegCode);
+    if ($ffmpegCode !== 0 || !file_exists($tmpWav)) {
+        @unlink($tmpWav);
+        return null;
+    }
+
+    // Run whisper.cpp without timestamps
+    $whisperCmd = sprintf(
+        'whisper-cli -m %s -f %s --no-timestamps -l auto 2>/dev/null',
+        escapeshellarg($modelPath),
+        escapeshellarg($tmpWav)
+    );
+
+    $output = [];
+    $code = -1;
+    @exec($whisperCmd, $output, $code);
+    @unlink($tmpWav);
+
+    if ($code !== 0 || empty($output)) {
+        return null;
+    }
+
+    $text = trim(implode(' ', $output));
+    // Collapse whitespace and limit length
+    $text = preg_replace('/\s+/', ' ', $text);
+    return mb_substr($text, 0, 2000) ?: null;
 }

@@ -108,18 +108,18 @@ function checkAndReindex(): void
     // so content is indexed immediately on first page load.
     $isFirstRun = ($dbCount === 0);
 
-    if (!$isFirstRun && file_exists($lockFile)) {
-        $lastCheck = (int) file_get_contents($lockFile);
-        if (time() - $lastCheck < $interval) {
-            return;
+    // If DB has content, rely on the lock-file interval only.
+    // Never walk the filesystem on every request — on large content
+    // libraries (3TB+) the recursive scan blocks Apache for all users.
+    if (!$isFirstRun) {
+        if (file_exists($lockFile)) {
+            $lastCheck = (int) file_get_contents($lockFile);
+            if (time() - $lastCheck < $interval) {
+                return;
+            }
         }
-    }
-
-    // Quick file count comparison
-    $fileCount = countContentFiles($contentRoot);
-
-    // Counts match and not first run — write lock and skip
-    if ($fileCount === $dbCount && !$isFirstRun) {
+        // Lock interval elapsed but DB is populated — write a new lock and
+        // skip the expensive file-count walk. Manual reindex via admin panel.
         if (!is_dir($dataDir)) {
             @mkdir($dataDir, 0755, true);
         }
@@ -128,6 +128,7 @@ function checkAndReindex(): void
     }
 
     // Nothing to index if no files exist
+    $fileCount = countContentFiles($contentRoot);
     if ($fileCount === 0) {
         if (!is_dir($dataDir)) {
             @mkdir($dataDir, 0755, true);

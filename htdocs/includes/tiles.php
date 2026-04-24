@@ -218,6 +218,39 @@ function getSegmentTopics(string $segKey): array
 }
 
 /**
+ * Resolve a content path for web serving.
+ *
+ * When the content directory lives outside htdocs (e.g. Docker mount at /content),
+ * the DB stores relative paths like "Category/Sub/file.jpg". This function prepends
+ * the content root folder name so the web server can serve it via an Alias.
+ *
+ * Only pass paths from content_meta (thumbnail_path / file_path). Static fallbacks
+ * such as "images/sample.png" should NOT be run through this helper.
+ *
+ * @param string|null $path Relative path from content_meta.
+ * @return string Web-accessible path, or empty string if input is empty.
+ */
+function resolveContentUrl(?string $path): string
+{
+    if (empty($path)) {
+        return '';
+    }
+    // Already an absolute URL — pass through
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    $prefix = basename(rtrim(CONTENT_PATH, '/'));
+    if ($prefix === '' || $prefix === '/' || $prefix === '.') {
+        return ltrim($path, '/');
+    }
+    $path = ltrim($path, '/');
+    if (strpos($path, $prefix . '/') === 0) {
+        return $path;
+    }
+    return $prefix . '/' . $path;
+}
+
+/**
  * Encrypt a value using the BF-CBC cipher (matches existing pattern).
  *
  * @param  string $value Plain text to encrypt.
@@ -332,48 +365,44 @@ function getAllContent(): array
     $items = [];
     $seen = [];
 
-    // Video folders
-    $videoDir = __DIR__ . '/../videos/';
-    if (is_dir($videoDir)) {
-        $folders = glob($videoDir . '*');
-        if ($folders !== false) {
-            foreach ($folders as $path) {
-                if (!is_dir($path)) {
-                    continue;
-                }
-                $folderName = basename($path);
-                if (count(glob($path . '/*')) === 0) {
-                    continue;
-                }
+    // Video folders — sourced from DB (content_meta) to avoid slow filesystem globs
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->query(
+            "SELECT DISTINCT category FROM content_meta WHERE category != '' ORDER BY category ASC"
+        );
+        $categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+        $categories = [];
+    }
 
-                $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $folderName));
-                $type = 'video';
-                $href = '#';
+    foreach ($categories as $folderName) {
+        $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $folderName));
+        $type = 'video';
+        $href = '#';
 
-                if (isset($specialRoutes[$folderName])) {
-                    $href = $specialRoutes[$folderName];
-                    if ($folderName === 'Audiobooks') {
-                        $type = 'audio';
-                    } elseif ($folderName === 'Books' || $folderName === 'Comic Books') {
-                        $type = 'book';
-                    } elseif ($folderName === 'Music') {
-                        $type = 'audio';
-                    }
-                } else {
-                    $encCourse = tileEncrypt($folderName);
-                    $encKey = tileEncrypt('course');
-                    $href = 'tutorials.php?&' . $encKey . '=' . $encCourse;
-                }
-
-                $items[] = [
-                    'label' => $folderName,
-                    'type' => $type,
-                    'href' => $href,
-                    'slug' => $slug,
-                ];
-                $seen[$slug] = true;
+        if (isset($specialRoutes[$folderName])) {
+            $href = $specialRoutes[$folderName];
+            if ($folderName === 'Audiobooks') {
+                $type = 'audio';
+            } elseif ($folderName === 'Books' || $folderName === 'Comic Books') {
+                $type = 'book';
+            } elseif ($folderName === 'Music') {
+                $type = 'audio';
             }
+        } else {
+            $encCourse = tileEncrypt($folderName);
+            $encKey = tileEncrypt('course');
+            $href = 'tutorials.php?&' . $encKey . '=' . $encCourse;
         }
+
+        $items[] = [
+            'label' => $folderName,
+            'type'  => $type,
+            'href'  => $href,
+            'slug'  => $slug,
+        ];
+        $seen[$slug] = true;
     }
 
     // Services from config
@@ -424,23 +453,20 @@ function getUncategorizedContent(): array
     }
 
     $uncategorized = [];
-    $videoDir = __DIR__ . '/../videos/';
-    if (is_dir($videoDir)) {
-        $folders = glob($videoDir . '*');
-        if ($folders !== false) {
-            foreach ($folders as $path) {
-                if (!is_dir($path)) {
-                    continue;
-                }
-                $folderName = basename($path);
-                if (count(glob($path . '/*')) === 0) {
-                    continue;
-                }
-                if (!isset($assigned[$folderName])) {
-                    $uncategorized[] = $folderName;
-                }
+    // Source from DB to avoid slow filesystem globs over large content directories
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->query(
+            "SELECT DISTINCT category FROM content_meta WHERE category != '' ORDER BY category ASC"
+        );
+        $allCategories = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($allCategories as $folderName) {
+            if (!isset($assigned[$folderName])) {
+                $uncategorized[] = $folderName;
             }
         }
+    } catch (Exception $e) {
+        // DB unavailable — return empty
     }
 
     sort($uncategorized);

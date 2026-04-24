@@ -55,6 +55,11 @@ CREATE TABLE IF NOT EXISTS content_meta (
     duration_seconds INT           DEFAULT NULL,
     language         VARCHAR(10)   DEFAULT 'en',
 
+    -- Transcription (FRE-55)
+    transcript_snippet    TEXT          DEFAULT NULL,
+    transcript_status     ENUM('pending','processing','done','failed') DEFAULT NULL,
+    transcript_updated_at TIMESTAMP     NULL DEFAULT NULL,
+
     created_at       TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
 
     INDEX idx_subject_grade (subject, grade_level),
@@ -63,8 +68,8 @@ CREATE TABLE IF NOT EXISTS content_meta (
     INDEX idx_content_type (content_type),
     INDEX idx_language     (language),
 
-    -- Full-text index for search across title, category, subcategory, source
-    FULLTEXT ft_search (title, category, subcategory, source),
+    -- Full-text index for search across title, description, category, subcategory, source, transcript
+    FULLTEXT ft_search (title, description, category, subcategory, source, transcript_snippet),
 
     -- Title-only full-text index for title-priority ranking
     FULLTEXT ft_title (title)

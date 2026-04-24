@@ -40,6 +40,12 @@ services:
       - ./phpcs.xml:/var/www/phpcs.xml:ro
       # Custom Apache virtual host / server config
       - ./config/apache:/etc/apache2/sites-enabled:ro
+      # OpenSSL legacy provider config (needed for BF-CBC cipher in PHP 8.1 + OpenSSL 3.x)
+      - ./config/openssl/openssl.cnf:/etc/ssl/openssl.cnf:ro
+      # Content library (read-only — 3TB on D drive)
+      # NOTE: Must use Windows-style path for Docker Desktop on WSL2
+      # NOTE: Mount re-enabled for file serving only. tiles.php uses DB not filesystem.
+      - D:/xampp/htdocs/Edutek/videos:/content:ro
     environment:
       # DB connection — consumed by htdocs/includes/config.php
       DB_HOST: db
@@ -47,6 +53,7 @@ services:
       DB_NAME: edupak
       DB_USER: edupak
       DB_PASS: edupak_dev
+      CONTENT_PATH: /content/
     depends_on:
       db:
         condition: service_healthy

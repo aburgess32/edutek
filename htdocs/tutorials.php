@@ -99,7 +99,7 @@
 
         // Also get any files directly in the category (no subcategory)
         $stmtDirect = $pdo->prepare(
-            "SELECT title, file_path, thumbnail_path FROM content_meta
+            "SELECT content_id, title, file_path, thumbnail_path FROM content_meta
              WHERE category = :cat AND (subcategory = '' OR subcategory IS NULL)
              ORDER BY title ASC"
         );
@@ -139,7 +139,7 @@
     foreach ($subcategories as $folderName) {
         // Get all videos in this subcategory
         $stmt2 = $pdo->prepare(
-            "SELECT title, file_path, thumbnail_path FROM content_meta
+            "SELECT content_id, title, file_path, thumbnail_path FROM content_meta
              WHERE category = :cat AND subcategory = :sub
              ORDER BY title ASC"
         );
@@ -188,7 +188,15 @@
             $baseName  = basename($filePath);
             $ext       = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
             $title     = $vid['title'] ?: prettyName($baseName);
-            $thumbSrc  = htmlspecialchars($vid['thumbnail_path'] ? resolveContentUrl($vid['thumbnail_path']) : 'images/sample.png');
+
+            // Thumbnail: eager if DB has it, lazy otherwise
+            $hasThumb = !empty($vid['thumbnail_path']);
+            $thumbAttrs = '';
+            if ($hasThumb) {
+                $thumbAttrs = 'src="' . htmlspecialchars(resolveContentUrl($vid['thumbnail_path'])) . '"';
+            } else {
+                $thumbAttrs = 'src="images/sample.png" data-lazy-thumb="' . htmlspecialchars($vid['content_id'], ENT_QUOTES, 'UTF-8') . '"';
+            }
 
             $encFilePath = encParam($folderPath,  $cipher, $encryption_key, $options, $iv);
             $encFileName = encParam($folderName,  $cipher, $encryption_key, $options, $iv);
@@ -198,7 +206,7 @@
 ?>
             <li class="tut-video-item">
                 <span class="tut-vid-num"><?php echo $vidNum; ?></span>
-                <img src="<?php echo $thumbSrc; ?>" alt="" class="tut-vid-thumb">
+                <img <?php echo $thumbAttrs; ?> alt="" class="tut-vid-thumb">
                 <a href="<?php echo $vidHref; ?>" class="tut-vid-name" title="<?php echo htmlspecialchars($baseName); ?>">
                     <?php echo htmlspecialchars($title); ?>
                 </a>
@@ -224,6 +232,8 @@ function toggleSection(btn) {
     btn.setAttribute('aria-expanded', expanded);
 }
 </script>
+
+<script src="js/lazy-thumbs.js"></script>
 
 <?php
     // FRE-12: Breadcrumb

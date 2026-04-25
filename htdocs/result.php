@@ -72,6 +72,8 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
         var thumb = '';
         if (item.thumbnail_path) {
           thumb = '<img src="' + escAttr(item.thumbnail_path) + '" alt="">';
+        } else if (item.content_type === 'video') {
+          thumb = '<img src="images/sample.png" data-lazy-thumb="' + escAttr(item.content_id) + '" alt="">';
         } else {
           var iconMap = { video: 'fa-film', audiobook: 'fa-headphones', pdf: 'fa-file-pdf-o', interactive: 'fa-puzzle-piece', tool: 'fa-wrench' };
           var iconCls = iconMap[item.content_type] || 'fa-file';
@@ -158,3 +160,4 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
 <?php endif; ?>
 
 <?php include_once "footer.php"; ?>
+<script src="js/lazy-thumbs.js"></script>

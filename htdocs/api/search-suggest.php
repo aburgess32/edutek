@@ -68,7 +68,11 @@ try {
     foreach ($catRows as $row) {
         $name = $row['name'];
         if ($name && !isset($seen[$name])) {
-            $categories[] = ['name' => $name, 'type' => 'category'];
+            $categories[] = [
+                'name' => $name,
+                'type' => 'category',
+                'url'  => 'tutorials.php?' . tileEncrypt('course') . '=' . tileEncrypt($name),
+            ];
             $seen[$name] = true;
         }
         if (count($categories) >= 3) break;

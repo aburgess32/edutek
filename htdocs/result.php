@@ -11,8 +11,6 @@ $query = isset($_GET['q']) ? trim($_GET['q']) : '';
 $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
 ?>
 
-<link href="css/search-results.css" rel="stylesheet">
-
 <div class="container-fluid" style="padding-top:30px; min-height:60vh;">
   <h4 style="margin-bottom:16px;">Search results<?php if ($queryEsc !== '') echo ' for <em>&ldquo;' . $queryEsc . '&rdquo;</em>'; ?></h4>
 
@@ -65,8 +63,30 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
       }
 
       var html = '<div class="sr-result-count">' + total + ' result' + (total !== 1 ? 's' : '') + ' found</div>' +
-                 fuzzyNotice +
-                 '<div class="sr-grid">';
+                 fuzzyNotice;
+
+      // Render category / subcategory browse groups first
+      var groups = data.groups || [];
+      if (groups.length > 0) {
+        html += '<div class="sr-groups">';
+        groups.forEach(function(g) {
+          var icon = g.type === 'category' ? '&#128193;' : '&#128194;';
+          var labelText = g.type === 'category' ? 'Category' : 'Subcategory';
+          var countText = g.count ? ' &middot; ' + g.count + ' item' + (g.count !== 1 ? 's' : '') : '';
+          var parentText = g.parent ? escHtml(g.parent) + ' / ' : '';
+          html += '<a class="sr-group-card" href="' + escAttr(g.url) + '">' +
+                    '<span class="sr-group-card__icon">' + icon + '</span>' +
+                    '<span class="sr-group-card__info">' +
+                      '<span class="sr-group-card__label">' + labelText + '</span>' +
+                      '<span class="sr-group-card__name">' + parentText + escHtml(g.name) + countText + '</span>' +
+                    '</span>' +
+                    '<span class="sr-group-card__arrow">&#8250;</span>' +
+                  '</a>';
+        });
+        html += '</div>';
+      }
+
+      html += '<div class="sr-grid">';
 
       items.forEach(function(item) {
         var thumb = '';

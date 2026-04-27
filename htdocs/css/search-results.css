@@ -99,6 +99,74 @@
 .st-badge--interactive { background: #22c55e; }
 .st-badge--tool { background: #6b7280; }
 
+/* ========== CATEGORY / SUBCATEGORY BROWSE GROUPS ========== */
+.sr-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sr-group-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--teacher-card, #fff);
+  border: 1px solid var(--teacher-border, #e8e4df);
+  border-radius: var(--teacher-radius-sm, 10px);
+  text-decoration: none;
+  color: var(--teacher-text, #1a1a2e);
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+  min-width: 200px;
+  flex: 1 1 240px;
+  max-width: 100%;
+}
+
+.sr-group-card:hover,
+.sr-group-card:focus {
+  border-color: var(--accent, #4ECDC4);
+  box-shadow: var(--teacher-shadow, 0 2px 8px rgba(0,0,0,0.08));
+}
+
+.sr-group-card__icon {
+  flex-shrink: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.sr-group-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sr-group-card__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--teacher-muted, #5a5a6e);
+}
+
+.sr-group-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--teacher-text, #1a1a2e);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-group-card__arrow {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--teacher-muted, #5a5a6e);
+  margin-left: 4px;
+}
+
 /* ========== VISUAL RESULT CARDS ========== */
 .sr-grid {
   display: grid;

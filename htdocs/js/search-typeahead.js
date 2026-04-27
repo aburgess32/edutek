@@ -253,6 +253,11 @@
             close();
 
             if (item.group === 'category') {
+                // Navigate directly to category URL if available
+                if (item.data.url) {
+                    window.location.href = item.data.url;
+                    return;
+                }
                 // Check for callback
                 var catCallback = input.getAttribute('data-typeahead-on-category');
                 if (catCallback && typeof window[catCallback] === 'function') {

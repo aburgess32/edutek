@@ -18,6 +18,7 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom fonts for this template-->
   <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+  <link href="css/search-results.css" rel="stylesheet">
   <!-- Custom styles for this template-->
   <link href="css/sb-admin.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
@@ -72,7 +73,7 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
                    (FRE-40) is already built but not linked from the navbar.
                    Alternatively, an HTML5 <datalist> populated server-side with top categories
                    would give zero-JS autocomplete with no extra HTTP requests. -->
-              <input class="form-control" type="text" name="q" placeholder="Search for...">
+              <input class="form-control" type="text" name="q" placeholder="Search for..." data-search-typeahead>
               <span class="input-group-btn">
                 <button type="submit" class="btn btn-danger"><i class="fa fa-search"></i></button>
               </span>
@@ -246,6 +247,7 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
       });
     })();
     </script>
+    <script src="js/search-typeahead.js"></script>
 </body>
 
 </html>

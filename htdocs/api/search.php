@@ -173,8 +173,61 @@ try {
         $matchType = 'prefix';
     }
 
+    // Build category / subcategory group matches (distinct, with counts)
+    $groups = [];
+    if (mb_strlen($query) >= 2) {
+        $likeParam = '%' . $query . '%';
+        $groupSql = "
+            SELECT DISTINCT cm.category AS name, 'category' AS gtype, COUNT(*) AS cnt
+            FROM content_meta cm
+            WHERE cm.category LIKE :q_cat
+            GROUP BY cm.category
+            ORDER BY cnt DESC
+            LIMIT 3
+        ";
+        $groupStmt = $pdo->prepare($groupSql);
+        $groupStmt->execute([':q_cat' => $likeParam]);
+        $catGroups = $groupStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($catGroups as $g) {
+            if (empty($g['name'])) continue;
+            $groups[] = [
+                'type'   => 'category',
+                'name'   => $g['name'],
+                'url'    => 'tutorials.php?' . $encCourseKey . '=' . tileEncrypt($g['name']),
+                'count'  => (int)$g['cnt'],
+            ];
+        }
+
+        $subSql = "
+            SELECT DISTINCT cm.subcategory AS name, cm.category AS parent,
+                            'subcategory' AS gtype, COUNT(*) AS cnt
+            FROM content_meta cm
+            WHERE cm.subcategory LIKE :q_subcat
+              AND cm.subcategory IS NOT NULL
+              AND cm.subcategory != ''
+            GROUP BY cm.subcategory, cm.category
+            ORDER BY cnt DESC
+            LIMIT 3
+        ";
+        $subStmt = $pdo->prepare($subSql);
+        $subStmt->execute([':q_subcat' => $likeParam]);
+        $subGroups = $subStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($subGroups as $g) {
+            if (empty($g['name'])) continue;
+            $subcatSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $g['name']));
+            $groups[] = [
+                'type'   => 'subcategory',
+                'name'   => $g['name'],
+                'parent' => $g['parent'] ?? null,
+                'url'    => 'tutorials.php?' . $encCourseKey . '=' . tileEncrypt($g['parent']) . '#tut-sec-' . $subcatSlug,
+                'count'  => (int)$g['cnt'],
+            ];
+        }
+    }
+
     // Format output
-    $encCourseKey = tileEncrypt('course');
     $items = [];
     foreach ($results as $row) {
         $categoryUrl = '';
@@ -267,6 +320,7 @@ try {
 
     echo json_encode([
         'results' => $items,
+        'groups'  => $groups,
         'total'   => count($items),
         'query'   => $query,
     ]);

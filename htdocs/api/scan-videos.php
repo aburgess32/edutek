@@ -37,7 +37,7 @@ $batchSize = isset($_GET['limit']) ? (int) $_GET['limit'] : ($isCli ? 500 : 100)
 $batchSize = max(1, min($batchSize, 2000));
 
 // Count remaining
-$countStmt = $pdo->query("SELECT COUNT(*) FROM content_meta WHERE content_type = 'Video' AND duration_seconds IS NULL");
+$countStmt = $pdo->query("SELECT COUNT(*) FROM content_meta WHERE content_type = 'Video' AND (duration_seconds IS NULL OR codec IS NULL)");
 $remaining = (int) $countStmt->fetchColumn();
 
 $totalStmt = $pdo->query("SELECT COUNT(*) FROM content_meta WHERE content_type = 'Video'");
@@ -46,7 +46,7 @@ $total = (int) $totalStmt->fetchColumn();
 $selectStmt = $pdo->prepare("
     SELECT id, content_id, file_path
     FROM content_meta
-    WHERE content_type = 'Video' AND duration_seconds IS NULL
+    WHERE content_type = 'Video' AND (duration_seconds IS NULL OR codec IS NULL)
     ORDER BY id
     LIMIT :limit
 ");
@@ -65,11 +65,22 @@ $skippedForks = 0;
 $processed = 0;
 $updated   = 0;
 
+function doUpdate(PDOStatement $stmt, int $id, int $dur, ?string $codec): void {
+    $stmt->bindValue(':dur', $dur, PDO::PARAM_INT);
+    if ($codec === null) {
+        $stmt->bindValue(':codec', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':codec', $codec, PDO::PARAM_STR);
+    }
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+}
+
 while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
     $processed++;
     if (empty($row['file_path'])) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'empty_file_path'];
-        $updateStmt->execute([':dur' => 0, ':codec' => null, ':id' => $row['id']]);
+        doUpdate($updateStmt, (int)$row['id'], 0, null);
         continue;
     }
 
@@ -77,7 +88,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
     $baseName = basename($row['file_path']);
     if (strpos($baseName, '._') === 0) {
         $skippedForks++;
-        $updateStmt->execute([':dur' => 0, ':codec' => null, ':id' => $row['id']]);
+        doUpdate($updateStmt, (int)$row['id'], 0, null);
         continue;
     }
 
@@ -85,7 +96,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
 
     if (!file_exists($filePath) || filesize($filePath) === 0) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'missing_or_empty'];
-        $updateStmt->execute([':dur' => 0, ':codec' => null, ':id' => $row['id']]);
+        doUpdate($updateStmt, (int)$row['id'], 0, null);
         continue;
     }
 
@@ -97,7 +108,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
     $durOutput = shell_exec($durCmd);
     if ($durOutput === null) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'ffprobe_failed'];
-        $updateStmt->execute([':dur' => 0, ':codec' => null, ':id' => $row['id']]);
+        doUpdate($updateStmt, (int)$row['id'], 0, null);
         continue;
     }
     $durOutput = trim($durOutput);
@@ -105,7 +116,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
 
     if ($duration <= 0) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'no_duration'];
-        $updateStmt->execute([':dur' => 0, ':codec' => null, ':id' => $row['id']]);
+        doUpdate($updateStmt, (int)$row['id'], 0, null);
         continue;
     }
 
@@ -122,11 +133,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
         $hevc[] = ['id' => $row['id'], 'content_id' => $row['content_id']];
     }
 
-    $updateStmt->execute([
-        ':dur' => (int) round($duration),
-        ':codec' => $codec,
-        ':id'  => $row['id']
-    ]);
+    doUpdate($updateStmt, (int)$row['id'], (int) round($duration), $codec);
     $updated++;
 }
 

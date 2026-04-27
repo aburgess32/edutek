@@ -100,6 +100,30 @@
   $videoWebPath  = $currentVideoSrc  !== '' ? contentWebUrl($currentVideoSrc)  : '';
   $folderWebPath = $file             !== '' ? contentWebUrl($file)             : '';
 
+  // FRE-50: Check DB for transcoded HEVC path
+  $transcodedPath = '';
+  if ($currentVideoSrc !== '') {
+      try {
+          $pdo = getDbConnection();
+          $stmt = $pdo->prepare("SELECT codec, transcoded_path, duration_seconds FROM content_meta WHERE content_id = :id");
+          $stmt->execute([':id' => $currentVideoSrc]);
+          $meta = $stmt->fetch(PDO::FETCH_ASSOC);
+          if ($meta && $meta['codec'] === 'hevc' && !empty($meta['transcoded_path'])) {
+              $tp = $meta['transcoded_path'];
+              // Check if transcoded file exists on disk
+              $tpFs = contentFilePath($tp);
+              if (file_exists($tpFs) && filesize($tpFs) > 0) {
+                  $transcodedPath = contentWebUrl($tp);
+              }
+          }
+      } catch (PDOException $e) {
+          // ignore DB errors here — fallback to raw video
+      }
+  }
+  if ($transcodedPath !== '') {
+      $videoWebPath = $transcodedPath;
+  }
+
   // FRE-41: Count videos in this topic for the sidebar header
   $videoCount = 0;
   foreach ($ff2 as $v) {

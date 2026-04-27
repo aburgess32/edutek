@@ -34,6 +34,11 @@
     var src = el.getAttribute('data-video-src');
     if (!src) { loadItem(index + 1); return; }
 
+    // Ensure absolute /content/ URL (some pages may output raw content_ids)
+    if (src.indexOf('/content/') !== 0 && src.indexOf('http') !== 0) {
+      src = '/content/' + src.replace(/^content\//, '');
+    }
+
     var thumbContainer = el.closest('.playlist-item').querySelector('.playlist-item__thumb');
     var probe = document.createElement('video');
     probe.preload = 'metadata';

@@ -251,6 +251,38 @@ function resolveContentUrl(?string $path): string
 }
 
 /**
+ * Normalize a content path by stripping any leading "content/" prefix.
+ *
+ * The DB contains both "Category/Sub/file.mp4" and "content/Category/Sub/file.mp4"
+ * from a failed migration. This ensures we always get the relative path inside
+ * the content root.
+ */
+function normalizeContentPath(string $path): string
+{
+    $path = ltrim($path, '/');
+    if (strpos($path, 'content/') === 0) {
+        $path = substr($path, 8); // strlen('content/') === 8
+    }
+    return $path;
+}
+
+/**
+ * Return a web-accessible absolute URL for a content path.
+ */
+function contentWebUrl(string $path): string
+{
+    return '/content/' . normalizeContentPath($path);
+}
+
+/**
+ * Return an absolute filesystem path for a content path.
+ */
+function contentFilePath(string $path): string
+{
+    return rtrim(CONTENT_PATH, '/') . '/' . normalizeContentPath($path);
+}
+
+/**
  * Encrypt a value using the BF-CBC cipher (matches existing pattern).
  *
  * @param  string $value Plain text to encrypt.

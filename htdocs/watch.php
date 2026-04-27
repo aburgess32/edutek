@@ -1,5 +1,6 @@
 <?php ob_start();
     include_once "includes/auth.php";
+    require_once 'includes/tiles.php';
 ?>
   <!-- FRE-41: Watch Page Facelift — CSS -->
   <!-- NOTE: No external font CDN — EduPak is offline-first. System fonts only. -->
@@ -71,7 +72,7 @@
           : '';
   }
 
-  $dd2 = $file . "/";
+  $dd2 = contentFilePath($file) . "/";
   $length = strlen($dd2);
   $ff2 = (glob($dd2 . "*", GLOB_BRACE));
   $ray = array();
@@ -95,17 +96,9 @@
       }
   }
 
-  // Normalize video path for web serving (Alias /content/ -> /content/)
-  $videoWebPath = $currentVideoSrc;
-  if ($videoWebPath !== '' && strpos($videoWebPath, '/content/') !== 0 && strpos($videoWebPath, 'content/') !== 0) {
-      $videoWebPath = '/content/' . ltrim($videoWebPath, '/');
-  }
-
-  // Normalize folder path for download links
-  $folderWebPath = $file;
-  if ($folderWebPath !== '' && strpos($folderWebPath, '/content/') !== 0 && strpos($folderWebPath, 'content/') !== 0) {
-      $folderWebPath = '/content/' . ltrim($folderWebPath, '/');
-  }
+  // Normalize video and folder paths for web serving
+  $videoWebPath  = $currentVideoSrc  !== '' ? contentWebUrl($currentVideoSrc)  : '';
+  $folderWebPath = $file             !== '' ? contentWebUrl($file)             : '';
 
   // FRE-41: Count videos in this topic for the sidebar header
   $videoCount = 0;
@@ -411,7 +404,7 @@
 
               // Thumbnail: use content_meta thumbnail_path if available, else color block
               $lpThumbPath = $lpItem['thumbnail_path'] ?? '';
-              $lpHasThumb  = ($lpThumbPath !== '' && file_exists(__DIR__ . '/' . ltrim($lpThumbPath, '/')));
+              $lpHasThumb  = ($lpThumbPath !== '' && file_exists(contentFilePath($lpThumbPath)));
               $lpThumbClass = $thumbColors[$lpColorIndex % count($thumbColors)];
               $lpColorIndex++;
           ?>
@@ -429,7 +422,7 @@
             <?php endif; ?>
             <div class="playlist-item__thumb <?php echo $lpThumbClass; ?>">
               <?php if ($lpHasThumb): ?>
-              <img src="<?php echo htmlspecialchars($lpThumbPath); ?>" alt="" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:var(--wp-radius-sm);">
+              <img src="<?php echo htmlspecialchars(contentWebUrl($lpThumbPath)); ?>" alt="" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:var(--wp-radius-sm);">
               <?php endif; ?>
               <div class="playlist-item__play-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
@@ -438,7 +431,7 @@
             <div class="playlist-item__info">
               <span class="playlist-item__title"><?php echo htmlspecialchars($lpItem['title'] ?? $lpFileName); ?></span>
               <div class="playlist-item__meta">
-                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($lpItem['content_id']); ?>"><?php echo $lpDurStr ?: '--:--'; ?></span>
+                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars(contentWebUrl($lpItem['content_id'])); ?>"><?php echo $lpDurStr ?: '--:--'; ?></span>
               </div>
             </div>
           </a>
@@ -480,7 +473,7 @@
             <div class="playlist-item__info">
               <span class="playlist-item__title"><?php echo htmlspecialchars($currentVideoName); ?></span>
               <div class="playlist-item__meta">
-                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($currentVideoSrc); ?>">--:--</span>
+                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars(contentWebUrl($currentVideoSrc)); ?>">--:--</span>
               </div>
             </div>
           </a>
@@ -518,7 +511,7 @@
             <div class="playlist-item__info">
               <span class="playlist-item__title"><?php echo htmlspecialchars($otherName); ?></span>
               <div class="playlist-item__meta">
-                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars($value); ?>">--:--</span>
+                <span class="playlist-item__duration" data-video-src="<?php echo htmlspecialchars(contentWebUrl($value)); ?>">--:--</span>
               </div>
             </div>
           </a>

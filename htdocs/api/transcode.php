@@ -54,10 +54,31 @@ function isHevc(string $filePath): bool
     return ($out !== null && trim($out) === 'hevc');
 }
 
-// 1. Already transcoded → serve
+// 1. Already transcoded → update DB if needed, then serve
 if (file_exists($outputFile) && filesize($outputFile) > 0) {
     $webUrl = '/content/' . $normalizedPath;
     $webUrl = dirname($webUrl) . '/' . rawurlencode($baseName . '.h264.' . $ext);
+
+    // Ensure DB knows about the transcoded file so the batch loop skips it
+    try {
+        $pdo = new PDO(
+            sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', DB_HOST, DB_PORT, DB_NAME),
+            DB_USER,
+            DB_PASS,
+            [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES   => false,
+            ]
+        );
+        $stmt = $pdo->prepare(
+            "UPDATE content_meta SET transcoded_path = :tp, codec = 'hevc' WHERE content_id = :id AND (transcoded_path IS NULL OR transcoded_path = '')"
+        );
+        $stmt->execute([':tp' => $webUrl, ':id' => $contentId]);
+    } catch (PDOException $e) {
+        error_log('Transcode DB update failed: ' . $e->getMessage());
+    }
+
     echo json_encode(['status' => 'ready', 'url' => $webUrl]);
     exit;
 }

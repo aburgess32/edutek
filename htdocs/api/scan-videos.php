@@ -80,7 +80,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
     $processed++;
     if (empty($row['file_path'])) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'empty_file_path'];
-        doUpdate($updateStmt, (int)$row['id'], 0, null);
+        doUpdate($updateStmt, (int)$row['id'], 0, 'unknown');
         continue;
     }
 
@@ -88,7 +88,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
     $baseName = basename($row['file_path']);
     if (strpos($baseName, '._') === 0) {
         $skippedForks++;
-        doUpdate($updateStmt, (int)$row['id'], 0, null);
+        doUpdate($updateStmt, (int)$row['id'], 0, 'unknown');
         continue;
     }
 
@@ -96,7 +96,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
 
     if (!file_exists($filePath) || filesize($filePath) === 0) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'missing_or_empty'];
-        doUpdate($updateStmt, (int)$row['id'], 0, null);
+        doUpdate($updateStmt, (int)$row['id'], 0, 'unknown');
         continue;
     }
 
@@ -108,7 +108,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
     $durOutput = shell_exec($durCmd);
     if ($durOutput === null) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'ffprobe_failed'];
-        doUpdate($updateStmt, (int)$row['id'], 0, null);
+        doUpdate($updateStmt, (int)$row['id'], 0, 'unknown');
         continue;
     }
     $durOutput = trim($durOutput);
@@ -116,7 +116,7 @@ while ($row = $selectStmt->fetch(PDO::FETCH_ASSOC)) {
 
     if ($duration <= 0) {
         $broken[] = ['id' => $row['id'], 'content_id' => $row['content_id'], 'reason' => 'no_duration'];
-        doUpdate($updateStmt, (int)$row['id'], 0, null);
+        doUpdate($updateStmt, (int)$row['id'], 0, 'unknown');
         continue;
     }
 

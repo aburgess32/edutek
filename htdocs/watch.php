@@ -74,28 +74,68 @@
 
   $dd2 = contentFilePath($file) . "/";
   $length = strlen($dd2);
-  $ff2 = (glob($dd2 . "*", GLOB_BRACE));
+  $ff2 = glob($dd2 . "*", GLOB_BRACE);
   $ray = array();
   $ff3 = array();
-  $video = array('mp4','mov','wmv','flv','f4v','avi','WebM','mkv');
+  $video = array('mp4','mov','wmv','flv','f4v','avi','webm','mkv');
+
+  // Build a naturally sorted list of video files only
+  $videoFiles = array();
+  foreach ($ff2 as $path) {
+      $name = substr($path, $length);
+      $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+      if (in_array($ext, $video)) {
+          $videoFiles[] = array(
+              'src' => $path,
+              'name' => $name
+          );
+      }
+  }
+
+usort($videoFiles, function ($a, $b) {
+    $aName = $a['name'];
+    $bName = $b['name'];
+
+    preg_match('/^\d+/', $aName, $aMatch);
+    preg_match('/^\d+/', $bName, $bMatch);
+
+    $aNum = isset($aMatch[0]) ? (int)$aMatch[0] : PHP_INT_MAX;
+    $bNum = isset($bMatch[0]) ? (int)$bMatch[0] : PHP_INT_MAX;
+
+    if ($aNum !== $bNum) {
+        return $aNum <=> $bNum;
+    }
+
+    return strnatcasecmp($aName, $bName);
+});
 
   // FRE-41: Determine current video source and name
   $currentVideoSrc = '';
   $currentVideoName = '';
+
   if ($filea == '') {
-      $files2 = (glob($dd2 . "*", GLOB_BRACE));
-      if (!empty($files2) && in_array(pathinfo(substr($files2[0], ($length)), PATHINFO_EXTENSION), $video)) {
-          $file1b = substr($files2[0], ($length));
-          $currentVideoSrc = $files2[0];
-          $currentVideoName = $file1b;
+      if (!empty($videoFiles)) {
+          $file1b = $videoFiles[0]['name'];
+          $currentVideoSrc = $videoFiles[0]['src'];
+          $currentVideoName = $videoFiles[0]['name'];
       }
   } else {
-      if (in_array(pathinfo($file1b, PATHINFO_EXTENSION), $video)) {
-          $currentVideoSrc = $filea;
-          $currentVideoName = $file1b;
+      $selectedExt = strtolower(pathinfo($file1b, PATHINFO_EXTENSION));
+      if (in_array($selectedExt, $video)) {
+          foreach ($videoFiles as $vf) {
+              if ($vf['name'] === $file1b) {
+                  $currentVideoSrc = $vf['src'];
+                  $currentVideoName = $vf['name'];
+                  break;
+              }
+          }
+
+          if ($currentVideoSrc === '') {
+              $currentVideoSrc = $filea;
+              $currentVideoName = $file1b;
+          }
       }
   }
-
   // Normalize video and folder paths for web serving
   $videoWebPath  = $currentVideoSrc  !== '' ? contentWebUrl($currentVideoSrc)  : '';
   $folderWebPath = $file             !== '' ? contentWebUrl($file)             : '';
@@ -125,12 +165,7 @@
   }
 
   // FRE-41: Count videos in this topic for the sidebar header
-  $videoCount = 0;
-  foreach ($ff2 as $v) {
-      if (in_array(pathinfo(substr($v, $length), PATHINFO_EXTENSION), $video)) {
-          $videoCount++;
-      }
-  }
+  $videoCount = count($videoFiles);
 
   // Color classes for playlist thumbnails (cycle through)
   $thumbColors = ['', 'playlist-item__thumb--blue', 'playlist-item__thumb--green', 'playlist-item__thumb--orange', 'playlist-item__thumb--purple', 'playlist-item__thumb--teal'];
@@ -216,13 +251,7 @@
 
   // Priority 2: fallback to subcategory next video
   if ($upNextHref === '') {
-      $subcatVideos = [];
-      foreach ($ff2 as $v) {
-          $vName = substr($v, $length);
-          if (in_array(pathinfo($vName, PATHINFO_EXTENSION), $video)) {
-              $subcatVideos[] = ['src' => $v, 'name' => $vName];
-          }
-      }
+      $subcatVideos = $videoFiles;
       $scCurrentIdx = -1;
       foreach ($subcatVideos as $i => $sv) {
           if ($sv['name'] === $currentVideoName) {
@@ -505,19 +534,19 @@
 
           <?php
           // Other videos in the subcategory
-          foreach ($ff2 as $key => $value) {
-              if (substr($value, ($length)) != $currentVideoName) {
-                  if (in_array(pathinfo(substr($value, ($length)), PATHINFO_EXTENSION), $video)) {
-                      $otherName = substr($value, ($length));
-                      $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
-                      $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
-                      $encryptvalue = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value, $cipher, $encryption_key, $options, $iv)));
-                      $encryptname = str_replace('=', '[equal]', base64_encode(openssl_encrypt($otherName, $cipher, $encryption_key, $options, $iv)));
-                      $thumbClass = $thumbColors[$colorIndex % count($thumbColors)];
-                      $colorIndex++;
+               foreach ($videoFiles as $item) {
+              if ($item['name'] != $currentVideoName) {
+                  $value = $item['src'];
+                  $otherName = $item['name'];
+                  $encryptfile = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file, $cipher, $encryption_key, $options, $iv)));
+                  $encryptfile1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt($file1, $cipher, $encryption_key, $options, $iv)));
+                  $encryptvalue = str_replace('=', '[equal]', base64_encode(openssl_encrypt($value, $cipher, $encryption_key, $options, $iv)));
+                  $encryptname = str_replace('=', '[equal]', base64_encode(openssl_encrypt($otherName, $cipher, $encryption_key, $options, $iv)));
+                  $thumbClass = $thumbColors[$colorIndex % count($thumbColors)];
+                  $colorIndex++;
 
-                      // Check if this is the "up next" video from subcategory source
-                      $scItemIsUpNext = ($upNextSource === 'subcategory' && $otherName === $upNextTitle);
+                  // Check if this is the "up next" video from subcategory source
+                  $scItemIsUpNext = ($upNextSource === 'subcategory' && $otherName === $upNextTitle);
           ?>
           <a class="playlist-item <?php echo $scItemIsUpNext ? 'playlist-item--up-next' : ''; ?>"
              href="watch.php?&<?php echo $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptname . $bcQuery; ?>"
@@ -542,7 +571,6 @@
           <?php
                   }
               }
-          }
           ?>
         </div>
       </details>

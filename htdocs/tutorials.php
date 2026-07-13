@@ -156,6 +156,9 @@
         $encFolderPath = encParam($folderPath, $cipher, $encryption_key, $options, $iv);
         $sectionHref   = "watch.php?&{$videolink1}=&{$videoname1}=&{$videolink}={$encFolderPath}&{$videoname}={$encFolderName}{$bcQuery}";
 
+         // Reindex videos so the first actual item is always at [0]
+        $videos = array_values($videos);
+
         // Thumbnail: subcategory-level image > first video thumbnail > fallback
         $subcatThumb = findSubcategoryThumb($decryption, $folderName, $contentRoot);
         if ($subcatThumb) {

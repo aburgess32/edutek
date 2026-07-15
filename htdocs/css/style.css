@@ -191,3 +191,1757 @@
     margin-right: 8px;
     color: var(--teal, #00BCD4);
 }
+
+/* =========================================================
+   Polished responsive navbar override
+   Safe override: only affects navs with .app-navbar
+   ========================================================= */
+
+.navbar.app-navbar {
+    background: linear-gradient(135deg, #120a78 0%, #1b1196 100%);
+    box-shadow: 0 8px 24px rgba(10, 10, 40, 0.22);
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.navbar.app-navbar .navbar-brand {
+    display: flex !important;
+    align-items: center;
+    gap: 0.85rem;
+    margin-right: 1.5rem;
+    max-width: 48rem;
+    color: #ffffff !important;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .navbar-brand:hover,
+.navbar.app-navbar .navbar-brand:focus {
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .navbar-brand-logo {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    margin-right: 0;
+    padding: 0.35rem;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    flex-shrink: 0;
+}
+
+.navbar.app-navbar .navbar-nav {
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.navbar.app-navbar .nav-link,
+.navbar.app-navbar .nav-user-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    padding: 0.7rem 0.95rem !important;
+    border-radius: 999px;
+    color: #f5f7ff !important;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.navbar.app-navbar .nav-link:hover,
+.navbar.app-navbar .nav-link:focus,
+.navbar.app-navbar .nav-user-indicator:hover,
+.navbar.app-navbar .nav-user-indicator:focus {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .nav-link-text {
+    color: inherit;
+    font-weight: 700;
+}
+
+.navbar.app-navbar .fa {
+    color: #f4c542;
+}
+
+.navbar.app-navbar .form-inline {
+    width: 100%;
+    margin: 0;
+}
+
+.navbar.app-navbar .col-md-12 {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.navbar.app-navbar .input-group {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.navbar.app-navbar .form-control {
+    min-height: 44px;
+    border: none;
+    border-radius: 999px 0 0 999px;
+    padding: 0.7rem 1rem;
+    box-shadow: none;
+}
+
+.navbar.app-navbar .form-control:focus {
+    box-shadow: 0 0 0 3px rgba(244, 197, 66, 0.22);
+}
+
+.navbar.app-navbar .input-group-btn .btn {
+    min-height: 44px;
+    border: none;
+    border-radius: 0 999px 999px 0;
+    background: #f4b400;
+    color: #1a1a1a;
+    padding: 0 1rem;
+    font-weight: 700;
+}
+
+.navbar.app-navbar .input-group-btn .btn:hover,
+.navbar.app-navbar .input-group-btn .btn:focus {
+    background: #ffd24d;
+    color: #111111;
+}
+
+.navbar.app-navbar .app-navbar-cta {
+    background: #f4b400;
+    color: #1d1d1d !important;
+    font-weight: 700;
+}
+
+.navbar.app-navbar .app-navbar-cta:hover,
+.navbar.app-navbar .app-navbar-cta:focus {
+    background: #ffd24d;
+    color: #111111 !important;
+}
+
+.navbar.app-navbar .navbar-toggler {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 10px;
+    padding: 0.45rem 0.6rem;
+}
+
+.navbar.app-navbar .teacher-menu__name,
+.navbar.app-navbar .student-menu__name {
+    color: inherit;
+    font-weight: 700;
+}
+
+.navbar.app-navbar .teacher-menu__name:hover,
+.navbar.app-navbar .student-menu__name:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+@media (max-width: 991.98px) {
+    .navbar.app-navbar {
+        padding: 0.75rem 1rem;
+    }
+
+    .navbar.app-navbar .navbar-brand {
+        max-width: calc(100% - 72px);
+        margin-right: 0.5rem;
+        font-size: 1.05rem;
+    }
+
+    .navbar.app-navbar .navbar-brand-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+    }
+
+    .navbar.app-navbar .navbar-collapse {
+        margin-top: 0.85rem;
+        padding-top: 0.5rem;
+    }
+
+    .navbar.app-navbar .navbar-nav {
+        align-items: stretch;
+        gap: 0.35rem;
+    }
+
+    .navbar.app-navbar .nav-item {
+        width: 100%;
+    }
+
+    .navbar.app-navbar .nav-link,
+    .navbar.app-navbar .nav-user-indicator {
+        width: 100%;
+        border-radius: 14px;
+    }
+
+    .navbar.app-navbar form {
+        width: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .navbar.app-navbar {
+        padding: 0.65rem 0.8rem;
+    }
+
+    .navbar.app-navbar .navbar-brand {
+        gap: 0.65rem;
+        font-size: 0.92rem;
+    }
+
+    .navbar.app-navbar .navbar-brand-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+    }
+
+    .navbar.app-navbar .nav-link,
+    .navbar.app-navbar .nav-user-indicator {
+        font-size: 0.92rem;
+        padding: 0.75rem 0.85rem !important;
+    }
+
+    .navbar.app-navbar .form-control {
+        font-size: 0.95rem;
+    }
+}
+
+/* =========================================================
+   Final refined navbar
+   ========================================================= */
+
+.navbar.app-navbar {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    padding: 0.85rem 1.5rem;
+}
+
+.navbar.app-navbar .container,
+.navbar.app-navbar .container-fluid {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.navbar.app-navbar .navbar-brand.app-navbar-brand {
+    display: flex !important;
+    align-items: center;
+    gap: 0.85rem;
+    margin-right: 2rem;
+    color: #111827 !important;
+    text-decoration: none;
+    max-width: 28rem;
+}
+
+.navbar.app-navbar .navbar-brand-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    padding: 0.3rem;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    flex-shrink: 0;
+}
+
+.app-navbar-brand-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.08;
+}
+
+.app-navbar-brand-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.app-navbar-brand-subtitle {
+    margin-top: 0.18rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.navbar.app-navbar .navbar-toggler {
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 10px;
+    padding: 0.4rem 0.6rem;
+}
+
+.navbar.app-navbar .navbar-toggler-icon {
+    filter: invert(13%) sepia(12%) saturate(853%) hue-rotate(182deg) brightness(95%) contrast(94%);
+}
+
+.navbar.app-navbar .navbar-collapse {
+    align-items: center;
+}
+
+.navbar.app-navbar .navbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+    margin-bottom: 0;
+    padding-left: 0;
+}
+
+.navbar.app-navbar ul,
+.navbar.app-navbar li {
+    list-style: none !important;
+}
+
+.navbar.app-navbar .nav-item {
+    width: auto;
+}
+
+.navbar.app-navbar .nav-link,
+.navbar.app-navbar .nav-user-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 42px;
+    padding: 0.7rem 0.9rem !important;
+    border-radius: 10px;
+    color: #334155 !important;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.navbar.app-navbar .nav-link:hover,
+.navbar.app-navbar .nav-link:focus,
+.navbar.app-navbar .nav-user-indicator:hover,
+.navbar.app-navbar .nav-user-indicator:focus {
+    background: #f3f4f6;
+    color: #111827 !important;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .nav-link-text {
+    color: inherit;
+    font-weight: 600;
+}
+
+.navbar.app-navbar .fa {
+    color: #6b7280;
+}
+
+.navbar.app-navbar .app-navbar-cta {
+    background: #f4b400;
+    color: #111827 !important;
+    border-radius: 999px;
+    font-weight: 700;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    box-shadow: 0 8px 18px rgba(244, 180, 0, 0.22);
+}
+
+.navbar.app-navbar .app-navbar-cta:hover,
+.navbar.app-navbar .app-navbar-cta:focus {
+    background: #ffd24d;
+    color: #111827 !important;
+}
+
+.navbar.app-navbar .teacher-menu__name,
+.navbar.app-navbar .student-menu__name {
+    color: inherit;
+    font-weight: 700;
+}
+
+.navbar.app-navbar .teacher-menu__name:hover,
+.navbar.app-navbar .student-menu__name:hover {
+    color: #111827;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .form-inline {
+    margin-left: 1rem;
+    margin-right: 0.5rem;
+}
+
+.navbar.app-navbar .input-group {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 260px;
+}
+
+.navbar.app-navbar .form-control {
+    min-height: 42px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-right: none;
+    border-radius: 999px 0 0 999px;
+    padding: 0.65rem 0.95rem;
+    box-shadow: none;
+    background: #ffffff;
+    color: #111827;
+}
+
+.navbar.app-navbar .form-control:focus {
+    border-color: rgba(79, 70, 229, 0.35);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.navbar.app-navbar .input-group-btn .btn {
+    min-height: 42px;
+    min-width: 52px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-left: none;
+    border-radius: 0 999px 999px 0;
+    background: #eef2ff;
+    color: #312e81;
+    font-weight: 700;
+}
+
+.navbar.app-navbar .input-group-btn .btn:hover,
+.navbar.app-navbar .input-group-btn .btn:focus {
+    background: #e0e7ff;
+    color: #1e1b4b;
+}
+
+@media (max-width: 991.98px) {
+    .navbar.app-navbar {
+        padding: 0.8rem 1rem;
+    }
+
+    .navbar.app-navbar .navbar-brand.app-navbar-brand {
+        max-width: calc(100% - 64px);
+        margin-right: 0.75rem;
+    }
+
+    .navbar.app-navbar .navbar-brand-logo {
+        width: 42px;
+        height: 42px;
+    }
+
+    .app-navbar-brand-title {
+        font-size: 0.96rem;
+    }
+
+    .app-navbar-brand-subtitle {
+        font-size: 0.68rem;
+    }
+
+    .navbar.app-navbar .navbar-collapse {
+        margin-top: 0.85rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .navbar.app-navbar .navbar-nav {
+        align-items: stretch;
+        gap: 0.35rem;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .navbar.app-navbar .nav-item,
+    .navbar.app-navbar .nav-link,
+    .navbar.app-navbar .nav-user-indicator {
+        width: 100%;
+    }
+
+    .navbar.app-navbar .form-inline {
+        width: 100%;
+        margin: 0.75rem 0 0;
+    }
+
+    .navbar.app-navbar .input-group {
+        width: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .navbar.app-navbar {
+        padding: 0.7rem 0.85rem;
+    }
+
+    .navbar.app-navbar .navbar-brand.app-navbar-brand {
+        gap: 0.65rem;
+    }
+
+    .navbar.app-navbar .nav-link,
+    .navbar.app-navbar .nav-user-indicator {
+        min-height: 44px;
+        font-size: 0.93rem;
+    }
+}
+/* =========================================================
+   Navbar cleanup: remove dead toggler + tighten brand area
+   ========================================================= */
+
+/* 1) Remove unused toggler completely */
+.navbar.app-navbar .navbar-toggler,
+.navbar.app-navbar .navbar-toggle {
+    display: none !important;
+}
+
+/* 2) Tighten entire navbar shell */
+.navbar.app-navbar {
+    padding: 0.55rem 1.25rem !important;
+}
+
+/* 3) Tighten top brand row */
+.navbar.app-navbar .container,
+.navbar.app-navbar .container-fluid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+}
+
+/* 4) Reduce brand block height */
+.navbar.app-navbar .navbar-brand.app-navbar-brand {
+    display: flex !important;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    line-height: 1.1;
+    max-width: 26rem;
+}
+
+/* 5) Make logo box smaller and less floaty */
+.navbar.app-navbar .navbar-brand-logo {
+    width: 64px;
+    height: 64px;
+    padding: 0.25rem;
+    margin: 0;
+    border-radius: 14px;
+    object-fit: contain;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+/* 6) Tighten text stack next to logo */
+.app-navbar-brand-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.12rem;
+    margin: 0;
+    padding: 0;
+}
+
+.app-navbar-brand-title {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.app-navbar-brand-subtitle {
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+/* 7) Reduce whitespace under brand row */
+.navbar.app-navbar .navbar-collapse {
+    width: 100%;
+    margin-top: 0.35rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* 8) Nav row alignment */
+.navbar.app-navbar .navbar-nav {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+}
+
+/* 9) Keep nav controls from becoming too tall */
+.navbar.app-navbar .nav-link,
+.navbar.app-navbar .nav-user-indicator {
+    min-height: 40px;
+    padding: 0.6rem 0.85rem !important;
+}
+
+/* 10) Search sizing */
+.navbar.app-navbar form,
+.navbar.app-navbar .navbar-form,
+.navbar.app-navbar .form-inline {
+    margin-left: auto;
+    flex: 0 1 420px;
+    min-width: 240px;
+}
+
+/* 11) CTA sizing */
+.navbar.app-navbar .app-navbar-cta {
+    min-height: 40px;
+    padding-top: 0.7rem !important;
+    padding-bottom: 0.7rem !important;
+}
+
+/* 12) Tablet */
+@media (max-width: 991.98px) {
+    .navbar.app-navbar {
+        padding: 0.65rem 1rem !important;
+    }
+
+    .navbar.app-navbar .navbar-brand.app-navbar-brand {
+        max-width: 100%;
+    }
+
+    .navbar.app-navbar .navbar-brand-logo {
+        width: 56px;
+        height: 56px;
+    }
+
+    .app-navbar-brand-title {
+        font-size: 0.92rem;
+    }
+
+    .app-navbar-brand-subtitle {
+        font-size: 0.64rem;
+    }
+
+    .navbar.app-navbar .navbar-nav {
+        flex-wrap: wrap;
+    }
+
+    .navbar.app-navbar form,
+    .navbar.app-navbar .navbar-form,
+    .navbar.app-navbar .form-inline {
+        flex: 1 1 100%;
+        min-width: 0;
+        margin-left: 0;
+    }
+}
+
+/* 13) Mobile */
+@media (max-width: 575.98px) {
+    .navbar.app-navbar {
+        padding: 0.55rem 0.75rem !important;
+    }
+
+    .navbar.app-navbar .navbar-brand.app-navbar-brand {
+        gap: 0.6rem;
+    }
+
+    .navbar.app-navbar .navbar-brand-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+    }
+
+    .app-navbar-brand-title {
+        font-size: 0.86rem;
+    }
+
+    .app-navbar-brand-subtitle {
+        font-size: 0.6rem;
+        letter-spacing: 0.06em;
+    }
+
+    .navbar.app-navbar .navbar-collapse {
+        margin-top: 0.25rem;
+        padding-top: 0.35rem;
+    }
+
+    .navbar.app-navbar .navbar-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .navbar.app-navbar .nav-item,
+    .navbar.app-navbar .nav-link,
+    .navbar.app-navbar .nav-user-indicator,
+    .navbar.app-navbar .app-navbar-cta {
+        width: 100%;
+    }
+
+    .navbar.app-navbar .app-navbar-cta {
+        justify-content: center;
+    }
+}
+
+/* =========================================================
+   NAVBAR FINAL COMPACT RESPONSIVE VERSION
+   ========================================================= */
+
+/* Main shell */
+.navbar.app-navbar {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    padding: 0.35rem 1rem !important;
+    margin-bottom: 0 !important;
+    min-height: 0 !important;
+}
+
+/* Remove dead toggler */
+.navbar.app-navbar .navbar-toggler,
+.navbar.app-navbar .navbar-toggle {
+    display: none !important;
+}
+
+/* Container */
+.navbar.app-navbar .container,
+.navbar.app-navbar .container-fluid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 1rem;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Brand row */
+.navbar.app-navbar .navbar-header {
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.navbar.app-navbar .navbar-brand.app-navbar-brand {
+    display: flex !important;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    line-height: 1.05;
+    max-width: 24rem;
+}
+
+/* Logo */
+.navbar.app-navbar .navbar-brand-logo {
+    width: 54px;
+    height: 54px;
+    padding: 0.18rem;
+    margin: 0;
+    border-radius: 14px;
+    object-fit: contain;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    flex-shrink: 0;
+}
+
+/* Brand copy */
+.app-navbar-brand-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.08rem;
+    margin: 0;
+    padding: 0;
+}
+
+.app-navbar-brand-title {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.05;
+    font-weight: 700;
+    color: #111827;
+}
+
+.app-navbar-brand-subtitle {
+    margin: 0;
+    font-size: 0.56rem;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+/* Divider and nav section */
+.navbar.app-navbar .navbar-collapse {
+    width: 100%;
+    margin-top: 0.2rem !important;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0 !important;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* Nav row */
+.navbar.app-navbar .navbar-nav {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.navbar.app-navbar ul,
+.navbar.app-navbar li {
+    list-style: none !important;
+}
+
+.navbar.app-navbar .nav-item {
+    width: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Links */
+.navbar.app-navbar .nav-link,
+.navbar.app-navbar .nav-user-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 36px;
+    padding: 0.45rem 0.7rem !important;
+    border-radius: 10px;
+    color: #334155 !important;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    line-height: 1;
+    margin: 0 !important;
+}
+
+.navbar.app-navbar .nav-link:hover,
+.navbar.app-navbar .nav-link:focus,
+.navbar.app-navbar .nav-user-indicator:hover,
+.navbar.app-navbar .nav-user-indicator:focus {
+    background: #f3f4f6;
+    color: #111827 !important;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .nav-link-text {
+    color: inherit;
+    font-weight: 600;
+}
+
+.navbar.app-navbar .fa {
+    color: #6b7280;
+    font-size: 0.95em;
+}
+
+/* Search */
+.navbar.app-navbar form,
+.navbar.app-navbar .navbar-form,
+.navbar.app-navbar .form-inline {
+    margin: 0 0 0 auto !important;
+    flex: 0 1 260px;
+    min-width: 180px;
+}
+
+.navbar.app-navbar .input-group {
+    width: 100%;
+}
+
+.navbar.app-navbar .form-control {
+    height: 40px;
+    font-size: 0.82rem;
+    border-radius: 999px 0 0 999px;
+    padding: 0.45rem 0.9rem;
+}
+
+.navbar.app-navbar .input-group-btn .btn,
+.navbar.app-navbar .input-group-append .btn,
+.navbar.app-navbar .input-group button {
+    height: 40px;
+    min-width: 48px;
+    border-radius: 0 999px 999px 0;
+    padding: 0 0.9rem;
+}
+
+/* CTA */
+.navbar.app-navbar .app-navbar-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0.45rem 1rem !important;
+    border-radius: 999px;
+    background: #f4b400;
+    color: #111827 !important;
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 10px 20px rgba(244, 180, 0, 0.18);
+}
+
+.navbar.app-navbar .app-navbar-cta:hover,
+.navbar.app-navbar .app-navbar-cta:focus {
+    background: #ffd24d;
+    color: #111827 !important;
+}
+
+/* Desktop wide */
+@media (min-width: 1200px) {
+    .navbar.app-navbar .navbar-brand.app-navbar-brand {
+        max-width: 28rem;
+    }
+
+    .app-navbar-brand-title {
+        font-size: 0.92rem;
+    }
+
+    .app-navbar-brand-subtitle {
+        font-size: 0.6rem;
+    }
+
+    .navbar.app-navbar form,
+    .navbar.app-navbar .navbar-form,
+    .navbar.app-navbar .form-inline {
+        flex-basis: 300px;
+    }
+}
+
+/* Tablet / medium */
+@media (max-width: 991.98px) {
+    .navbar.app-navbar {
+        padding: 0.3rem 0.75rem !important;
+    }
+
+    .navbar.app-navbar .navbar-brand.app-navbar-brand {
+        max-width: 100%;
+        gap: 0.6rem;
+    }
+
+    .navbar.app-navbar .navbar-brand-logo {
+        width: 48px;
+        height: 48px;
+    }
+
+    .app-navbar-brand-title {
+        font-size: 0.76rem;
+    }
+
+    .app-navbar-brand-subtitle {
+        font-size: 0.52rem;
+    }
+
+    .navbar.app-navbar .navbar-collapse {
+        margin-top: 0.18rem !important;
+        padding-top: 0.28rem !important;
+    }
+
+    .navbar.app-navbar .navbar-nav {
+        gap: 0.45rem;
+    }
+
+    .navbar.app-navbar form,
+    .navbar.app-navbar .navbar-form,
+    .navbar.app-navbar .form-inline {
+        flex: 1 1 100%;
+        min-width: 0;
+        margin-left: 0 !important;
+    }
+
+    .navbar.app-navbar .form-control,
+    .navbar.app-navbar .input-group-btn .btn,
+    .navbar.app-navbar .input-group-append .btn,
+    .navbar.app-navbar .input-group button,
+    .navbar.app-navbar .app-navbar-cta {
+        height: 38px;
+    }
+}
+
+/* Phone */
+@media (max-width: 575.98px) {
+    .navbar.app-navbar {
+        padding: 0.22rem 0.55rem !important;
+    }
+
+    .navbar.app-navbar .container,
+    .navbar.app-navbar .container-fluid {
+        gap: 0.2rem 0.5rem;
+    }
+
+    .navbar.app-navbar .navbar-brand.app-navbar-brand {
+        gap: 0.5rem;
+        max-width: 100%;
+    }
+
+    .navbar.app-navbar .navbar-brand-logo {
+        width: 42px;
+        height: 42px;
+        padding: 0.14rem;
+        border-radius: 12px;
+    }
+
+    .app-navbar-brand-title {
+        font-size: 0.68rem;
+        line-height: 1.05;
+    }
+
+    .app-navbar-brand-subtitle {
+        font-size: 0.48rem;
+        letter-spacing: 0.05em;
+    }
+
+    .navbar.app-navbar .navbar-collapse {
+        margin-top: 0.14rem !important;
+        padding-top: 0.22rem !important;
+    }
+
+    .navbar.app-navbar .navbar-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+    }
+
+    .navbar.app-navbar .nav-item,
+    .navbar.app-navbar .nav-link,
+    .navbar.app-navbar .nav-user-indicator,
+    .navbar.app-navbar .app-navbar-cta {
+        width: 100%;
+    }
+
+    .navbar.app-navbar .nav-link,
+    .navbar.app-navbar .nav-user-indicator {
+        min-height: 34px;
+        padding: 0.4rem 0.65rem !important;
+        font-size: 0.76rem;
+    }
+
+    .navbar.app-navbar form,
+    .navbar.app-navbar .navbar-form,
+    .navbar.app-navbar .form-inline {
+        width: 100%;
+    }
+
+    .navbar.app-navbar .form-control {
+        height: 36px;
+        font-size: 0.76rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .navbar.app-navbar .input-group-btn .btn,
+    .navbar.app-navbar .input-group-append .btn,
+    .navbar.app-navbar .input-group button {
+        height: 36px;
+        min-width: 42px;
+    }
+
+    .navbar.app-navbar .app-navbar-cta {
+        min-height: 36px;
+        height: 36px;
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.76rem;
+    }
+}
+
+/* =========================================================
+   EDUTEK NAVBAR - DESKTOP INLINE / MOBILE STACK
+   ========================================================= */
+
+.navbar.app-navbar {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 6px 22px rgba(15, 23, 42, 0.05);
+    padding: 0.35rem 0.9rem !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+}
+
+.navbar.app-navbar .app-navbar-shell {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.navbar.app-navbar .navbar-brand {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .app-navbar-desktop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 58px;
+}
+
+.navbar.app-navbar .app-navbar-brand {
+    display: flex !important;
+    align-items: center;
+    gap: 0.7rem;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.navbar.app-navbar .navbar-brand-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 12px;
+    padding: 0.15rem;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    flex-shrink: 0;
+}
+
+.navbar.app-navbar .app-navbar-brand-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    line-height: 1;
+}
+
+.navbar.app-navbar .app-navbar-brand-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.05;
+}
+
+.navbar.app-navbar .app-navbar-brand-subtitle {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7280;
+    line-height: 1;
+}
+
+.navbar.app-navbar .app-navbar-desktop-links,
+.navbar.app-navbar .app-navbar-desktop-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.navbar.app-navbar .app-navbar-desktop-links {
+    margin-left: 0.6rem;
+}
+
+.navbar.app-navbar .app-navbar-search {
+    flex: 1 1 auto;
+    margin: 0 0 0 auto !important;
+    max-width: 360px;
+}
+
+.navbar.app-navbar .input-group {
+    width: 100%;
+}
+
+.navbar.app-navbar .form-control {
+    height: 40px;
+    border-radius: 999px 0 0 999px;
+    font-size: 0.88rem;
+    padding: 0.45rem 0.9rem;
+}
+
+.navbar.app-navbar .input-group-btn .btn,
+.navbar.app-navbar .input-group button {
+    height: 40px;
+    min-width: 48px;
+    border-radius: 0 999px 999px 0;
+    padding: 0 0.9rem;
+}
+
+.navbar.app-navbar .nav-link,
+.navbar.app-navbar .nav-user-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 38px;
+    padding: 0.45rem 0.8rem !important;
+    border-radius: 10px;
+    color: #334155 !important;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    line-height: 1;
+    margin: 0 !important;
+}
+
+.navbar.app-navbar .nav-link:hover,
+.navbar.app-navbar .nav-link:focus,
+.navbar.app-navbar .nav-user-indicator:hover,
+.navbar.app-navbar .nav-user-indicator:focus {
+    background: #f3f4f6;
+    color: #111827 !important;
+    text-decoration: none;
+}
+
+.navbar.app-navbar .fa {
+    color: #6b7280;
+}
+
+.navbar.app-navbar .app-navbar-cta {
+    min-height: 40px;
+    padding: 0.5rem 1rem !important;
+    border-radius: 999px;
+    background: #f4b400;
+    color: #111827 !important;
+    font-size: 0.86rem;
+    font-weight: 700;
+    box-shadow: 0 10px 18px rgba(244, 180, 0, 0.18);
+}
+
+.navbar.app-navbar .app-navbar-cta:hover,
+.navbar.app-navbar .app-navbar-cta:focus {
+    background: #ffd24d;
+}
+
+/* Mobile shell hidden on desktop */
+.navbar.app-navbar .app-navbar-mobile {
+    display: none;
+}
+
+/* Tablet and smaller desktop */
+@media (max-width: 991.98px) {
+    .navbar.app-navbar {
+        padding: 0.22rem 0.55rem !important;
+    }
+
+    .navbar.app-navbar .app-navbar-desktop {
+        display: none;
+    }
+
+    .navbar.app-navbar .app-navbar-mobile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.1rem 0;
+    }
+
+    .navbar.app-navbar .app-navbar-brand--mobile {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.35rem;
+    }
+
+    .navbar.app-navbar .app-navbar-brand--mobile .navbar-brand-logo {
+        width: 44px;
+        height: 44px;
+    }
+
+    .navbar.app-navbar .app-navbar-brand--mobile .app-navbar-brand-title {
+        font-size: 0.76rem;
+    }
+
+    .navbar.app-navbar .app-navbar-brand--mobile .app-navbar-brand-subtitle {
+        font-size: 0.52rem;
+        letter-spacing: 0.06em;
+    }
+
+    .navbar.app-navbar .app-navbar-menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 36px;
+        padding: 0.4rem 0.8rem;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        border-radius: 999px;
+        background: #ffffff;
+        color: #111827;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .navbar.app-navbar .app-navbar-menu-toggle__icon {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .navbar.app-navbar .app-navbar-menu-toggle__icon span {
+        display: block;
+        width: 16px;
+        height: 2px;
+        border-radius: 999px;
+        background: #334155;
+    }
+
+    .navbar.app-navbar .app-navbar-mobile-panel {
+        display: none;
+        width: 100%;
+        max-width: 440px;
+        margin: 0 auto;
+        padding-top: 0.15rem;
+    }
+
+    .navbar.app-navbar .app-navbar-mobile-panel.is-open {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .navbar.app-navbar .app-navbar-mobile-links,
+    .navbar.app-navbar .app-navbar-mobile-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        width: 100%;
+    }
+
+    .navbar.app-navbar .app-navbar-mobile-panel .nav-link,
+    .navbar.app-navbar .app-navbar-mobile-panel .nav-user-indicator,
+    .navbar.app-navbar .app-navbar-mobile-panel .app-navbar-cta {
+        width: 100%;
+        justify-content: flex-start;
+        min-height: 36px;
+        font-size: 0.78rem;
+        padding: 0.45rem 0.75rem !important;
+    }
+
+    .navbar.app-navbar .app-navbar-search--mobile {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 !important;
+    }
+
+    .navbar.app-navbar .app-navbar-search--mobile .form-control {
+        height: 36px;
+        font-size: 0.78rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .navbar.app-navbar .app-navbar-search--mobile .input-group-btn .btn,
+    .navbar.app-navbar .app-navbar-search--mobile .input-group button {
+        height: 36px;
+        min-width: 42px;
+    }
+}
+
+/* =========================================================
+   APP NAVBAR REFRESH
+   Desktop: logo + links + search + CTA
+   Mobile: logo + search + hamburger, all links in menu
+   ========================================================= */
+
+body.fixed-nav {
+  padding-top: 20px;
+}
+
+.app-navbar {
+  background: linear-gradient(135deg, #160a75 0%, #21108f 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 10px 30px rgba(8, 10, 40, 0.18);
+  min-height: 54px;
+}
+
+.app-navbar-shell {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+.app-navbar .navbar-brand {
+  float: none;
+  height: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.app-navbar-desktop {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.app-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.navbar-brand-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 6px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+  flex: 0 0 56px;
+}
+
+.app-navbar-brand-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-navbar-brand-title {
+  display: block;
+  color: #ffffff;
+  font-size: 1.95rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-navbar-brand-subtitle {
+  display: block;
+  color: rgba(255,255,255,0.72);
+  font-size: 0.86rem;
+  font-weight: 500;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+.app-navbar-desktop-main {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-navbar-links > li {
+  list-style: none;
+}
+
+.app-navbar .nav-link,
+.app-navbar-mobile-panel .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.92);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 11px 14px;
+  border-radius: 12px;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link:focus,
+.app-navbar-mobile-panel .nav-link:hover,
+.app-navbar-mobile-panel .nav-link:focus {
+  color: #ffffff;
+  background: rgba(255,255,255,0.12);
+  text-decoration: none;
+}
+
+.app-navbar .nav-link i,
+.app-navbar-mobile-panel .nav-link i {
+  font-size: 1rem;
+}
+
+.app-navbar-search {
+  margin: 0;
+}
+
+.app-navbar-search .input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.app-navbar-search .form-control {
+  height: 44px;
+  min-width: 260px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 12px 0 0 12px;
+  box-shadow: none;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+}
+
+.app-navbar-search .btn {
+  height: 44px;
+  border-radius: 0 12px 12px 0;
+  border: none;
+  padding: 0 16px;
+  font-weight: 700;
+  background: #f0b323;
+  color: #231600;
+}
+
+.app-navbar-search .btn:hover,
+.app-navbar-search .btn:focus {
+  background: #f7c64e;
+  color: #231600;
+}
+
+.app-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-navbar-cta {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+
+.app-navbar-cta:hover,
+.app-navbar-cta:focus {
+  background: #ffffff;
+  color: #160a75 !important;
+}
+
+.app-navbar-mobile {
+  display: none;
+}
+
+.app-navbar-mobile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-navbar-menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.app-navbar-menu-toggle:hover,
+.app-navbar-menu-toggle:focus {
+  background: rgba(255,255,255,0.14);
+  outline: none;
+}
+
+.app-navbar-menu-toggle__icon {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.app-navbar-menu-toggle__icon span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 999px;
+}
+
+.app-navbar-menu-toggle__label {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.app-navbar-mobile-panel {
+  display: none;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+
+.app-navbar-mobile-panel.is-open {
+  display: block;
+}
+
+.app-navbar-mobile-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-navbar-mobile-panel .nav-link {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+@media (max-width: 991px) {
+  body.fixed-nav {
+    padding-top: 118px;
+  }
+
+  .app-navbar {
+    min-height: auto;
+  }
+
+  .app-navbar-shell {
+    padding: 12px 14px;
+  }
+
+  .app-navbar-desktop {
+    display: none;
+  }
+
+  .app-navbar-mobile {
+    display: block;
+  }
+
+  .app-navbar-brand--mobile {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .app-navbar-brand--mobile .navbar-brand-logo {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+  }
+
+  .app-navbar-brand--mobile .app-navbar-brand-title {
+    font-size: 0.98rem;
+    line-height: 1.08;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-navbar-brand--mobile .app-navbar-brand-subtitle {
+    display: none;
+  }
+
+  .app-navbar-search--mobile {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .app-navbar-search--mobile .form-control {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 575px) {
+  body.fixed-nav {
+    padding-top: 20px;
+  }
+
+  .app-navbar-shell {
+    padding: 10px 12px;
+  }
+
+  .app-navbar-brand--mobile .navbar-brand-logo {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+  }
+
+  .app-navbar-brand--mobile .app-navbar-brand-title {
+    font-size: 0.88rem;
+    max-width: 180px;
+  }
+
+  .app-navbar-menu-toggle__label {
+    display: none;
+  }
+
+  .app-navbar-search .form-control {
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .app-navbar-search .btn {
+    height: 42px;
+    padding: 0 14px;
+  }
+}
+
+/* ===== NAVBAR FIXES: DESKTOP SEARCH + MOBILE HAMBURGER ===== */
+
+
+.app-navbar-search--desktop {
+  flex: 0 1 380px;
+  width: 100%;
+  min-width: 220px;
+  max-width: 380px;
+  margin-left: auto;
+}
+
+.app-navbar-search--desktop .input-group {
+  width: 100%;
+}
+
+.app-navbar-search .form-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.app-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.app-navbar-cta {
+  white-space: nowrap;
+}
+
+/* Mobile menu visibility fix */
+.app-navbar-mobile {
+  display: none;
+}
+
+.app-navbar-mobile-panel {
+  display: none;
+}
+
+.app-navbar-mobile-panel.is-open {
+  display: block !important;
+}
+
+@media (max-width: 991px) {
+  .app-navbar-desktop {
+    display: none !important;
+  }
+
+  .app-navbar-mobile {
+    display: block !important;
+  }
+
+  .app-navbar-mobile-panel {
+    display: none;
+    width: 100%;
+  }
+
+  .app-navbar-mobile-panel.is-open {
+    display: block !important;
+  }
+
+  .app-navbar-mobile-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .app-navbar-mobile-links .nav-link {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

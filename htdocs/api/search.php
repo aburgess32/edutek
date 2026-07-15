@@ -194,7 +194,7 @@ try {
             $groups[] = [
                 'type'   => 'category',
                 'name'   => $g['name'],
-                'url'    => 'tutorials.php?' . $encCourseKey . '=' . tileEncrypt($g['name']),
+                'url'    => 'tutorials.php?' . 'category' . '=' . tileEncrypt($g['name']),
                 'count'  => (int)$g['cnt'],
             ];
         }
@@ -221,7 +221,7 @@ try {
                 'type'   => 'subcategory',
                 'name'   => $g['name'],
                 'parent' => $g['parent'] ?? null,
-                'url'    => 'tutorials.php?' . $encCourseKey . '=' . tileEncrypt($g['parent']) . '#tut-sec-' . $subcatSlug,
+                'url'    => 'tutorials.php?' . 'category' . '=' . tileEncrypt($g['parent']) . '#tut-sec-' . $subcatSlug,
                 'count'  => (int)$g['cnt'],
             ];
         }
@@ -233,7 +233,7 @@ try {
         $categoryUrl = '';
         $subcategoryUrl = '';
         if (!empty($row['category'])) {
-            $categoryUrl = 'tutorials.php?&' . $encCourseKey . '=' . tileEncrypt($row['category']);
+            $categoryUrl = 'tutorials.php?&' . 'category' . '=' . tileEncrypt($row['category']);
             if (!empty($row['subcategory'])) {
                 $subcatSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $row['subcategory']));
                 $subcategoryUrl = $categoryUrl . '#tut-sec-' . $subcatSlug;

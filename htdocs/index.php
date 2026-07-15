@@ -17,7 +17,7 @@
     // Light-colored segments need dark text
     $lightSegments = ['educators'];
 ?>
-
+<?php /*
 <div class="tiles-page">
 
     <?php if (isGuest()): ?>
@@ -147,7 +147,7 @@
     </section>
     <script src="/js/student-assignments.js"></script>
     <?php endif; ?>
-
+<?php /*
     <!-- Choose Your Path: Segment Tiles -->
     <div class="tiles-section-header">
         <h2 class="tiles-section-title">Choose Your Path</h2>
@@ -192,7 +192,7 @@
         </a>
         <?php endforeach; ?>
     </div>
-
+*/ ?>
     <!-- All Content -->
     <div class="tiles-section-header">
         <h2 class="tiles-section-title">All Content</h2>

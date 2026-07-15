@@ -164,52 +164,14 @@ function myFunction() {
 	
 	<!-----Main Contianer-->
   <div class="content-wrapper">
-    <!-- Hero Slider -->
-    <div class="hero-slider" id="heroSlider">
-        <?php
-        $featured = getFeaturedContent();
-        if (!empty($featured)):
-            foreach ($featured as $fi => $fItem):
-                $badge = getContentTypeBadge($fItem['badge'] ?? 'video');
-                $bgImg = htmlspecialchars($fItem['bg_image'] ?? '', ENT_QUOTES, 'UTF-8');
-                $bgJpg = str_replace('.webp', '.jpg', $bgImg);
-        ?>
-        <div class="hero-slide<?php echo $fi === 0 ? ' active' : ''; ?>" data-index="<?php echo $fi; ?>">
-            <picture class="hero-slide-bg">
-                <source srcset="<?php echo $bgImg; ?>" type="image/webp">
-                <img src="<?php echo $bgJpg; ?>" alt="<?php echo htmlspecialchars($fItem['headline'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" loading="<?php echo $fi === 0 ? 'eager' : 'lazy'; ?>">
-            </picture>
-            <div class="hero-slide-overlay"></div>
-            <div class="hero-slide-content">
-                <span class="hero-badge" style="background:<?php echo htmlspecialchars($badge['color'], ENT_QUOTES, 'UTF-8'); ?>">
-                    <?php echo htmlspecialchars($badge['label'], ENT_QUOTES, 'UTF-8'); ?>
-                </span>
-                <h1 class="hero-headline"><?php echo htmlspecialchars($fItem['headline'] ?? '', ENT_QUOTES, 'UTF-8'); ?></h1>
-                <p class="hero-subhead"><?php echo htmlspecialchars($fItem['subhead'] ?? '', ENT_QUOTES, 'UTF-8'); ?></p>
-                <a href="<?php echo htmlspecialchars($fItem['cta_href'] ?? '#', ENT_QUOTES, 'UTF-8'); ?>" class="hero-cta">
-                    <?php echo htmlspecialchars($fItem['cta_label'] ?? 'Explore', ENT_QUOTES, 'UTF-8'); ?> &rarr;
-                </a>
-            </div>
-        </div>
-        <?php endforeach; ?>
 
-        <div class="hero-indicators" id="heroDots">
-            <?php foreach ($featured as $fi => $fItem): ?>
-            <button class="hero-dot<?php echo $fi === 0 ? ' active' : ''; ?>"
-                    data-index="<?php echo $fi; ?>"
-                    aria-label="Slide <?php echo $fi + 1; ?>"></button>
-            <?php endforeach; ?>
-        </div>
-        <div class="hero-progress" id="heroProgress"></div>
-        <?php endif; ?>
-    </div>
     </div>
     <!-- Bootstrap core JavaScript — all local, no CDN fallbacks (offline-first) -->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-    <!-- Custom scripts for all pages-->\n    <script src="js/sb-admin.min.js"></script>
+    <script src="js/sb-admin.min.js"></script>
     <!--  Flexslider Scripts -->
     <script src="assets/js/jquery.flexslider.js"></script>
     <!--  Scrolling Reveal Script -->
@@ -237,78 +199,7 @@ function myFunction() {
 
     </script>
 
-    <!-- Hero Slider Script -->
-    <script>
-    (function() {
-        var slides = document.querySelectorAll('.hero-slide');
-        var dots = document.querySelectorAll('.hero-dot');
-        var progress = document.getElementById('heroProgress');
-        var heroEl = document.getElementById('heroSlider');
-        if (!slides.length) return;
 
-        var INTERVAL = 6000;
-        var current = 0;
-        var timer = null;
-        var startTime = 0;
-        var rafId = null;
-
-        function goTo(index) {
-            slides[current].classList.remove('active');
-            dots[current].classList.remove('active');
-            current = index;
-            slides[current].classList.add('active');
-            dots[current].classList.add('active');
-            resetTimer();
-        }
-
-        function next() {
-            goTo((current + 1) % slides.length);
-        }
-
-        function resetTimer() {
-            clearTimeout(timer);
-            cancelAnimationFrame(rafId);
-            startTime = Date.now();
-            if (progress) progress.style.width = '0%';
-            tick();
-            timer = setTimeout(next, INTERVAL);
-        }
-
-        function tick() {
-            var elapsed = Date.now() - startTime;
-            var pct = Math.min((elapsed / INTERVAL) * 100, 100);
-            if (progress) progress.style.width = pct + '%';
-            if (pct < 100) rafId = requestAnimationFrame(tick);
-        }
-
-        // Dot click handlers
-        for (var i = 0; i < dots.length; i++) {
-            (function(idx) {
-                dots[idx].addEventListener('click', function() { goTo(idx); });
-            })(i);
-        }
-
-        // Pause on hover
-        if (heroEl) {
-            heroEl.addEventListener('mouseenter', function() {
-                clearTimeout(timer);
-                cancelAnimationFrame(rafId);
-            });
-            heroEl.addEventListener('mouseleave', function() {
-                resetTimer();
-            });
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowRight') goTo((current + 1) % slides.length);
-            if (e.key === 'ArrowLeft') goTo((current - 1 + slides.length) % slides.length);
-        });
-
-        // Start
-        resetTimer();
-    })();
-    </script>
     <!-- Teacher mini-menu toggle (FRE-13) -->
     <script>
     (function() {
@@ -364,6 +255,8 @@ function myFunction() {
       });
     })();
     </script>
+
+
     <!-- Student mini-menu toggle (Switch User dropdown) -->
     <script>
     (function() {

@@ -72,10 +72,22 @@
     $videolink   = encParam("videolink",   $cipher, $encryption_key, $options, $iv);
     $videoname   = encParam("videoname",   $cipher, $encryption_key, $options, $iv);
 
-    $file = $_GET[$encryption2];
-    $decryption = openssl_decrypt(base64_decode(str_replace('[equal]', '=', $file)), $cipher, $decryption_key, $options, $iv);
+    $file = $_GET[$encryption2] ?? '';
 
-    // FRE-12: Propagate breadcrumb context
+$decryption = '';
+if ($file !== '') {
+    $safeFile = str_replace('[equal]', '=', $file);
+    $decodedFile = base64_decode($safeFile, true);
+
+    if ($decodedFile !== false) {
+        $tmp = openssl_decrypt($decodedFile, $cipher, $decryption_key, $options, $iv);
+        if ($tmp !== false && $tmp !== null) {
+            $decryption = $tmp;
+        }
+    }
+}
+
+	// FRE-12: Propagate breadcrumb context
     $bcQuery = '';
     if (isset($_GET['seg'])   && $_GET['seg']   !== '') { $bcQuery .= '&seg='   . urlencode($_GET['seg']); }
     if (isset($_GET['topic']) && $_GET['topic'] !== '') { $bcQuery .= '&topic=' . urlencode($_GET['topic']); }

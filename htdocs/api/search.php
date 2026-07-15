@@ -18,6 +18,26 @@
  */
 
 include_once __DIR__ . '/../includes/auth.php';
+include_once __DIR__ . '/../includes/auth.php';
+
+if (!defined('CONTENT_CIPHER')) {
+    define('CONTENT_CIPHER', 'AES-128-CTR');
+}
+if (!defined('CONTENT_CIPHER_KEY')) {
+    define('CONTENT_CIPHER_KEY', 'gEeMmSJT_X9_8Kx2Ru1SeTm/t/HDTx30mlrZIOZ5AcaTJc=');
+}
+if (!defined('CONTENT_CIPHER_IV')) {
+    define('CONTENT_CIPHER_IV', '1234567891011121');
+}
+
+$cipher = CONTENT_CIPHER;
+$encryption_key = CONTENT_CIPHER_KEY;
+$iv = CONTENT_CIPHER_IV;
+$options = 0;
+
+function encParam($val, $cipher, $key, $opts, $iv) {
+    return str_replace('=', '[equal]', base64_encode(openssl_encrypt($val, $cipher, $key, $opts, $iv)));
+}
 require_once __DIR__ . '/../includes/tiles.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -174,6 +194,7 @@ try {
     }
 
     // Build category / subcategory group matches (distinct, with counts)
+    $courseParamKey = encParam('course', $cipher, $encryption_key, $options, $iv);
     $groups = [];
     if (mb_strlen($query) >= 2) {
         $likeParam = '%' . $query . '%';
@@ -194,7 +215,7 @@ try {
             $groups[] = [
                 'type'   => 'category',
                 'name'   => $g['name'],
-                'url'    => 'tutorials.php?' . 'category' . '=' . tileEncrypt($g['name']),
+				'url'    => 'tutorials.php?' . $courseParamKey . '=' . tileEncrypt($g['name']),
                 'count'  => (int)$g['cnt'],
             ];
         }
@@ -221,7 +242,7 @@ try {
                 'type'   => 'subcategory',
                 'name'   => $g['name'],
                 'parent' => $g['parent'] ?? null,
-                'url'    => 'tutorials.php?' . 'category' . '=' . tileEncrypt($g['parent']) . '#tut-sec-' . $subcatSlug,
+                'url'    => 'tutorials.php?' . $courseParamKey . '=' . tileEncrypt($g['parent']) . '#tut-sec-' . $subcatSlug,
                 'count'  => (int)$g['cnt'],
             ];
         }
@@ -233,7 +254,7 @@ try {
         $categoryUrl = '';
         $subcategoryUrl = '';
         if (!empty($row['category'])) {
-            $categoryUrl = 'tutorials.php?&' . 'category' . '=' . tileEncrypt($row['category']);
+            $categoryUrl = 'tutorials.php?' . $courseParamKey . '=' . tileEncrypt($row['category']);
             if (!empty($row['subcategory'])) {
                 $subcatSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $row['subcategory']));
                 $subcategoryUrl = $categoryUrl . '#tut-sec-' . $subcatSlug;

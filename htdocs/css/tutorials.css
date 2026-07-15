@@ -85,7 +85,9 @@
   transition: max-height 0.35s ease;
 }
 .tut-section.open .tut-section-body {
-  max-height: 2000px;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ---- Video list inside accordion ---- */

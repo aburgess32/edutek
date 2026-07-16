@@ -1,5 +1,4 @@
 $watchPath = "D:\xampp\htdocs\Edutek\videos"
-$triggerUrl = "http://localhost:8080/admin/rescan-videos.php?key=CHANGE_THIS_SECRET"
 $debounceSeconds = 8
 $script:lastRun = Get-Date "2000-01-01"
 
@@ -10,18 +9,27 @@ $fsw.EnableRaisingEvents = $true
 $fsw.NotifyFilter = [System.IO.NotifyFilters]'FileName, DirectoryName, LastWrite, CreationTime, Size'
 $fsw.Filter = '*'
 
-function Invoke-Rescan {
+function Invoke-Reindex {
     $now = Get-Date
     if (($now - $script:lastRun).TotalSeconds -lt $debounceSeconds) {
         return
     }
+
     $script:lastRun = $now
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 3
+
     try {
-        $response = Invoke-WebRequest -Uri $triggerUrl -UseBasicParsing -TimeoutSec 120
-        Write-Host "$(Get-Date -Format s) Rescan triggered. Status: $($response.StatusCode)"
-    } catch {
-        Write-Host "$(Get-Date -Format s) Rescan failed: $($_.Exception.Message)"
+        Write-Host "$(Get-Date -Format s) Running DB reindex..."
+        docker exec edupak-app php /var/www/html/api/index-content-cli.php /content
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "$(Get-Date -Format s) Reindex complete."
+        } else {
+            Write-Host "$(Get-Date -Format s) Reindex failed with exit code $LASTEXITCODE"
+        }
+    }
+    catch {
+        Write-Host "$(Get-Date -Format s) Reindex failed: $($_.Exception.Message)"
     }
 }
 
@@ -29,7 +37,7 @@ $action = {
     $path = $Event.SourceEventArgs.FullPath
     $change = $Event.SourceEventArgs.ChangeType
     Write-Host "$(Get-Date -Format s) Detected $change => $path"
-    Invoke-Rescan
+    Invoke-Reindex
 }
 
 Register-ObjectEvent $fsw Created -Action $action | Out-Null
@@ -37,5 +45,5 @@ Register-ObjectEvent $fsw Changed -Action $action | Out-Null
 Register-ObjectEvent $fsw Renamed -Action $action | Out-Null
 Register-ObjectEvent $fsw Deleted -Action $action | Out-Null
 
-Write-Host "Watching $watchPath for new/changed categories and videos..."
+Write-Host "Watching $watchPath and reindexing contentmeta on changes..."
 while ($true) { Start-Sleep -Seconds 5 }

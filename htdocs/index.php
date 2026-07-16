@@ -10,12 +10,7 @@
 <?php
     include_once "navhome.php";
 
-    $hostname = htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'localhost', ENT_QUOTES, 'UTF-8');
-    $segments = getSegments();
     $allContent = getAllContent();
-
-    // Light-colored segments need dark text
-    $lightSegments = ['educators'];
 ?>
 <?php /*
 <div class="tiles-page">
@@ -193,11 +188,11 @@
         <?php endforeach; ?>
     </div>
 */ ?>
-    <!-- All Content -->
-    <div class="tiles-section-header">
-        <h2 class="tiles-section-title">All Content</h2>
-        <a href="directory.php" class="tiles-section-link">Full Directory</a>
-    </div>
+<!-- Browse All Categories -->
+<div class="tiles-section-header">
+    <h2 class="tiles-section-title">Browse All Categories</h2>
+    <a href="directory.php" class="tiles-section-link">View Full Directory</a>
+</div>
 
     <div class="all-content-grid">
         <?php foreach ($allContent as $item):

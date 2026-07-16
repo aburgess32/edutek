@@ -124,32 +124,9 @@
     };
   }
 
-  function handleResignIn(input, wrap) {
-    var val = input.value.trim();
-    if (!val) return;
-
-    var goBtn = document.getElementById('resign-go');
-    goBtn.textContent = '...';
-    goBtn.disabled = true;
-
-    fetch('/api/avatar-lookup.php?name=' + encodeURIComponent(val))
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.found) {
-          showInlineConfirm(wrap, data);
-        } else {
-          // Not found — go to find-user page
-          window.location.href = '/find-user.php';
-        }
-      })
-      .catch(function() {
-        window.location.href = '/find-user.php';
-      })
-      .finally(function() {
-        goBtn.textContent = 'Go';
-        goBtn.disabled = false;
-      });
-  }
+  function initResignInput() {
+  return;
+}
 
   function showInlineConfirm(wrap, user) {
     wrap.classList.add('resign-confirm-mode');
@@ -198,21 +175,9 @@
     };
   }
 
-  function resetResignInput(wrap) {
-    wrap.classList.remove('resign-confirm-mode');
-    wrap.innerHTML =
-      '<input type="text" class="resign-input" id="resign-input" placeholder="Avatar Name" maxlength="20" autocomplete="off">' +
-      '<button class="resign-go" id="resign-go">Go</button>' +
-      '<button class="resign-close" id="resign-close">&times;</button>';
-
-    var input = document.getElementById('resign-input');
-    var goBtn = document.getElementById('resign-go');
-    var closeBtn = document.getElementById('resign-close');
-
-    goBtn.onclick = function() { handleResignIn(input, wrap); };
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') handleResignIn(input, wrap);
-    });
+function resetResignInput(wrap) {
+  return;
+}
     closeBtn.onclick = function() {
       wrap.classList.add('hidden');
     };

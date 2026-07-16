@@ -1783,7 +1783,7 @@ body.fixed-nav {
 
 @media (max-width: 991px) {
   body.fixed-nav {
-    padding-top: 118px;
+    padding-top: 20px;
   }
 
   .app-navbar {

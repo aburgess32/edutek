@@ -91,13 +91,14 @@ function myFunction() {
             </span>
           </div>
         </form>
-
+<!--
         <div class="app-navbar-actions">
           <a class="nav-link app-navbar-cta" href="login.php">
             <i class="fa fa-fw fa-sign-in"></i>
             <span class="nav-link-text">Get Started</span>
           </a>
         </div>
+	-->
       </div>
     </div>
 
@@ -149,11 +150,12 @@ function myFunction() {
             <i class="fa fa-fw fa-list"></i>
             <span class="nav-link-text">Directory</span>
           </a>
-
+	<!--
           <a class="nav-link app-navbar-cta" href="login.php">
             <i class="fa fa-fw fa-sign-in"></i>
             <span class="nav-link-text">Get Started</span>
           </a>
+	-->
         </div>
       </div>
     </div>

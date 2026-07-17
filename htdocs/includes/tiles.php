@@ -303,6 +303,14 @@ function tileEncrypt(string $value): string
  * @param  string $topicSlug Topic slug for breadcrumb context (FRE-12).
  * @return string            URL to navigate to.
  */
+ 
+ function getBaseHost(): string
+{
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    // Remove trailing ":port" if present, e.g. "localhost:8080" → "localhost"
+    return preg_replace('/:\d+$/', '', $host);
+}
+
 function buildTopicHref(array $topic, string $hostname, string $segKey = '', string $topicSlug = ''): string
 {
     $href = $topic['href'] ?? null;
@@ -321,11 +329,12 @@ function buildTopicHref(array $topic, string $hostname, string $segKey = '', str
         $bcParams .= '&topic=' . urlencode($topicSlug);
     }
 
-    // Port-based service links (no breadcrumb context — external service)
-    if ($href !== null && strpos($href, '__PORT_') === 0) {
-        $port = str_replace(['__PORT_', '__'], '', $href);
-        return 'http://' . $hostname . ':' . $port . '/';
-    }
+  // Port-based service links (no breadcrumb context — external service)
+if ($href !== null && strpos($href, '__PORT_') === 0) {
+    $port = str_replace(['__PORT_', '__'], '', $href);
+    $baseHost = getBaseHost();
+    return 'http://' . $baseHost . ':' . $port . '/';
+}
 
     // Explicit href (direct link) — append breadcrumb context if it's an internal PHP page
     if ($href !== null && $href !== '') {
@@ -392,7 +401,7 @@ function getContentTypeBadge(string $type): array
 function getAllContent(): array
 {
     $config = getTileConfig();
-    $hostname = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $hostname = getBaseHost();
     $specialRoutes = $config['special_routes'] ?? [];
     $items = [];
     $seen = [];

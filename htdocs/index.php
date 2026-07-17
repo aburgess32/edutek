@@ -2,11 +2,11 @@
     include_once "includes/auth.php";
     include_once "includes/tiles.php";
 ?>
-  <link href="css/index.css" rel="stylesheet">
-  <link href="css/tiles.css" rel="stylesheet">
-  <link href="css/login.css" rel="stylesheet">
-  <link href="css/teacher-assignments.css" rel="stylesheet">
-  <link href="css/student-assignments.css" rel="stylesheet">
+<link href="css/index.css" rel="stylesheet">
+<link href="css/tiles.css" rel="stylesheet">
+<link href="css/login.css" rel="stylesheet">
+<link href="css/teacher-assignments.css" rel="stylesheet">
+<link href="css/student-assignments.css" rel="stylesheet">
 <?php
     include_once "navhome.php";
 
@@ -184,6 +184,7 @@
         <?php endforeach; ?>
     </div>
 */ ?>
+
 <!-- Browse All Categories -->
 <div class="tiles-section-header">
     <h2 class="tiles-section-title">Browse All Categories</h2>
@@ -198,6 +199,7 @@
         $isKhanInteractive = strtolower($rawItemLabel) === 'khan interactive';
         $itemHref = $isKhanInteractive ? 'launch-khan.php' : htmlspecialchars($item['href'] ?? '#', ENT_QUOTES, 'UTF-8');
         $itemIcon = $item['icon'] ?? '';
+        $isExternalService = (($item['type'] ?? '') === 'service');
 
         if ($itemIcon === '') {
             switch ($item['type'] ?? 'video') {
@@ -219,7 +221,8 @@
         <a
             href="<?php echo $itemHref; ?>"
             class="all-content-card"
-            title="<?php echo $itemLabel; ?>">
+            title="<?php echo $itemLabel; ?>"
+            <?php if ($isExternalService): ?>target="_blank" rel="noopener noreferrer"<?php endif; ?>>
             <span class="all-content-card-icon"><?php echo $itemIcon; ?></span>
             <span class="all-content-card-label"><?php echo $itemLabel; ?></span>
             <span class="type-badge" style="background:<?php echo htmlspecialchars($badge['color'], ENT_QUOTES, 'UTF-8'); ?>">
@@ -234,8 +237,6 @@
             <p class="tiles-empty-text">No content available yet.</p>
         </div>
     <?php endif; ?>
-</div>
-
 </div>
 
 <?php

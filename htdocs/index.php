@@ -74,13 +74,11 @@
         </div>
         <div class="continue-row__scroll" role="list">
             <?php foreach ($cwItems as $cwItem):
-                // Reconstruct watch.php URL params from content_id
                 $cwContentId  = $cwItem['content_id'];
                 $cwFolderPath = dirname($cwContentId) . '/';
                 $cwFolderName = basename(dirname($cwContentId));
                 $cwFileName   = basename($cwContentId);
 
-                // Parse full path: videos/{Category}/{Subcategory}/{video.mp4}
                 $cwParts       = explode('/', $cwContentId);
                 $cwCategoryRaw = $cwParts[1] ?? $cwFolderName;
                 $cwSubcatRaw   = $cwParts[2] ?? $cwFolderName;
@@ -96,7 +94,6 @@
                         . '&' . $cwKeyVideolink1 . '=' . $cwEncLink1
                         . '&' . $cwKeyVideoname1 . '=' . $cwEncName1;
 
-                // Display labels for all three hierarchy levels
                 $cwCategoryLabel = htmlspecialchars($cwCategoryRaw, ENT_QUOTES, 'UTF-8');
                 $cwSubcatLabel   = htmlspecialchars($cwSubcatRaw, ENT_QUOTES, 'UTF-8');
                 $cwDisplayTitle  = htmlspecialchars($cwVideoName, ENT_QUOTES, 'UTF-8');
@@ -129,12 +126,11 @@
         </div>
     </section>
     <?php
-        endif; // !empty($cwItems)
-    endif; // isLoggedIn && !isGuest
+        endif;
+    endif;
     ?>
 
     <?php
-    // FRE-52: My Assignments section (students only)
     if (isLoggedIn() && !isGuest() && !isTeacher()):
     ?>
     <section class="my-assignments-section" id="my-assignments-root" aria-label="My Assignments">
@@ -194,38 +190,51 @@
     <a href="directory.php" class="tiles-section-link">View Full Directory</a>
 </div>
 
-    <div class="all-content-grid">
-        <?php foreach ($allContent as $item):
-            $badge = getContentTypeBadge($item['type'] ?? 'video');
-            $itemLabel = htmlspecialchars($item['label'] ?? '', ENT_QUOTES, 'UTF-8');
-            $itemHref = htmlspecialchars($item['href'] ?? '#', ENT_QUOTES, 'UTF-8');
-            $itemIcon = $item['icon'] ?? '';
-            if ($itemIcon === '') {
-                // Assign default icon based on type
-                switch ($item['type'] ?? 'video') {
-                    case 'audio': $itemIcon = "\xF0\x9F\x8E\xA7"; break;
-                    case 'book': $itemIcon = "\xF0\x9F\x93\x9A"; break;
-                    case 'service': $itemIcon = "\xE2\x9A\xA1"; break;
-                    default: $itemIcon = "\xF0\x9F\x8E\xAC"; break;
-                }
+<div class="all-content-grid">
+    <?php foreach ($allContent as $item):
+        $badge = getContentTypeBadge($item['type'] ?? 'video');
+        $rawItemLabel = trim((string)($item['label'] ?? ''));
+        $itemLabel = htmlspecialchars($rawItemLabel, ENT_QUOTES, 'UTF-8');
+        $isKhanInteractive = strtolower($rawItemLabel) === 'khan interactive';
+        $itemHref = $isKhanInteractive ? 'launch-khan.php' : htmlspecialchars($item['href'] ?? '#', ENT_QUOTES, 'UTF-8');
+        $itemIcon = $item['icon'] ?? '';
+
+        if ($itemIcon === '') {
+            switch ($item['type'] ?? 'video') {
+                case 'audio':
+                    $itemIcon = "\xF0\x9F\x8E\xA7";
+                    break;
+                case 'book':
+                    $itemIcon = "\xF0\x9F\x93\x9A";
+                    break;
+                case 'service':
+                    $itemIcon = "\xE2\x9A\xA1";
+                    break;
+                default:
+                    $itemIcon = "\xF0\x9F\x8E\xAC";
+                    break;
             }
-        ?>
-        <a href="<?php echo $itemHref; ?>" class="all-content-card" title="<?php echo $itemLabel; ?>">
+        }
+    ?>
+        <a
+            href="<?php echo $itemHref; ?>"
+            class="all-content-card"
+            title="<?php echo $itemLabel; ?>">
             <span class="all-content-card-icon"><?php echo $itemIcon; ?></span>
             <span class="all-content-card-label"><?php echo $itemLabel; ?></span>
             <span class="type-badge" style="background:<?php echo htmlspecialchars($badge['color'], ENT_QUOTES, 'UTF-8'); ?>">
                 <?php echo htmlspecialchars($badge['label'], ENT_QUOTES, 'UTF-8'); ?>
             </span>
         </a>
-        <?php endforeach; ?>
+    <?php endforeach; ?>
 
-        <?php if (empty($allContent)): ?>
+    <?php if (empty($allContent)): ?>
         <div class="tiles-empty">
             <img src="assets/img/edutek-logo.jpg" alt="" class="tiles-empty-logo">
             <p class="tiles-empty-text">No content available yet.</p>
         </div>
-        <?php endif; ?>
-    </div>
+    <?php endif; ?>
+</div>
 
 </div>
 

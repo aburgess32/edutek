@@ -33,16 +33,25 @@ services:
     volumes:
       # Application source — maps htdocs to Apache document root
       - ./htdocs:/var/www/html:cached
+
       # PHP vendor directory (phpcs, phpunit, etc.)
       - ./vendor:/var/www/vendor:cached
       - ./composer.json:/var/www/composer.json:ro
       - ./phpcs.xml:/var/www/phpcs.xml:ro
+
       # Custom Apache virtual host / server config
       - ./config/apache:/etc/apache2/sites-enabled:ro
+
       # OpenSSL legacy provider config (needed for BF-CBC cipher in PHP 8.1 + OpenSSL 3.x)
       - ./config/openssl/openssl.cnf:/etc/ssl/openssl.cnf:ro
-      # Content library (3TB on D drive) — writable for thumbnail generation
+
+      # Full content library (used by scripts / indexing / admin jobs)
       - D:/xampp/htdocs/Edutek/videos:/content
+
+      # Expose content categories directly under the web app document root
+      - D:/xampp/htdocs/Edutek/videos/Audiobooks:/var/www/html/videos/Audiobooks
+      - D:/xampp/htdocs/Edutek/videos/Music:/var/www/html/videos/Music
+
     environment:
       # DB connection — consumed by htdocs/includes/config.php
       DB_HOST: db
@@ -62,7 +71,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ── MySQL 8.0 ─────────────────────────────────────────────────────────────────
+  # ── MySQL 8.0 ───────────────────────────────────────────────────────────────
   db:
     image: mysql:8.0
     container_name: edupak-db
@@ -77,6 +86,7 @@ services:
     volumes:
       # Persist MySQL data across container restarts
       - mysql-data:/var/lib/mysql
+
       # Auto-import schema on first run (only executed when data volume is empty)
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     command:
@@ -97,7 +107,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ── phpMyAdmin ────────────────────────────────────────────────────────────────
+  # ── phpMyAdmin ──────────────────────────────────────────────────────────────
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: edupak-phpmyadmin
@@ -109,6 +119,7 @@ services:
       PMA_PORT: 3306
       PMA_USER: edupak
       PMA_PASSWORD: edupak_dev
+
       # Increase upload limit for DB imports
       UPLOAD_LIMIT: 256M
     depends_on:

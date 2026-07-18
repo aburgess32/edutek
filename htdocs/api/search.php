@@ -1,24 +1,6 @@
 <?php
-/**
- * Enhanced Search API (FRE-40)
- *
- * GET — returns JSON array of content matching a search term.
- *
- * Parameters:
- *   q    — search term (required, min 2 chars for results)
- *   type — optional content_type filter (video, audiobook, pdf, interactive, tool)
- *
- * Search strategy (waterfall):
- *   1. FULLTEXT MATCH...AGAINST in BOOLEAN MODE (exact/prefix) → match_type 'exact'
- *   2. Alias lookup from search_aliases table → match_type 'alias'
- *   3. SOUNDEX fallback → match_type 'soundex'
- *   4. Levenshtein on LIKE '%first-3-chars%' set → match_type 'fuzzy'
- *
- * Results ordered by relevance (title matches boosted 2x), limit 20.
- */
-
 include_once __DIR__ . '/../includes/auth.php';
-include_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/tiles.php';
 
 if (!defined('CONTENT_CIPHER')) {
     define('CONTENT_CIPHER', 'AES-128-CTR');
@@ -38,7 +20,25 @@ $options = 0;
 function encParam($val, $cipher, $key, $opts, $iv) {
     return str_replace('=', '[equal]', base64_encode(openssl_encrypt($val, $cipher, $key, $opts, $iv)));
 }
-require_once __DIR__ . '/../includes/tiles.php';
+
+function normalizeText($value) {
+    return mb_strtolower(trim((string)$value));
+}
+
+function browsePageForCategory($category, $contentType = '') {
+    $categoryNorm = normalizeText($category);
+    $typeNorm = normalizeText($contentType);
+
+    if ($typeNorm === 'pdf' || $typeNorm === 'book' || $typeNorm === 'books' || $categoryNorm === 'books' || strpos($categoryNorm, 'book') !== false) {
+        return 'tutorials.php';
+    }
+
+    if ($typeNorm === 'audiobook') {
+        return 'tutorials.php';
+    }
+
+    return 'tutorials.php';
+}
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -51,15 +51,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $query = trim(isset($_GET['q']) ? $_GET['q'] : '');
 $typeFilter = isset($_GET['type']) ? trim($_GET['type']) : '';
 
-// Validate type filter
-$allowedTypes = ['video', 'audiobook', 'pdf', 'interactive', 'tool'];
+$allowedTypes = ['video', 'audiobook', 'pdf', 'interactive', 'tool', 'book', 'books'];
 if ($typeFilter !== '' && !in_array($typeFilter, $allowedTypes, true)) {
     $typeFilter = '';
 }
 
-// Return empty for very short queries
 if (mb_strlen($query) < 2) {
-    echo json_encode([]);
+    echo json_encode([
+        'results' => [],
+        'groups'  => [],
+        'total'   => 0,
+        'query'   => $query,
+    ]);
     exit;
 }
 
@@ -69,7 +72,6 @@ try {
     $params = [];
     $typeClause = '';
 
-    // Build optional content_type filter
     if ($typeFilter !== '') {
         $typeClause = ' AND cm.content_type = :type_filter';
         $params[':type_filter'] = $typeFilter;
@@ -79,7 +81,6 @@ try {
     $matchType = 'exact';
 
     if (mb_strlen($query) >= 3) {
-        // 1) FULLTEXT search in BOOLEAN MODE
         $words = preg_split('/\s+/', $query);
         $booleanTerms = [];
         foreach ($words as $word) {
@@ -124,7 +125,6 @@ try {
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $matchType = 'exact';
 
-        // 2) Alias fallback if no FULLTEXT results
         if (empty($results)) {
             $aliasResults = searchByAliases($pdo, $query, $typeClause, $params);
             if (!empty($aliasResults)) {
@@ -133,7 +133,6 @@ try {
             }
         }
 
-        // 3) SOUNDEX fallback
         if (empty($results)) {
             $soundexResults = searchBySoundex($pdo, $query, $typeClause, $params);
             if (!empty($soundexResults)) {
@@ -142,7 +141,6 @@ try {
             }
         }
 
-        // 4) Levenshtein fallback on LIKE prefix set
         if (empty($results)) {
             $fuzzyResults = searchByLevenshtein($pdo, $query, $typeClause, $params);
             if (!empty($fuzzyResults)) {
@@ -151,7 +149,6 @@ try {
             }
         }
     } else {
-        // LIKE fallback for 2-char terms
         $likeParam = '%' . $query . '%';
 
         $sql = "
@@ -193,13 +190,14 @@ try {
         $matchType = 'prefix';
     }
 
-    // Build category / subcategory group matches (distinct, with counts)
     $courseParamKey = encParam('course', $cipher, $encryption_key, $options, $iv);
     $groups = [];
+
     if (mb_strlen($query) >= 2) {
         $likeParam = '%' . $query . '%';
+
         $groupSql = "
-            SELECT DISTINCT cm.category AS name, 'category' AS gtype, COUNT(*) AS cnt
+            SELECT cm.category AS name, 'category' AS gtype, COUNT(*) AS cnt
             FROM content_meta cm
             WHERE cm.category LIKE :q_cat
             GROUP BY cm.category
@@ -212,22 +210,28 @@ try {
 
         foreach ($catGroups as $g) {
             if (empty($g['name'])) continue;
+
+            $browsePage = browsePageForCategory($g['name']);
+
             $groups[] = [
-                'type'   => 'category',
-                'name'   => $g['name'],
-				'url'    => 'tutorials.php?' . $courseParamKey . '=' . tileEncrypt($g['name']),
-                'count'  => (int)$g['cnt'],
+                'type'  => 'category',
+                'name'  => $g['name'],
+                'url'   => $browsePage . '?' . $courseParamKey . '=' . tileEncrypt($g['name']),
+                'count' => (int)$g['cnt'],
             ];
         }
 
         $subSql = "
-            SELECT DISTINCT cm.subcategory AS name, cm.category AS parent,
-                            'subcategory' AS gtype, COUNT(*) AS cnt
+            SELECT
+                cm.subcategory AS name,
+                cm.category AS parent,
+                cm.content_type,
+                COUNT(*) AS cnt
             FROM content_meta cm
             WHERE cm.subcategory LIKE :q_subcat
               AND cm.subcategory IS NOT NULL
               AND cm.subcategory != ''
-            GROUP BY cm.subcategory, cm.category
+            GROUP BY cm.subcategory, cm.category, cm.content_type
             ORDER BY cnt DESC
             LIMIT 3
         ";
@@ -236,25 +240,30 @@ try {
         $subGroups = $subStmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($subGroups as $g) {
-            if (empty($g['name'])) continue;
+            if (empty($g['name']) || empty($g['parent'])) continue;
+
             $subcatSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $g['name']));
+            $browsePage = browsePageForCategory($g['parent'], $g['content_type']);
+
             $groups[] = [
                 'type'   => 'subcategory',
                 'name'   => $g['name'],
-                'parent' => $g['parent'] ?? null,
-                'url'    => 'tutorials.php?' . $courseParamKey . '=' . tileEncrypt($g['parent']) . '#tut-sec-' . $subcatSlug,
+                'parent' => $g['parent'],
+                'url'    => $browsePage . '?' . $courseParamKey . '=' . tileEncrypt($g['parent']) . '#tut-sec-' . $subcatSlug,
                 'count'  => (int)$g['cnt'],
             ];
         }
     }
 
-    // Format output
     $items = [];
     foreach ($results as $row) {
         $categoryUrl = '';
         $subcategoryUrl = '';
+
         if (!empty($row['category'])) {
-            $categoryUrl = 'tutorials.php?' . $courseParamKey . '=' . tileEncrypt($row['category']);
+            $browsePage = browsePageForCategory($row['category'], $row['content_type']);
+            $categoryUrl = $browsePage . '?' . $courseParamKey . '=' . tileEncrypt($row['category']);
+
             if (!empty($row['subcategory'])) {
                 $subcatSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $row['subcategory']));
                 $subcategoryUrl = $categoryUrl . '#tut-sec-' . $subcatSlug;
@@ -271,73 +280,65 @@ try {
             'source'           => $row['source'],
             'content_type'     => $row['content_type'],
             'duration_seconds' => $row['duration_seconds'] !== null ? (int) $row['duration_seconds'] : null,
-            'thumbnail_path'   => resolveContentUrl($row['thumbnail_path']),
+            'thumbnail_path'   => !empty($row['thumbnail_path']) ? resolveContentUrl($row['thumbnail_path']) : null,
             'file_path'        => $row['file_path'] ?? null,
             'match_type'       => $matchType,
         ];
     }
 
-    // Log the search query for dashboard analytics (FRE-39)
-    // FRE-55: Allow clients to suppress logging for intermediate keystrokes
     $shouldLog = !isset($_GET['log']) || $_GET['log'] !== '0';
     if ($shouldLog) {
-    try {
-        // Ensure search_log table exists (auto-create on first use)
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS search_log (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT DEFAULT NULL,
-                user_type VARCHAR(20) DEFAULT NULL,
-                age_range VARCHAR(20) DEFAULT NULL,
-                query VARCHAR(255) NOT NULL,
-                result_count INT DEFAULT 0,
-                searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                INDEX idx_searched_at (searched_at),
-                INDEX idx_query (query(100))
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ");
-
-        // Look up user metadata from the database for reliable logging.
-        // Session variables (user_role, age_range) can be missing if the session
-        // was started before these fields were added to loginUser(), so we fall
-        // back to the authoritative users table when a user_id is available.
-        $logUserId  = $_SESSION['user_id'] ?? null;
-        $logUserType = 'guest';
-        $logAgeRange = null;
-
-        if (!empty($logUserId)) {
-            $userStmt = $pdo->prepare('SELECT user_type, age_range FROM users WHERE id = ?');
-            $userStmt->execute([$logUserId]);
-            $userRow = $userStmt->fetch(PDO::FETCH_ASSOC);
-            if ($userRow) {
-                $logUserType = $userRow['user_type'] ?? 'guest';
-                $logAgeRange = $userRow['age_range'] ?? null;
-            }
-        }
-
-        $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, user_type, age_range, query, result_count) VALUES (?, ?, ?, ?, ?)');
-        $logStmt->execute([
-            $logUserId,
-            $logUserType,
-            $logAgeRange,
-            mb_substr($query, 0, 255),
-            count($items)
-        ]);
-    } catch (PDOException $e) {
-        error_log('search_log insert failed: ' . $e->getMessage());
-        // Fallback for old schema without user_type/age_range columns
         try {
-            $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)');
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS search_log (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT DEFAULT NULL,
+                    user_type VARCHAR(20) DEFAULT NULL,
+                    age_range VARCHAR(20) DEFAULT NULL,
+                    query VARCHAR(255) NOT NULL,
+                    result_count INT DEFAULT 0,
+                    searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_searched_at (searched_at),
+                    INDEX idx_query (query(100))
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ");
+
+            $logUserId = $_SESSION['user_id'] ?? null;
+            $logUserType = 'guest';
+            $logAgeRange = null;
+
+            if (!empty($logUserId)) {
+                $userStmt = $pdo->prepare('SELECT user_type, age_range FROM users WHERE id = ?');
+                $userStmt->execute([$logUserId]);
+                $userRow = $userStmt->fetch(PDO::FETCH_ASSOC);
+                if ($userRow) {
+                    $logUserType = $userRow['user_type'] ?? 'guest';
+                    $logAgeRange = $userRow['age_range'] ?? null;
+                }
+            }
+
+            $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, user_type, age_range, query, result_count) VALUES (?, ?, ?, ?, ?)');
             $logStmt->execute([
-                $_SESSION['user_id'] ?? null,
+                $logUserId,
+                $logUserType,
+                $logAgeRange,
                 mb_substr($query, 0, 255),
                 count($items)
             ]);
-        } catch (PDOException $e2) {
-            error_log('search_log fallback insert failed: ' . $e2->getMessage());
+        } catch (PDOException $e) {
+            error_log('search_log insert failed: ' . $e->getMessage());
+            try {
+                $logStmt = $pdo->prepare('INSERT INTO search_log (user_id, query, result_count) VALUES (?, ?, ?)');
+                $logStmt->execute([
+                    $_SESSION['user_id'] ?? null,
+                    mb_substr($query, 0, 255),
+                    count($items)
+                ]);
+            } catch (PDOException $e2) {
+                error_log('search_log fallback insert failed: ' . $e2->getMessage());
+            }
         }
     }
-    } // end $shouldLog
 
     echo json_encode([
         'results' => $items,
@@ -351,15 +352,9 @@ try {
     echo json_encode(['error' => 'Search failed']);
 }
 
-/**
- * Search using the search_aliases synonym table.
- * Looks up the query in both the term and aliases columns,
- * then searches content_meta for the canonical term + all aliases.
- */
 function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
     $queryLower = mb_strtolower(trim($query));
 
-    // Find matching alias rows: query matches the term or appears in aliases
     try {
         $aliasSql = "
             SELECT term, aliases FROM search_aliases
@@ -374,7 +369,6 @@ function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
         ]);
         $aliasRows = $aliasStmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        // search_aliases table may not exist yet
         error_log('searchByAliases: ' . $e->getMessage());
         return [];
     }
@@ -383,7 +377,6 @@ function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
         return [];
     }
 
-    // Collect all search terms from matched aliases
     $searchTerms = [];
     foreach ($aliasRows as $row) {
         $searchTerms[] = $row['term'];
@@ -396,7 +389,6 @@ function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
     }
     $searchTerms = array_unique($searchTerms);
 
-    // Build LIKE OR conditions for each term
     $conditions = [];
     $params = $baseParams;
     $i = 0;
@@ -426,10 +418,6 @@ function searchByAliases(PDO $pdo, $query, $typeClause, $baseParams) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-/**
- * SOUNDEX-based fallback: matches where the SOUNDEX of title or category
- * matches the SOUNDEX of the query.
- */
 function searchBySoundex(PDO $pdo, $query, $typeClause, $baseParams) {
     $sql = "
         SELECT
@@ -456,10 +444,6 @@ function searchBySoundex(PDO $pdo, $query, $typeClause, $baseParams) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-/**
- * Levenshtein-based fallback: fetches a broad LIKE set using the first 3 chars,
- * then re-ranks in PHP using levenshtein() distance.
- */
 function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
     $prefix = mb_substr($query, 0, 3);
     $likeVal = '%' . $prefix . '%';
@@ -481,8 +465,8 @@ function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
     ";
 
     $params = array_merge($baseParams, [
-        ':lev_title'  => $likeVal,
-        ':lev_cat'    => $likeVal,
+        ':lev_title' => $likeVal,
+        ':lev_cat' => $likeVal,
         ':lev_subcat' => $likeVal,
         ':lev_transcript' => $likeVal,
     ]);
@@ -495,27 +479,24 @@ function searchByLevenshtein(PDO $pdo, $query, $typeClause, $baseParams) {
         return [];
     }
 
-    // Score each candidate by Levenshtein distance against the query
     $queryLower = mb_strtolower($query);
     $scored = [];
     foreach ($candidates as $row) {
         $titleDist = levenshtein($queryLower, mb_strtolower(mb_substr($row['title'], 0, 50)));
         $catDist = levenshtein($queryLower, mb_strtolower(mb_substr($row['category'] ?? '', 0, 50)));
-        $minDist = min($titleDist, $catDist);
+        $subDist = levenshtein($queryLower, mb_strtolower(mb_substr($row['subcategory'] ?? '', 0, 50)));
+        $minDist = min($titleDist, $catDist, $subDist);
 
-        // Only include results within a reasonable edit distance (max 3)
         if ($minDist <= 3) {
             $row['_lev_distance'] = $minDist;
             $scored[] = $row;
         }
     }
 
-    // Sort by distance ascending
     usort($scored, function ($a, $b) {
         return $a['_lev_distance'] - $b['_lev_distance'];
     });
 
-    // Strip internal scoring field, limit to 20
     $output = [];
     foreach (array_slice($scored, 0, 20) as $row) {
         unset($row['_lev_distance']);

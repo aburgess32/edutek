@@ -71,6 +71,55 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  indexer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: edupak-indexer
+    restart: "no"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    volumes:
+      # Active PHP source, including the CLI indexer and entrypoint shell script
+      - ./htdocs:/var/www/html:cached
+
+      # PHP dependencies and OpenSSL config used by the CLI indexer
+      - ./vendor:/var/www/vendor:cached
+      - ./composer.json:/var/www/composer.json:ro
+      - ./config/openssl/openssl.cnf:/etc/ssl/openssl.cnf:ro
+
+      # Active EduPak content library: read-only during startup assessment
+      - D:/xampp/htdocs/Edutek/videos:/content:ro
+
+      # Persistent device-local assessment reports; not committed to Git
+      - D:/edutek-system/index-status:/system/index-status
+
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: edupak
+      DB_USER: edupak
+      DB_PASS: edupak_dev
+      CONTENT_PATH: /content/
+      INDEX_DELAY_SECONDS: "5"
+      INDEX_STATUS_DIR: /system/index-status
+
+    entrypoint:
+      - /bin/sh
+      - /var/www/html/docker/indexer-entrypoint.sh
+
+    networks:
+      - edupak-net
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   # ── MySQL 8.0 ───────────────────────────────────────────────────────────────
   db:
     image: mysql:8.0

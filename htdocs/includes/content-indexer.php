@@ -238,6 +238,43 @@ function generateThumbnail(string $videoPath, int $timeout = 15): ?string
  * @param int    $maxThumbnails Maximum thumbnails to generate per run (0 = unlimited)
  * @return array{success: bool, total: int, new: int, updated: int, skipped: int, thumbnails_generated: int, error?: string}
  */
+
+/**
+ * Write one row to the current indexer audit CSV report.
+ *
+ * @param resource $handle Open audit CSV handle
+ * @param array<int, string> $row Values in report-column order
+ * @return void
+ */
+
+/**
+ * Keep only the newest indexer audit CSV reports.
+ *
+ * Only files named index-run-*.csv inside the audit directory are considered.
+ * All other files in the directory are left untouched.
+ *
+ * @param string $statusDir Writable indexer audit directory
+ * @param int    $keep      Number of newest reports to retain
+ * @return void
+ */
+function pruneIndexAuditReports(string $statusDir, int $keep = 7): void
+{
+    $reports = glob(rtrim($statusDir, '/') . '/index-run-*.csv') ?: [];
+
+    usort($reports, static function (string $left, string $right): int {
+        return (filemtime($right) ?: 0) <=> (filemtime($left) ?: 0);
+    });
+
+    foreach (array_slice($reports, max(0, $keep)) as $report) {
+        @unlink($report);
+    }
+}
+function writeIndexAuditRow($handle, array $row): void
+{
+    if (is_resource($handle)) {
+        fputcsv($handle, $row);
+    }
+}
 function indexContent(string $contentRoot, int $maxThumbnails = 0): array
 {
     // Normalize to forward slashes for cross-platform consistency
@@ -259,7 +296,7 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
     $htdocsRoot = str_replace('\\', '/', realpath(__DIR__ . '/..'));
 
     // Safety check: if __DIR__ is outside htdocs (e.g. CLI script in /tmp),
-    // htdocsRoot will be '/' or some unrelated path — disable webPrefix.
+    // htdocsRoot will be '/' or some unrelated path Ã¢â‚¬â€ disable webPrefix.
     $realContentRoot = str_replace('\\', '/', realpath($contentRoot));
     if (!$htdocsRoot || strlen($htdocsRoot) <= 1) {
         $htdocsRoot = '';
@@ -286,6 +323,34 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
     $skippedCount = 0;
     $totalCount   = 0;
     $thumbsGenerated = 0;
+
+    // Create one persistent CSV report per indexer pass.
+    // The Docker indexer mounts this directory as writable.
+    $statusDir = getenv('INDEX_STATUS_DIR') ?: '/system/index-status';
+    $auditPath = '';
+    $auditHandle = null;
+
+    if (is_dir($statusDir) || @mkdir($statusDir, 0775, true)) {
+        $runStamp = date('Y-m-d_H-i-s');
+        $auditPath = rtrim($statusDir, '/') . "/index-run-{$runStamp}.csv";
+        $auditHandle = @fopen($auditPath, 'wb');
+
+        if (is_resource($auditHandle)) {
+            fputcsv($auditHandle, [
+                'timestamp',
+                'action',
+                'content_type',
+                'category',
+                'subcategory',
+                'file_path',
+                'title',
+                'thumbnail_path',
+                'message',
+            ]);
+        } else {
+            $auditPath = '';
+        }
+    }
 
     // Video extensions that support thumbnail generation
     $videoExtensions = ['mp4', 'webm', 'mkv', 'avi'];
@@ -344,7 +409,7 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
         $parts        = explode('/', $relativePath);
 
         // Directory structure: <category>/<subcategory>/<file>
-        // (content root IS the categories root — no bucket prefix)
+        // (content root IS the categories root Ã¢â‚¬â€ no bucket prefix)
         $category    = (count($parts) >= 2) ? $parts[0] : '';
         $subcategory = (count($parts) >= 3) ? $parts[1] : '';
 
@@ -375,7 +440,7 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
             }
         }
 
-        // Find thumbnail — store as web-relative path
+        // Find thumbnail Ã¢â‚¬â€ store as web-relative path
         $thumbnail = findThumbnail($fullPath, $contentRoot);
         if ($thumbnail !== null && $webPrefix) {
             $thumbnail = $webPrefix . '/' . $thumbnail;
@@ -397,13 +462,54 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
             // rowCount: 1 = insert, 2 = update (MySQL UPSERT semantics)
             if ($rowCount === 1) {
                 $newCount++;
+                writeIndexAuditRow($auditHandle, [
+                    date(DATE_ATOM),
+                    'new',
+                    $contentType,
+                    $category,
+                    $subcategory,
+                    $webPath,
+                    $title,
+                    $thumbnail ?? '',
+                    '',
+                ]);
             } elseif ($rowCount === 2) {
                 $updatedCount++;
+                writeIndexAuditRow($auditHandle, [
+                    date(DATE_ATOM),
+                    'updated',
+                    $contentType,
+                    $category,
+                    $subcategory,
+                    $webPath,
+                    $title,
+                    $thumbnail ?? '',
+                    '',
+                ]);
             }
             $totalCount++;
         } catch (PDOException $e) {
             $skippedCount++;
+            writeIndexAuditRow($auditHandle, [
+                date(DATE_ATOM),
+                'skipped',
+                $contentType,
+                $category,
+                $subcategory,
+                $webPath,
+                $title,
+                $thumbnail ?? '',
+                $e->getMessage(),
+            ]);
         }
+    }
+
+    if (is_resource($auditHandle)) {
+        fclose($auditHandle);
+    }
+
+    if ($auditPath !== '') {
+        pruneIndexAuditReports($statusDir, 7);
     }
 
     return [
@@ -413,6 +519,7 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
         'updated'              => $updatedCount,
         'skipped'              => $skippedCount,
         'thumbnails_generated' => $thumbsGenerated,
+        'audit_path'           => $auditPath,
     ];
 }
 

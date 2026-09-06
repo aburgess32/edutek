@@ -182,6 +182,7 @@ function myFunction() {
     <script src="assets/js/jquery.easing.min.js"></script>
     <!--  Custom Scripts -->
     <script src="assets/js/custom.js"></script>
+    <script src="js/local-index-hotkey.js" defer></script>
     <!-- Custom scripts for this page-->
     <!-- Toggle between fixed and static navbar-->
     <script>

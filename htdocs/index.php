@@ -1,249 +1,130 @@
 <?php
-    include_once "includes/auth.php";
-    include_once "includes/tiles.php";
+include_once "includes/auth.php";
+include_once "includes/tiles.php";
 ?>
 <link href="css/index.css" rel="stylesheet">
-<link href="css/tiles.css" rel="stylesheet">
 <link href="css/login.css" rel="stylesheet">
 <link href="css/teacher-assignments.css" rel="stylesheet">
 <link href="css/student-assignments.css" rel="stylesheet">
-<?php
-    include_once "navhome.php";
 
-    $allContent = getAllContent();
+<?php
+include_once "navhome.php";
 ?>
-<?php /*
-<div class="tiles-page">
 
-    <?php if (isGuest()): ?>
-    <div class="guest-banner">
-        Browsing as guest &mdash; <a href="login.php">Get Started</a> to save your progress
-    </div>
-    <?php endif; ?>
+<main class="home-page" id="main-content">
+    <section class="home-hero" aria-labelledby="home-title">
+        <div class="home-hero__content">
+            <p class="home-hero__eyebrow">EduTek Global</p>
+            <h1 class="home-hero__title" id="home-title">Explore Learning Resources</h1>
+            <p class="home-hero__subtitle">Learn, teach, and explore — even without internet.</p>
 
-    <?php
-    // FRE-10: Continue Watching row (server-side rendered)
-    if (isLoggedIn() && !isGuest()):
-        try {
-            $cwPdo = getDbConnection();
-            $cwStmt = $cwPdo->prepare("
-                SELECT wh.content_id, wh.content_title, wh.thumbnail_path,
-                       wh.progress_seconds, wh.duration_seconds
-                FROM watch_history wh
-                INNER JOIN (
-                    SELECT content_id, MAX(last_watched) AS max_lw
-                    FROM watch_history
-                    WHERE user_id = :uid1 AND duration_seconds > 0
-                    GROUP BY content_id
-                ) latest ON wh.content_id = latest.content_id
-                           AND wh.last_watched = latest.max_lw
-                WHERE wh.user_id = :uid2 AND wh.duration_seconds > 0
-                ORDER BY wh.last_watched DESC
-                LIMIT 10
-            ");
-            $cwStmt->execute([':uid1' => (int) $_SESSION['user_id'], ':uid2' => (int) $_SESSION['user_id']]);
-            $cwRows = $cwStmt->fetchAll(PDO::FETCH_ASSOC);
-
-            $cwItems = [];
-            foreach ($cwRows as $cwRow) {
-                $cwPct = round(($cwRow['progress_seconds'] / $cwRow['duration_seconds']) * 100);
-                if ($cwPct >= 95) continue;
-                $cwRow['progress_pct'] = (int) $cwPct;
-
-                // Check thumbnail exists
-                $cwThumbFile = __DIR__ . '/' . ltrim($cwRow['thumbnail_path'], '/');
-                $cwRow['thumb_ok'] = file_exists($cwThumbFile);
-
-                $cwItems[] = $cwRow;
-                if (count($cwItems) >= 5) break;
-            }
-        } catch (PDOException $e) {
-            $cwItems = [];
-        }
-
-        if (!empty($cwItems)):
-            // Pre-compute encrypted param keys for watch.php links
-            $cwKeyVideolink  = tileEncrypt('videolink');
-            $cwKeyVideoname  = tileEncrypt('videoname');
-            $cwKeyVideolink1 = tileEncrypt('videolink1');
-            $cwKeyVideoname1 = tileEncrypt('videoname1');
-    ?>
-    <section class="continue-row" aria-label="Continue Watching">
-        <div class="continue-row__header">
-            <h2 class="continue-row__heading">Continue Watching</h2>
+            <form class="home-search" method="get" action="result.php" role="search">
+                <label class="sr-only" for="home-search-query">Search the learning library</label>
+                <input
+                    id="home-search-query"
+                    class="home-search__input"
+                    type="search"
+                    name="q"
+                    placeholder="Search videos, books, skills, or subjects"
+                    autocomplete="off"
+                >
+                <button class="home-search__button" type="submit">
+                    <i class="fa fa-search" aria-hidden="true"></i>
+                    <span>Search</span>
+                </button>
+            </form>
         </div>
-        <div class="continue-row__scroll" role="list">
-            <?php foreach ($cwItems as $cwItem):
-                $cwContentId  = $cwItem['content_id'];
-                $cwFolderPath = dirname($cwContentId) . '/';
-                $cwFolderName = basename(dirname($cwContentId));
-                $cwFileName   = basename($cwContentId);
+    </section>
 
-                $cwParts       = explode('/', $cwContentId);
-                $cwCategoryRaw = $cwParts[1] ?? $cwFolderName;
-                $cwSubcatRaw   = $cwParts[2] ?? $cwFolderName;
-                $cwVideoName   = pathinfo($cwParts[3] ?? $cwFileName, PATHINFO_FILENAME);
+    <section class="resource-types" aria-labelledby="resource-types-title">
+        <div class="home-section-heading">
+            <div>
+                <p class="home-section-heading__eyebrow">Start here</p>
+                <h2 id="resource-types-title">Choose a Content Type</h2>
+                <p>Choose the kind of resource that works best for you today.</p>
+            </div>
+        </div>
 
-                $cwEncLink  = tileEncrypt($cwFolderPath);
-                $cwEncName  = tileEncrypt($cwFolderName);
-                $cwEncLink1 = tileEncrypt($cwContentId);
-                $cwEncName1 = tileEncrypt($cwFileName);
-
-                $cwHref = 'watch.php?&' . $cwKeyVideolink . '=' . $cwEncLink
-                        . '&' . $cwKeyVideoname . '=' . $cwEncName
-                        . '&' . $cwKeyVideolink1 . '=' . $cwEncLink1
-                        . '&' . $cwKeyVideoname1 . '=' . $cwEncName1;
-
-                $cwCategoryLabel = htmlspecialchars($cwCategoryRaw, ENT_QUOTES, 'UTF-8');
-                $cwSubcatLabel   = htmlspecialchars($cwSubcatRaw, ENT_QUOTES, 'UTF-8');
-                $cwDisplayTitle  = htmlspecialchars($cwVideoName, ENT_QUOTES, 'UTF-8');
-                $cwPct   = $cwItem['progress_pct'];
-            ?>
-            <a class="continue-card" href="<?php echo $cwHref; ?>" role="listitem"
-               aria-label="Continue: <?php echo $cwDisplayTitle; ?> &ndash; <?php echo $cwPct; ?>% watched">
-                <div class="continue-card__thumb">
-                    <?php if ($cwItem['thumb_ok']): ?>
-                    <img src="<?php echo htmlspecialchars($cwItem['thumbnail_path'], ENT_QUOTES, 'UTF-8'); ?>"
-                         alt="<?php echo $cwDisplayTitle; ?> thumbnail"
-                         loading="lazy" decoding="async">
-                    <?php else: ?>
-                    <div class="continue-card__placeholder">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <circle cx="12" cy="12" r="11" stroke="#fff" stroke-width="1.5" opacity="0.6"/>
-                            <polygon points="10,7 18,12 10,17" fill="#fff" opacity="0.8"/>
-                        </svg>
-                    </div>
-                    <?php endif; ?>
-                    <div class="continue-card__progress" style="--pct: <?php echo $cwPct; ?>%"></div>
-                </div>
-                <div class="continue-card__info">
-                    <p class="continue-card__category"><?php echo $cwCategoryLabel; ?></p>
-                    <p class="continue-card__subcategory"><?php echo $cwSubcatLabel; ?></p>
-                    <p class="continue-card__title"><?php echo $cwDisplayTitle; ?></p>
-                </div>
+        <div class="resource-types__grid">
+            <a class="resource-card resource-card--video" href="directory.php" aria-label="Browse video learning resources">
+                <span class="resource-card__icon" aria-hidden="true">
+                    <i class="fa fa-play-circle"></i>
+                </span>
+                <span class="resource-card__content">
+                    <span class="resource-card__title">Watch Videos</span>
+                    <span class="resource-card__description">Lessons, demonstrations, and documentaries.</span>
+                </span>
+                <span class="resource-card__arrow" aria-hidden="true">&rarr;</span>
             </a>
-            <?php endforeach; ?>
+
+            <a class="resource-card resource-card--audio" href="audiobooks.php" aria-label="Browse audiobooks">
+                <span class="resource-card__icon" aria-hidden="true">
+                    <i class="fa fa-headphones"></i>
+                </span>
+                <span class="resource-card__content">
+                    <span class="resource-card__title">Audiobooks</span>
+                    <span class="resource-card__description">Listen to stories, learning, and ideas.</span>
+                </span>
+                <span class="resource-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="resource-card resource-card--books" href="books.php" aria-label="Browse books and PDF resources">
+                <span class="resource-card__icon" aria-hidden="true">
+                    <i class="fa fa-book"></i>
+                </span>
+                <span class="resource-card__content">
+                    <span class="resource-card__title">Books &amp; PDFs</span>
+                    <span class="resource-card__description">Read guides, textbooks, stories, and reference materials.</span>
+                </span>
+                <span class="resource-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="resource-card resource-card--music" href="music.php" aria-label="Browse music">
+                <span class="resource-card__icon" aria-hidden="true">
+                    <i class="fa fa-music"></i>
+                </span>
+                <span class="resource-card__content">
+                    <span class="resource-card__title">Music</span>
+                    <span class="resource-card__description">Explore songs, playlists, and audio collections.</span>
+                </span>
+                <span class="resource-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="resource-card resource-card--tools" href="tools.php" aria-label="Open learning tools">
+                <span class="resource-card__icon" aria-hidden="true">
+                    <i class="fa fa-wrench"></i>
+                </span>
+                <span class="resource-card__content">
+                    <span class="resource-card__title">Learning Tools</span>
+                    <span class="resource-card__description">Use offline apps, interactive learning, and reference tools.</span>
+                </span>
+                <span class="resource-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
         </div>
     </section>
-    <?php
-        endif;
-    endif;
-    ?>
 
-    <?php
-    if (isLoggedIn() && !isGuest() && !isTeacher()):
-    ?>
-    <section class="my-assignments-section" id="my-assignments-root" aria-label="My Assignments">
-        <!-- Populated by student-assignments.js -->
-    </section>
-    <script src="/js/student-assignments.js"></script>
-    <?php endif; ?>
-<?php /*
-    <!-- Choose Your Path: Segment Tiles -->
-    <div class="tiles-section-header">
-        <h2 class="tiles-section-title">Choose Your Path</h2>
-        <a href="directory.php" class="tiles-section-link">View Directory</a>
-    </div>
-
-    <div class="seg-grid">
-        <?php foreach ($segments as $segKey => $seg):
-            $isLight = in_array($segKey, $lightSegments, true);
-            $gradient = htmlspecialchars($seg['gradient'] ?? '', ENT_QUOTES, 'UTF-8');
-            $color = htmlspecialchars($seg['color'] ?? '#333', ENT_QUOTES, 'UTF-8');
-            $label = htmlspecialchars($seg['label'] ?? $segKey, ENT_QUOTES, 'UTF-8');
-            $desc = htmlspecialchars($seg['description'] ?? '', ENT_QUOTES, 'UTF-8');
-            $icon = $seg['icon'] ?? '';
-        ?>
-        <?php
-            $segImage = $seg['image'] ?? '';
-            $segImageJpg = str_replace('.webp', '.jpg', $segImage);
-            $hasImage = ($segImage !== '' && file_exists(__DIR__ . '/' . $segImage));
-        ?>
-        <a href="browse.php?seg=<?php echo htmlspecialchars($segKey, ENT_QUOTES, 'UTF-8'); ?>"
-           class="seg-tile<?php echo $isLight ? ' seg-tile--light' : ''; ?><?php echo $hasImage ? ' seg-tile--has-image' : ''; ?>"
-           style="background: <?php echo $gradient ?: $color; ?>;"
-           title="<?php echo $label; ?>">
-            <?php if ($hasImage): ?>
-            <div class="seg-tile-bg">
-                <picture>
-                    <source srcset="<?php echo htmlspecialchars($segImage, ENT_QUOTES, 'UTF-8'); ?>" type="image/webp">
-                    <img src="<?php echo htmlspecialchars($segImageJpg, ENT_QUOTES, 'UTF-8'); ?>" alt="" loading="lazy" decoding="async">
-                </picture>
-            </div>
-            <?php else: ?>
-            <div class="seg-tile-fallback">
-                <img src="assets/img/edutek-logo.jpg" alt="">
-            </div>
-            <?php endif; ?>
-            <div class="seg-tile-inner">
-                <p class="seg-tile-label"><?php echo $label; ?></p>
-                <p class="seg-tile-desc"><?php echo $desc; ?></p>
-
-            </div>
-        </a>
-        <?php endforeach; ?>
-    </div>
-*/ ?>
-
-<!-- Browse All Categories -->
-<div class="tiles-section-header">
-    <h2 class="tiles-section-title">Browse All Categories</h2>
-    <a href="directory.php" class="tiles-section-link">View Full Directory</a>
-</div>
-
-<div class="all-content-grid">
-    <?php foreach ($allContent as $item):
-        $badge = getContentTypeBadge($item['type'] ?? 'video');
-        $rawItemLabel = trim((string)($item['label'] ?? ''));
-        $itemLabel = htmlspecialchars($rawItemLabel, ENT_QUOTES, 'UTF-8');
-        $isKhanInteractive = strtolower($rawItemLabel) === 'khan interactive';
-        $itemHref = $isKhanInteractive ? 'launch-khan.php' : htmlspecialchars($item['href'] ?? '#', ENT_QUOTES, 'UTF-8');
-        $itemIcon = $item['icon'] ?? '';
-        $isExternalService = (($item['type'] ?? '') === 'service');
-
-        if ($itemIcon === '') {
-            switch ($item['type'] ?? 'video') {
-                case 'audio':
-                    $itemIcon = "\xF0\x9F\x8E\xA7";
-                    break;
-                case 'book':
-                    $itemIcon = "\xF0\x9F\x93\x9A";
-                    break;
-                case 'service':
-                    $itemIcon = "\xE2\x9A\xA1";
-                    break;
-                default:
-                    $itemIcon = "\xF0\x9F\x8E\xAC";
-                    break;
-            }
-        }
-    ?>
-        <a
-            href="<?php echo $itemHref; ?>"
-            class="all-content-card"
-            title="<?php echo $itemLabel; ?>"
-            <?php if ($isExternalService): ?>target="_blank" rel="noopener noreferrer"<?php endif; ?>>
-            <span class="all-content-card-icon"><?php echo $itemIcon; ?></span>
-            <span class="all-content-card-label"><?php echo $itemLabel; ?></span>
-            <span class="type-badge" style="background:<?php echo htmlspecialchars($badge['color'], ENT_QUOTES, 'UTF-8'); ?>">
-                <?php echo htmlspecialchars($badge['label'], ENT_QUOTES, 'UTF-8'); ?>
-            </span>
-        </a>
-    <?php endforeach; ?>
-
-    <?php if (empty($allContent)): ?>
-        <div class="tiles-empty">
-            <img src="assets/img/edutek-logo.jpg" alt="" class="tiles-empty-logo">
-            <p class="tiles-empty-text">No content available yet.</p>
+    <section class="home-next-steps" aria-labelledby="home-next-steps-title">
+        <div class="home-next-steps__copy">
+            <p class="home-section-heading__eyebrow">Explore more</p>
+            <h2 id="home-next-steps-title">Find the right resource</h2>
+            <p>Browse every available collection or use search to find a specific topic, subject, title, or skill.</p>
         </div>
-    <?php endif; ?>
-</div>
+
+        <div class="home-next-steps__actions">
+            <a class="home-button home-button--primary" href="directory.php">
+                <i class="fa fa-list" aria-hidden="true"></i>
+                Browse All Topics
+            </a>
+            <a class="home-button home-button--secondary" href="result.php">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                Search the Library
+            </a>
+        </div>
+    </section>
+</main>
 
 <?php
-    // FRE-14: Render breadcrumb shell (toggle + mode icon) on homepage
-    // No crumbs — just the controls so mode toggle is always accessible
-    require_once 'includes/breadcrumb.php';
-    renderBreadcrumb([]);
-
-    include_once "footer.php";
+require_once "includes/breadcrumb.php";
+renderBreadcrumb([]);
+include_once "footer.php";
 ?>

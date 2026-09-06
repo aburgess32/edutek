@@ -79,3 +79,23 @@ htdocs/vendor/
 *.old
 *copy*
 *Copy*
+
+# Local backups created during EduTek maintenance
+*.before-*
+*.backup-*
+*.backup
+
+# Local audit and inventory exports
+/audiobooks-archive-move-log.csv
+/audiobooks-content-audit.csv
+/audit-audiobooks.sh
+/catalog-category-inventory.txt
+/media-indexing-before-merge.patch
+
+# Runtime index status and local page caches
+/htdocs/storage/index-status/
+/htdocs/storage/comic-books-cache.json
+
+# Temporary cache files
+*.tmp
+*.temp

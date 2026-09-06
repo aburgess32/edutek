@@ -58,6 +58,63 @@ echo '<!-- AUDIOBOOKS-FILE: LIVE-D-EDUTEK-TIMED-CATALOG-WITH-COVERS -->';
     color: #334155;
     font-size: 14px;
 }
+
+.audiobook-search {
+    clear: both;
+    max-width: 760px;
+    margin: 18px auto 24px;
+    padding: 16px;
+    border: 1px solid #ddd6fe;
+    border-radius: 10px;
+    background: #faf9ff;
+    font-family: Arial, sans-serif;
+}
+
+.audiobook-search__label {
+    display: block;
+    margin-bottom: 8px;
+    color: #312e81;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.audiobook-search__row {
+    display: flex;
+    gap: 8px;
+}
+
+.audiobook-search__input {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #a5b4fc;
+    border-radius: 6px;
+    font: inherit;
+}
+
+.audiobook-search__clear {
+    display: inline-block;
+    margin-top: 10px;
+    color: #5b21b6;
+    font-size: 14px;
+}
+
+.audiobook-search__status {
+    min-height: 20px;
+    margin: 8px 0 0;
+    color: #475569;
+    font-size: 14px;
+}
+
+@media (max-width: 560px) {
+    .audiobook-search__row {
+        display: block;
+    }
+
+    .audiobook-search__input {
+        box-sizing: border-box;
+    }
+}
 </style>
 
 <?php
@@ -162,6 +219,11 @@ $currentPage = isset($_GET['page'])
     ? max(1, (int) $_GET['page'])
     : 1;
 
+$searchQuery = isset($_GET['q']) ? trim((string)$_GET['q']) : '';
+$searchQueryLower = function_exists('mb_strtolower')
+    ? mb_strtolower($searchQuery, 'UTF-8')
+    : strtolower($searchQuery);
+
 $normalizedBaseFsPath = null;
 
 if ($baseFsPath !== null) {
@@ -264,6 +326,30 @@ function audiobookFindCoverWebPath(
     <span class="fa fa-fw fa-bookmark"></span>Audio Books
 </div>
 
+<form class="audiobook-search" method="get" action="audiobooks.php" role="search">
+    <label class="audiobook-search__label" for="audiobook-search-input">
+        Search all audiobooks
+    </label>
+
+    <div class="audiobook-search__row">
+        <input
+            class="audiobook-search__input"
+            id="audiobook-search-input"
+            type="search"
+            name="q"
+            value="<?php echo htmlspecialchars($searchQuery, ENT_QUOTES, 'UTF-8'); ?>"
+            placeholder="Search titles, authors, or series"
+            autocomplete="off"
+        >
+    </div>
+
+    <p class="audiobook-search__status" id="audiobook-search-status" aria-live="polite"></p>
+
+    <?php if ($searchQuery !== ''): ?>
+        <a class="audiobook-search__clear" href="audiobooks.php">Clear search</a>
+    <?php endif; ?>
+</form>
+
 <?php
 if ($baseFsPath === null || !is_dir($baseFsPath)) {
     echo '<div class="SavedWrapper">'
@@ -285,20 +371,33 @@ if ($baseFsPath === null || !is_dir($baseFsPath)) {
 
     $folders = glob($baseFsPath . '/*', GLOB_ONLYDIR) ?: [];
 
-    $folders = array_values(array_filter(
-        $folders,
-        static function ($folderFsPath) {
-            return strncmp(basename($folderFsPath), '_', 1) !== 0;
-        }
-    ));
+	$folders = array_values(array_filter(
+		$folders,
+		static function ($folderFsPath) {
+			return strncmp(basename($folderFsPath), '_', 1) !== 0;
+		}
+	));
 
-    audiobookTimingLog(
-        'after folder glob and maintenance-folder exclusion: '
-        . count($folders) . ' folders',
-        $requestStartedAt
-    );
+	if ($searchQueryLower !== '') {
+		$folders = array_values(array_filter(
+			$folders,
+			static function ($folderFsPath) use ($searchQueryLower) {
+				$folderName = basename($folderFsPath);
+				$folderNameLower = function_exists('mb_strtolower')
+					? mb_strtolower($folderName, 'UTF-8')
+					: strtolower($folderName);
 
-    natcasesort($folders);
+				return strpos($folderNameLower, $searchQueryLower) !== false;
+			}
+		));
+	}
+
+	audiobookTimingLog(
+		'after folder filtering: ' . count($folders) . ' folders',
+		$requestStartedAt
+	);
+
+	natcasesort($folders);
 
     $folders = array_values($folders);
 
@@ -485,18 +584,93 @@ if ($totalBooks > $maxBooksPerPage) {
 
     echo '</div>';
 }
-    if ($renderedCount === 0) {
-        echo '<div class="SavedWrapper">'
-            . '<div class="rcontents">'
-            . '<p><b class="rtitle">No audiobooks found</b></p>'
-            . '<label class="rdesc"><small>Checked: '
-            . htmlspecialchars($baseFsPath, ENT_QUOTES, 'UTF-8')
-            . '</small></label>'
-            . '</div>'
-            . '</div>';
-    }
-}
+if ($renderedCount === 0) {
+    $noResultsTitle = $searchQuery !== ''
+        ? 'No audiobooks match "' . $searchQuery . '".'
+        : 'No audiobooks found';
 
+    echo '<div class="SavedWrapper">'
+        . '<div class="rcontents">'
+        . '<p><b class="rtitle">'
+        . htmlspecialchars($noResultsTitle, ENT_QUOTES, 'UTF-8')
+        . '</b></p>'
+        . '<label class="rdesc"><small>Checked: '
+        . htmlspecialchars($baseFsPath, ENT_QUOTES, 'UTF-8')
+        . '</small></label>'
+        . '</div>'
+        . '</div>';
+}
+}
+?>
+
+<script>
+(function () {
+    const input = document.getElementById('audiobook-search-input');
+    const status = document.getElementById('audiobook-search-status');
+
+    if (!input || !status) {
+        return;
+    }
+
+    let timerId = null;
+    const currentQuery = <?php echo json_encode($searchQuery); ?>;
+
+    function runSearch() {
+        const query = input.value.trim();
+
+        if (query.length === 1) {
+            status.textContent = 'Type one more character to search.';
+            return;
+        }
+
+        if (query === currentQuery) {
+            status.textContent = '';
+            return;
+        }
+
+        status.textContent = 'Finding matches...';
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete('page');
+
+        if (query === '') {
+            url.searchParams.delete('q');
+        } else {
+            url.searchParams.set('q', query);
+        }
+
+        window.location.assign(url.toString());
+    }
+
+    input.addEventListener('input', function () {
+        window.clearTimeout(timerId);
+
+        const query = input.value.trim();
+
+        if (query.length === 0) {
+            status.textContent = 'Finding matches...';
+            timerId = window.setTimeout(runSearch, 400);
+            return;
+        }
+
+        if (query.length === 1) {
+            status.textContent = 'Type one more character to search.';
+            return;
+        }
+
+        status.textContent = 'Finding matches...';
+        timerId = window.setTimeout(runSearch, 400);
+    });
+
+    input.form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        window.clearTimeout(timerId);
+        runSearch();
+    });
+}());
+</script>
+
+<?php
 $breadcrumbFile = __DIR__ . '/includes/breadcrumb.php';
 
 if (file_exists($breadcrumbFile)) {

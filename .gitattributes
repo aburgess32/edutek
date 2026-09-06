@@ -1,0 +1,12 @@
+# Normalize repository text files to LF.
+* text=auto
+
+# EduTek source and configuration files.
+*.php text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf

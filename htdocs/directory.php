@@ -31,17 +31,6 @@
 
 <div class="tiles-page">
 
-    <!-- Anchor Nav Bar -->
-    <div class="dir-anchor-nav">
-        <?php foreach ($segments as $segKey => $seg): ?>
-        <a href="#dir-<?php echo htmlspecialchars($segKey, ENT_QUOTES, 'UTF-8'); ?>"
-           class="dir-anchor-link">
-            <?php echo htmlspecialchars($seg['label'] ?? $segKey, ENT_QUOTES, 'UTF-8'); ?>
-        </a>
-        <?php endforeach; ?>
-        <a href="#dir-all" class="dir-anchor-link">All</a>
-    </div>
-
     <!-- Search -->
     <div class="dir-search">
         <input type="text"

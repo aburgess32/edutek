@@ -30,9 +30,13 @@ services:
     restart: unless-stopped
     ports:
       - "8080:80"
+
     volumes:
       # Application source — maps htdocs to Apache document root
       - ./htdocs:/var/www/html:cached
+
+      # Persistent indexer audit/status files shared with the indexer service
+      - D:/edutek-system/index-status:/system/index-status
 
       # PHP vendor directory (phpcs, phpunit, etc.)
       - ./vendor:/var/www/vendor:cached
@@ -42,10 +46,11 @@ services:
       # Custom Apache virtual host / server config
       - ./config/apache:/etc/apache2/sites-enabled:ro
 
-      # OpenSSL legacy provider config (needed for BF-CBC cipher in PHP 8.1 + OpenSSL 3.x)
+      # OpenSSL legacy provider config
+      # Needed for BF-CBC cipher in PHP 8.1 + OpenSSL 3.x
       - ./config/openssl/openssl.cnf:/etc/ssl/openssl.cnf:ro
 
-      # Full content library (used by scripts / indexing / admin jobs)
+      # Full content library used by scripts, indexing, and admin jobs
       - D:/xampp/htdocs/Edutek/videos:/content
 
       # Expose content categories directly under the web app document root
@@ -60,17 +65,22 @@ services:
       DB_USER: edupak
       DB_PASS: edupak_dev
       CONTENT_PATH: /content/
+      INDEX_STATUS_DIR: /system/index-status
+
     depends_on:
       db:
         condition: service_healthy
+
     networks:
       - edupak-net
+
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
+  # ── One-shot CLI indexer ─────────────────────────────────────────────────────
   indexer:
     build:
       context: .
@@ -94,7 +104,7 @@ services:
       # Active EduPak content library: read-only during startup assessment
       - D:/xampp/htdocs/Edutek/videos:/content:ro
 
-      # Persistent device-local assessment reports; not committed to Git
+      # Persistent device-local index/audit reports; not committed to Git
       - D:/edutek-system/index-status:/system/index-status
 
     environment:
@@ -127,29 +137,35 @@ services:
     restart: unless-stopped
     ports:
       - "3307:3306"
+
     environment:
       MYSQL_ROOT_PASSWORD: root_dev_only
       MYSQL_DATABASE: edupak
       MYSQL_USER: edupak
       MYSQL_PASSWORD: edupak_dev
+
     volumes:
       # Persist MySQL data across container restarts
       - mysql-data:/var/lib/mysql
 
-      # Auto-import schema on first run (only executed when data volume is empty)
+      # Auto-import schema on first run only, when the data volume is empty
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
     command:
       - "--character-set-server=utf8mb4"
       - "--collation-server=utf8mb4_unicode_ci"
       - "--default-authentication-plugin=mysql_native_password"
+
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "edupak", "-pedupak_dev"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
+
     networks:
       - edupak-net
+
     logging:
       driver: "json-file"
       options:
@@ -163,6 +179,7 @@ services:
     restart: unless-stopped
     ports:
       - "8081:80"
+
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
@@ -171,8 +188,10 @@ services:
 
       # Increase upload limit for DB imports
       UPLOAD_LIMIT: 256M
+
     depends_on:
       db:
         condition: service_healthy
+
     networks:
       - edupak-net

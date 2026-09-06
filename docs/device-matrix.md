@@ -1,167 +1,454 @@
-# EduPak Device Testing Matrix
+# EduTek Device and Deployment Matrix
 
-> Based on 2025-2026 African smartphone market data from [StatCounter](https://gs.statcounter.com/vendor-market-share/mobile/africa), [Omdia](https://omdia.tech.informa.com/), and [GSMArena](https://www.gsmarena.com/).
+> **Status: Current deployment reference**
+>
+> This document describes the currently supported and expected EduTek usage environments, with particular attention to offline learning, local media access, Docker development, XAMPP-oriented deployment, and local-only content indexing.
+>
+> **Last aligned with implementation:** 2026-09-06
 
-## Market Context
+---
 
-- **84.4 million** smartphones shipped in Africa in 2025 (+13% YoY)
-- **Transsion** (Tecno, Infinix, Itel) holds **48% market share** — 40.5M units
-- **Samsung** at **~28%** via affordable Galaxy A/M series
-- **Sub-$100 devices** account for the vast majority of volume
-- Average selling price in sub-Saharan Africa: **~$120**
-- Uganda, Kenya, Zimbabwe (EduPak deployment countries) are dominated by T1/T2 devices
+## Purpose
 
-## Device Profiles
+EduTek is an offline-first learning platform. It is intended to run on a local computer or local-network device that hosts the application, its database, and educational media.
 
-### Tier 1 — Ultra-Budget (<$50) 🔴 CRITICAL
-> This is where most EduPak users live. If it doesn't work on T1, it doesn't ship.
+Not every device has the same role.
 
-| Profile | Brand | Model | Screen | Resolution | RAM | CPU | OS | Price |
-|---------|-------|-------|--------|------------|-----|-----|-----|-------|
-| `t1-itel-a60` | Itel | **A60** ⭐ BASELINE | 6.6" IPS LCD 60Hz | 720×1612 | **2GB** | Spreadtrum SC9832E | Android 11 | <$40 |
-| `t1-itel-a70` | Itel | A70 | 6.6" IPS LCD 120Hz | 720×1612 | 4GB | Unisoc T603 | Android 13 Go | <$50 |
-| `t1-tecno-pop8` | Tecno | Pop 8 | 6.6" IPS LCD 90Hz | 720×1612 | 4GB | Unisoc T606 | Android 13 Go | <$50 |
+Some devices are appropriate for:
 
-**Known constraints:**
-- Itel A60 has only **2GB RAM** — browser gets ~300-400MB max
-- Android Go edition restricts background processes aggressively
-- WebView may be Chrome 95-100 (old, but supports ES6)
-- eMMC 5.1 storage = slow disk I/O
+- Hosting the EduTek application.
+- Managing the local content library.
+- Running content indexing.
+- Using teacher maintenance features.
+- Accessing the application as a learner or teacher through a browser.
 
-### Tier 2 — Budget ($50-$100) 🟡
-> High-volume segment. Samsung Galaxy A-series and Infinix/Xiaomi budget kings.
+This matrix distinguishes between those roles so that deployment instructions do not incorrectly promise host-only maintenance features to remote client devices.
 
-| Profile | Brand | Model | Screen | Resolution | RAM | CPU | OS | Price |
-|---------|-------|-------|--------|------------|-----|-----|-----|-------|
-| `t2-samsung-a06` | Samsung | Galaxy A06 | 6.7" PLS LCD 60Hz | 720×1600 | 4-6GB | Helio G85 | Android 14 | $60-80 |
-| `t2-infinix-smart9` | Infinix | Smart 9 | 6.7" IPS LCD 120Hz | 720×1600 | 4GB | Helio G81 | Android 14 | $60-70 |
-| `t2-xiaomi-redmi-a5` | Xiaomi | Redmi A5 | 6.88" IPS LCD 120Hz | 720×1640 | 4GB | Unisoc T615 | Android 15 | $70-90 |
-| `t2-tecno-spark10` | Tecno | Spark 10 | 6.6" IPS LCD 90Hz | 720×1612 | 8GB | Helio G37 | Android 13 | $80-100 |
+---
 
-**Notes:**
-- All HD+ (720p) — optimize images for 720px width
-- 4GB RAM is the sweet spot — browser gets ~1GB
-- Most popular segment in Kenya, Uganda, Nigeria
+## Device roles
 
-### Tier 3 — Lower-Mid ($100-$200) 🟢
-> Aspirational purchases. Teachers and community leaders more likely to have these.
+| Role | Description | Typical examples |
+|---|---|---|
+| Host device | Runs Apache/PHP, database services, local content storage, and optionally Docker | Windows desktop, mini PC, local server |
+| Maintenance device | Has direct local access to the host environment and can manage files, Docker, XAMPP, and indexing | Same computer as the host, or an administrator workstation with direct host access |
+| Local browser client | Opens EduTek through a browser on the host device itself | Browser on the Windows host computer |
+| Network browser client | Opens EduTek from another device on the same local network | Chromebook, laptop, tablet, classroom desktop |
+| Development workstation | Uses a Git clone, editor, tests, Docker tooling, and GitHub workflow | Windows developer computer, macOS developer computer |
+| Content-management source | Holds media before it is copied into the EduTek library | External drive, staging computer, media workstation |
 
-| Profile | Brand | Model | Screen | Resolution | RAM | CPU | OS | Price |
-|---------|-------|-------|--------|------------|-----|-----|-----|-------|
-| `t3-samsung-a16-5g` | Samsung | Galaxy A16 5G | 6.7" AMOLED 90Hz | **1080×2340** | 4-8GB | Dimensity 6300 | Android 14 | $130-170 |
-| `t3-tecno-spark20` | Tecno | Spark 20 | 6.56" IPS LCD 90Hz | 720×1612 | 8GB | Helio G85 | Android 13 | $100-130 |
-| `t3-samsung-a05` | Samsung | Galaxy A05 | 6.7" PLS LCD 60Hz | 720×1600 | 4GB | Helio G85 | Android 13 | $100-120 |
+A device can fulfill more than one role. For example, a Windows mini PC can be the host, maintenance device, local browser client, and development workstation.
 
-**Notes:**
-- Samsung A16 is the only FHD+ device — consider serving higher-res images to this tier
-- Good Chrome versions (112+), modern CSS/JS support
+---
 
-### Tier 4 — Tablets (Donated/School) 📱
-> Donated classroom tablets. Often old hardware with outdated Android.
+## Current deployment models
 
-| Profile | Brand | Model | Screen | Resolution | RAM | OS |
-|---------|-------|-------|--------|------------|-----|-----|
-| `t4-tablet-7inch` | Generic | 7" Donated | 7" | 600×1024 | 1-2GB | Android 8-10 |
-| `t4-tablet-10inch` | Generic | 10" Classroom | 10.1" | 800×1280 | 2-4GB | Android 11-13 |
+EduTek currently supports two practical local deployment models.
 
-**Known issues:**
-- Old Android means old WebView — test for ES5 fallback
-- 7" tablet with 1GB RAM = aggressive memory limits
-- Often in landscape orientation for classroom use
+| Deployment model | Best use | Application runtime | Content library | Database | Git workflow |
+|---|---|---|---|---|---|
+| Docker development environment | Development, testing, repeatable local setup | Apache/PHP container | Windows folder mounted into `/content` | MySQL container | Separate Git clone used for branches and commits |
+| XAMPP-oriented local deployment | Local/production-style device deployment | Apache/PHP through XAMPP or equivalent | Local filesystem available to Apache/PHP | Local MySQL/MariaDB | Separate Git clone recommended; deployment folder may not be a Git repository |
 
-### Tier 5 — Projectors & Shared Screens 🖥️
-> Teacher-facing classroom displays. No touch input.
+The Docker development and XAMPP-oriented deployments can use the same application source code, but their paths, service management, dependency installation, and operational details are not identical.
 
-| Profile | Model | Resolution | Input | Notes |
-|---------|-------|------------|-------|-------|
-| `t5-projector-720p` | Projector 720p | 1280×720 | Keyboard/mouse | Most common projector |
-| `t5-projector-1080p` | Projector 1080p | 1920×1080 | Keyboard/mouse | Best-case scenario |
-| `t5-tv-768p` | Cheap TV | 1366×768 | Remote/basic | Common cheap smart TV |
-| `t5-rpi-kiosk` | Raspberry Pi Kiosk | 1024×768 | Keyboard/mouse | Limited GPU, old monitors |
+Do not assume that a Docker-specific path, port, or command works unchanged in an XAMPP deployment.
 
-**Requirements:**
-- Large text (24px+ minimum)
-- High contrast (black bg in projector mode)
-- Keyboard navigable (Tab, Enter, arrows)
-- No touch-dependent interactions
+---
 
-### Tier 6 — Feature Phones 📟
-> Edge case but real in rural areas. KaiOS devices.
+## Windows Docker development host
 
-| Profile | Model | Resolution | Input | Notes |
-|---------|-------|------------|-------|-------|
-| `t6-kaios-feature-phone` | KaiOS Phone | 240×320 | D-pad only | Extremely limited browser |
+The current Docker Compose development configuration is designed around a Windows host environment.
 
-**Requirements:**
-- Basic HTML must render (no JS dependency)
-- D-pad navigation (no touch events)
-- 240px width — linear single-column layout only
-- This is a "best effort" tier — full functionality not expected
+### Required software
 
-## Performance Budgets by Tier
+| Component | Purpose | Verification command |
+|---|---|---|
+| Windows 10 or Windows 11 | Host operating system | `winver` |
+| Docker Desktop | Runs application, database, and supporting containers | `docker version` |
+| Docker Compose v2 | Starts and manages Compose services | `docker compose version` |
+| Git for Windows | Clones repositories and manages branches/commits | `git --version` |
+| Visual Studio Code or equivalent editor | Edits source and documentation | `code --version` |
+| Web browser | Uses and verifies the local application | Open the local application URL |
 
-| Tier | Page Load | Total Transfer | JS Bundle | CSS | Images |
-|------|-----------|---------------|-----------|-----|--------|
-| T1 Ultra-Budget | <3s | <300KB | <30KB | <15KB | WebP <50KB each |
-| T2 Budget | <2s | <500KB | <50KB | <20KB | WebP <80KB each |
-| T3 Lower-Mid | <1.5s | <500KB | <50KB | <20KB | WebP <100KB each |
-| T4 Tablet | <2.5s | <500KB | <50KB | <20KB | WebP <80KB each |
-| T5 Projector | <1s | <500KB | <50KB | <20KB | WebP <100KB each |
-| T6 Feature Phone | <5s | <100KB | 0KB (no JS) | <10KB | JPG <30KB each |
+### Development repository location
 
-## Testing Priority Order
+Use a normal Git clone outside the XAMPP document root.
 
-When time is limited, test in this order:
+Recommended example:
 
-1. **`t1-itel-a60`** — THE baseline. Fix all issues here first.
-2. **`t5-projector-720p`** — Teacher experience is critical for adoption.
-3. **`t2-samsung-a06`** — Most popular branded phone in Africa.
-4. **`t4-tablet-7inch`** — Worst-case tablet scenario.
-5. **`t1-tecno-pop8`** — Transsion is 48% of the market.
-6. Everything else.
-
-## Quick Test Commands
-
-```bash
-# Baseline device only (fastest feedback loop)
-./scripts/test-devices.sh baseline
-
-# All ultra-budget phones (most important tier)
-./scripts/test-devices.sh tier1
-
-# All mobile devices
-./scripts/test-devices.sh mobile
-
-# Screens and projectors
-./scripts/test-devices.sh screens
-
-# Full matrix (all 17 profiles)
-./scripts/test-devices.sh all
-
-# Visual inspection mode
-./scripts/test-devices.sh baseline --headed
+```text
+D:\edutek
 ```
 
-## Known Browser Quirks by Device
+or:
 
-| Device/Browser | Quirk | Workaround |
-|---------------|-------|------------|
-| Android Go WebView | Aggressive memory management, kills tabs | Keep DOM lightweight, <500 nodes |
-| Older Chrome (<100) | No `aspect-ratio` CSS | Use padding-top hack for aspect ratios |
-| KaiOS Firefox 48 | No CSS Grid, no Flexbox gap | Float-based fallback layout |
-| Smart TV browsers | No `position: sticky` | Static fallback for nav |
-| Raspberry Pi Chromium | Slow GPU compositing | Avoid `transform`, `filter`, heavy shadows |
-| Itel/Tecno WebView | Sometimes reflows on scroll | Avoid `resize` event listeners |
+```text
+D:\Projects\edutek
+```
 
-## Network Conditions
+Do not assume this deployment folder is a Git clone:
 
-EduPak serves content over local WiFi from the device itself. No internet involved.
+```text
+D:\xampp\htdocs\Edutek
+```
 
-| Condition | Download | Upload | Latency | Scenario |
-|-----------|----------|--------|---------|----------|
-| `local-wifi-fast` | 50 Mbps | 20 Mbps | 5ms | Same room, few devices |
-| `local-wifi-weak` | 5 Mbps | 2 Mbps | 50ms | Through walls / far away |
-| `local-wifi-saturated` | 1 Mbps | 500 Kbps | 200ms | 60 devices sharing one EduPak |
+The XAMPP directory may be a deployed copy with no `.git` directory. Git commands such as `git status`, `git switch`, `git commit`, and `git push` must be run from the actual clone.
 
-T1 devices default to `local-wifi-saturated` in tests (worst case).
-All other tiers default to `local-wifi-fast`.
+### Docker service ports
+
+| Service | Host address | Purpose |
+|---|---|---|
+| EduTek application | `http://localhost:8080` | Main PHP/Apache application |
+| Database | `localhost:3307` | MySQL access from the Windows host |
+| phpMyAdmin | `http://localhost:8081` | Local database administration interface |
+
+The database container listens on port `3306` inside Docker, but the Windows host uses port `3307` to avoid conflicts with a locally installed MySQL service.
+
+### Current important mounts
+
+| Windows or repository source | Container destination | Purpose |
+|---|---|---|
+| `.\htdocs` | `/var/www/html` | EduTek application document root |
+| `.\vendor` | `/var/www/vendor` | PHP dependencies |
+| `.\composer.json` | `/var/www/composer.json` | Composer project definition |
+| `.\config\apache` | `/etc/apache2/sites-enabled` | Apache site configuration |
+| `.\config\openssl\openssl.cnf` | `/etc/ssl/openssl.cnf` | OpenSSL configuration |
+| `D:\xampp\htdocs\Edutek\videos` | `/content` | Local media/content library |
+| `D:\edutek-system\index-status` | `/system/index-status` | Persistent index status and reports |
+| `.\db\schema.sql` | `/docker-entrypoint-initdb.d/01-schema.sql` | First-run database schema initialization |
+
+The paths above are current development configuration. If a host uses a different media-library location, update the Compose file and documentation together.
+
+---
+
+## Local index maintenance
+
+The local index-maintenance workflow is intentionally restricted to the local host environment.
+
+### Who can run it
+
+| Device type | Can use `Ctrl + Alt + Shift + I` to start local indexing? | Reason |
+|---|---|---|
+| Browser on the EduTek host computer | Yes | The request is treated as local/loopback |
+| Browser accessing `localhost:8080` on the Windows host | Yes | Docker Desktop bridge access is allowed by the current local configuration |
+| Remote device on the same LAN | No | The endpoint is local-only and is not a remote administration API |
+| Public internet client | No | EduTek local maintenance APIs must not be exposed publicly |
+| Teacher account from a remote device | Not through the local shortcut | Use the protected teacher workflow where available and authorized |
+
+The local shortcut is:
+
+```text
+Ctrl + Alt + Shift + I
+```
+
+It should only be used from a browser running on the host device.
+
+### What the local index does
+
+The local maintenance index:
+
+1. Checks Videos, Books, and Audiobooks for new or updated files.
+2. Reuses the shared content indexing logic.
+3. Prevents duplicate concurrent runs with a lock file.
+4. Writes status information to the persistent local index-status folder.
+5. Can provide a verification CSV for new and updated content.
+6. Does not expose arbitrary file paths through browser requests.
+
+It is not a replacement for the teacher-protected reindex workflow.
+
+### Persistent status directory
+
+The current Windows host path is:
+
+```text
+D:\edutek-system\index-status
+```
+
+Docker exposes it in application and indexer containers as:
+
+```text
+/system/index-status
+```
+
+Verify the Windows directory exists:
+
+```powershell
+Test-Path D:\edutek-system\index-status
+```
+
+Expected result:
+
+```text
+True
+```
+
+Create it if it is missing:
+
+```powershell
+New-Item -ItemType Directory -Force D:\edutek-system\index-status
+```
+
+The directory can contain existing and newer maintenance outputs, including:
+
+```text
+README.txt
+index-run-YYYY-MM-DD_HH-MM-SS.csv
+index-up-to-date.json
+scan-YYYY-MM-DD_HH-MM-SS.json
+local-hotkey-index.lock
+local-hotkey-index.json
+local-index-verification-YYYYMMDD_HHMMSS_<identifier>.csv
+```
+
+Do not commit this directory or its contents to Git.
+
+---
+
+## XAMPP-oriented host
+
+An XAMPP-style deployment is appropriate when a Windows device runs Apache/PHP and MySQL/MariaDB directly without Docker.
+
+### Expected host capabilities
+
+| Capability | Required for XAMPP host | Notes |
+|---|---|---|
+| Apache/PHP service | Yes | Serves EduTek pages and APIs |
+| MySQL/MariaDB service | Yes | Stores application and content metadata |
+| Local content library access | Yes | PHP must be able to read the configured media folders |
+| Write access for generated assets | Depends on enabled features | Needed for caches, thumbnails, reports, or other generated local data |
+| Browser on the host | Recommended | Required for testing host-only maintenance workflows |
+| Git repository | Optional | Prefer using a separate development clone |
+
+### XAMPP deployment caution
+
+A directory such as:
+
+```text
+D:\xampp\htdocs\Edutek
+```
+
+may be a deployment/runtime copy rather than a Git clone.
+
+Before running Git commands, verify:
+
+```powershell
+cd D:\xampp\htdocs\Edutek
+git rev-parse --show-toplevel
+```
+
+If Git reports:
+
+```text
+fatal: not a git repository
+```
+
+do not run `git init` or clone into that existing deployment folder without a planned migration.
+
+Use a separate clone for source control work, such as:
+
+```text
+D:\edutek
+```
+
+Then deploy changes deliberately to the XAMPP runtime directory.
+
+---
+
+## Network browser clients
+
+EduTek can serve learners and teachers through browsers on the same local network, depending on host networking and Apache configuration.
+
+### Appropriate uses
+
+Network browser clients can generally:
+
+- Open the EduTek Home page.
+- Search the local library.
+- Browse videos, books, audiobooks, music, and configured tools.
+- Use standard learner or teacher features for which they are authorized.
+- Play local content if the host’s content paths and Apache access rules are configured correctly.
+
+### Restricted uses
+
+Network browser clients must not be told to use the local indexing shortcut:
+
+```text
+Ctrl + Alt + Shift + I
+```
+
+The shortcut calls a localhost-only maintenance API. A remote LAN client should be denied access.
+
+If remote teachers require indexing capability, provide it through the authorized teacher reindex workflow rather than weakening the local-only endpoint.
+
+---
+
+## Supported browser expectations
+
+EduTek is a browser-based application. The target browser must support modern HTML, CSS, JavaScript, media playback, and PDF behavior appropriate for local content.
+
+| Device category | Recommended browser | Primary verification |
+|---|---|---|
+| Windows host | Current Microsoft Edge or Google Chrome | Home page, search, media playback, local indexing |
+| Windows/LAN laptop | Current Edge, Chrome, or Firefox | Search, browsing, playback |
+| macOS client | Current Safari, Chrome, or Firefox | Search, browsing, playback |
+| Chromebook | Current Chrome | Search, browsing, playback |
+| iPad/tablet | Current Safari or Chrome | Responsive navigation, PDFs, media controls |
+| Android tablet/phone | Current Chrome | Responsive navigation, PDFs, media controls |
+
+Before declaring a device supported, test:
+
+1. Open the Home page.
+2. Run a library search.
+3. Browse at least one video topic.
+4. Open a Book/PDF resource.
+5. Search and open an audiobook collection.
+6. Test a Comic Books item, if available.
+7. Confirm that configured Learning Tools open as expected.
+8. Confirm responsive layout and keyboard/touch behavior appropriate to the device.
+
+---
+
+## Content-management workstation
+
+The content-management workstation is where an administrator prepares and copies media before it becomes available to EduTek users.
+
+### Recommended responsibilities
+
+- Organize Videos, Books/PDFs, Audiobooks, and Music consistently.
+- Use clear, stable, user-facing folder names.
+- Avoid placing normal user-visible Book categories in folders beginning with `_`.
+- Place comic-related PDFs below the Books content root.
+- Add same-name image files beside comic PDFs when custom cover art is desired.
+- Copy content into the host’s configured media library.
+- Run or request the appropriate indexing workflow.
+- Verify newly added content in the EduTek interface.
+
+### Comic cover naming example
+
+```text
+D:\xampp\htdocs\Edutek\videos\Books\Graphic Novels\Sample Comic.pdf
+D:\xampp\htdocs\Edutek\videos\Books\Graphic Novels\Sample Comic.jpg
+```
+
+The Comic Books catalog can use `.jpg`, `.jpeg`, `.png`, or `.webp` images that share the PDF’s base filename.
+
+---
+
+## Verification matrix
+
+Use this table after deployment or a significant application update.
+
+| Capability | Windows Docker host | Windows XAMPP host | LAN browser client | Notes |
+|---|---|---|---|---|
+| Home page loads | Required | Required | Required | Verify current content-type cards |
+| Library search works | Required | Required | Required | Uses `result.php?q=<query>` |
+| Video directory works | Required | Required | Required | Verify local media paths |
+| Books/PDF browsing works | Required | Required | Required | Verify Books root and PDF folders |
+| Audiobooks browsing/search works | Required | Required | Required | Folder-name search only |
+| Comic Books catalog works | Required | Required | Required | Verify recursive Books scan and cover behavior |
+| Music browsing works | Required | Required | Required | Verify local music paths |
+| Learning Tools open | Required | Required | As configured | Some tools may depend on local device services |
+| Teacher-protected reindexing | Authorized test required | Authorized test required | Only if the authorized workflow permits it | Do not bypass permissions |
+| Local indexing shortcut | Required | Test only if configured locally | Not supported | Host-local browser only |
+| Index reports persist | Required | If configured | Not applicable | Verify `D:\edutek-system\index-status` for Docker |
+| Verification CSV download | Required when changes exist | If configured | Not supported through local shortcut | New/updated records only |
+| Offline page navigation | Required | Required | Required after local network connection | No core CDN dependency |
+
+---
+
+## Deployment checklist
+
+### Docker development host
+
+1. Confirm Docker Desktop is running.
+2. Confirm `docker compose version` works.
+3. Confirm the content library path exists:
+
+   ```powershell
+   Test-Path D:\xampp\htdocs\Edutek\videos
+   ```
+
+4. Confirm the index-status folder exists:
+
+   ```powershell
+   Test-Path D:\edutek-system\index-status
+   ```
+
+5. Validate Compose configuration:
+
+   ```powershell
+   cd D:\edutek
+   docker compose config
+   ```
+
+6. Start the stack:
+
+   ```powershell
+   docker compose up --build -d
+   ```
+
+7. Confirm services:
+
+   ```powershell
+   docker compose ps
+   ```
+
+8. Open:
+
+   ```text
+   http://localhost:8080
+   ```
+
+9. Test the current Home-page cards, search, and one example from each available content type.
+10. If testing local indexing, use the browser on the host and press `Ctrl + Alt + Shift + I`.
+
+### XAMPP-oriented host
+
+1. Confirm Apache and MySQL/MariaDB are running.
+2. Confirm the EduTek application path is available to Apache.
+3. Confirm the content library can be read by the Apache/PHP process.
+4. Confirm required writable runtime directories are writable.
+5. Open the local EduTek URL.
+6. Test Home page, search, videos, Books/PDFs, Audiobooks, Comics, Music, and Learning Tools.
+7. Test teacher-protected functions using an authorized account.
+8. Do not assume Docker-specific host ports or paths apply.
+
+### Network client
+
+1. Connect to the same local network as the EduTek host.
+2. Open the configured EduTek network address.
+3. Verify the Home page loads.
+4. Verify library search and browsing.
+5. Test representative media playback.
+6. Do not attempt host-only local indexing through `Ctrl + Alt + Shift + I`.
+
+---
+
+## Security and operational rules
+
+- Keep secrets, local databases, media libraries, cache files, logs, and generated index reports out of Git.
+- Do not expose local maintenance endpoints publicly.
+- Do not weaken teacher authorization or CSRF protections to allow easier reindexing.
+- Use a separate Git clone for code/documentation work when the deployed XAMPP directory is not a repository.
+- Verify local content paths after moving the host or changing drive letters.
+- Back up the media library and database before major content reorganization.
+- Confirm offline operation after changes that affect assets, services, or content paths.
+- Treat all status/report files as operational evidence, not as source-controlled application files.
+
+---
+
+## Documentation maintenance rules
+
+Update this matrix whenever any of the following changes:
+
+- Supported host operating systems or browsers.
+- Docker services, host ports, container mounts, or environment variables.
+- XAMPP deployment layout or requirements.
+- Local content-library path conventions.
+- Local-only indexing access restrictions or keyboard shortcut.
+- Index-status/report host path or report file patterns.
+- Content discovery rules for Books, Audiobooks, Comic Books, Music, or Learning Tools.
+- Network-client permissions or teacher maintenance behavior.
+
+A device or deployment environment should be marked supported only after its documented verification checklist has been completed successfully.

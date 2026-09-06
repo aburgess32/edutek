@@ -1,292 +1,225 @@
-# Continue Watching Row
+# Continue Watching
 
-## Summary
-- Horizontal scroll row (Netflix-style) displays the last 5 videos a user was watching, with thumbnail, title, and a progress bar overlay
-- Tied to the active session user from Spec 03 (Simple Name Login) — entirely personal per user
-- Thumbnails are lazy-loaded and served from local disk; queries hit the `watch_history` table with an indexed lookup
-- Gracefully degrades to an empty state when the user has no history or content has been deleted from disk
+> **Status: Historical feature specification**
+>
+> Continue Watching is **not currently displayed on the EduTek Home page**.
+>
+> This document is retained to preserve the original design and implementation intent for a personalized video-resume experience. It may be useful if the feature is restored or implemented on another page in the future.
+>
+> For the current Home-page experience, use [README.md](../README.md) and review [`htdocs/index.php`](../htdocs/index.php).
+>
+> **Current Home page:** Library search, content-type cards for Videos, Audiobooks, Books & PDFs, Music, and Learning Tools, plus links to Browse All Topics and Search the Library.
 
-## User Story
-> As a **returning learner** (kid, teen, adult, or teacher), I want to see the last few things I was watching right on the home screen so I can pick up exactly where I left off without re-navigating.
+---
 
-> As a **shared-device user** (family tablet), I want my continue-watching row to show only *my* history after I switch to my name, not my sibling's videos.
+## Current product behavior
 
-> As a **teacher**, I want my continue-watching row to show the lesson videos I was previewing, so I can quickly resume preparation.
+As of the current implementation:
 
-## Technical Approach
+- The Home page does not query or render `watch_history`.
+- The Home page does not display a Continue Watching row.
+- The Home page does not show personalized resume progress.
+- The Home page does not show a visual progress bar for partially watched videos.
+- The Home page does not render Continue Watching cards from a logged-in user's viewing history.
+- The application may still retain watch-history data and related code elsewhere in the project.
+- Do not add or update UI documentation claiming that Continue Watching appears on the Home page unless the feature is intentionally restored and tested.
 
-### Frontend (HTML/CSS/JS)
+The current Home page is intentionally organized as an offline learning-library starting point:
 
-**Component markup:**
-```html
-<section class="continue-row" aria-label="Continue Watching">
-  <h2 class="continue-row__heading">Continue Watching</h2>
-  <div class="continue-row__scroll" role="list">
-    <!-- JS or PHP renders .continue-card items here -->
-  </div>
-</section>
+1. Search the learning library.
+2. Browse Videos.
+3. Browse Audiobooks.
+4. Browse Books & PDFs.
+5. Browse Music.
+6. Open Learning Tools.
+7. Browse all topics or search the full library.
+
+---
+
+## Historical feature intent
+
+Continue Watching was designed as a personalized section for authenticated, non-guest users. Its purpose was to help a learner resume partially watched video content without having to find the video again through search or the topic directory.
+
+The intended experience was:
+
+1. A signed-in learner opens the EduTek Home page.
+2. EduTek reads that learner's saved viewing history.
+3. EduTek identifies recently watched videos that are not essentially complete.
+4. EduTek displays a horizontal collection of resume cards.
+5. Each card links directly back to the selected video.
+6. A visual progress indicator communicates how much of the video has been watched.
+
+This was a personalized feature. It was not intended for guest users.
+
+---
+
+## Historical eligibility rules
+
+The former Home-page implementation applied the following conditions before rendering a Continue Watching card:
+
+| Condition | Historical behavior |
+|---|---|
+| User is signed in | Required |
+| User is a guest | Continue Watching was not rendered |
+| Video has a known duration | Required |
+| Video has watch-history data | Required |
+| Video is 95% or more complete | Excluded |
+| Multiple watch-history rows exist for one video | The most recently watched row was used |
+| Maximum cards | Up to five cards were displayed |
+
+The 95% completion cutoff was intended to keep nearly completed videos from filling the resume list.
+
+---
+
+## Historical data source
+
+The previous Home-page implementation used the `watch_history` table.
+
+The query concept was:
+
+1. Filter history records by the signed-in user's ID.
+2. Ignore records with no usable `duration_seconds`.
+3. Select the most recent `last_watched` entry for each `content_id`.
+4. Order results by most recent viewing activity.
+5. Limit the result set.
+6. Calculate progress percentage:
+
+\[
+\text{progress percent} =
+\frac{\text{progress seconds}}{\text{duration seconds}}
+\times 100
+\]
+
+7. Exclude entries whose calculated completion percentage was 95% or greater.
+
+The historical card data included:
+
+- `content_id`
+- `content_title`
+- `thumbnail_path`
+- `progress_seconds`
+- `duration_seconds`
+- `last_watched`
+
+---
+
+## Historical card behavior
+
+A Continue Watching card was designed to include:
+
+- A video thumbnail when one exists.
+- A fallback video placeholder when no thumbnail exists.
+- The content category.
+- The content subcategory.
+- The video title.
+- A visual watch-progress bar.
+- A direct link to the appropriate `watch.php` route.
+
+The card was intended to preserve the existing encrypted navigation parameter pattern used elsewhere in EduTek.
+
+When restoring this feature, ensure that the generated watch link uses the same current URL and content-path conventions as the active video browsing and playback code. Do not copy old encrypted-link logic without verifying it against the current implementation.
+
+---
+
+## Historical accessibility requirements
+
+If Continue Watching is restored, each card should:
+
+- Use a meaningful accessible name, such as:
+
+  ```text
+  Continue: Introduction to Fractions — 45% watched
+  ```
+
+- Show a visible keyboard focus indicator.
+- Be reachable and usable with a keyboard.
+- Preserve a minimum interactive target size of 44 by 44 CSS pixels where practical.
+- Use meaningful thumbnail alternative text.
+- Not depend only on color to communicate watch progress.
+- Avoid making the progress bar the only representation of completion state.
+
+---
+
+## Historical responsive behavior
+
+The original styling used a horizontal scrolling card row.
+
+The intended responsive behavior was:
+
+| Screen type | Intended behavior |
+|---|---|
+| Small mobile screens | Horizontal swipeable list of compact cards |
+| Tablet screens | Wider horizontal cards with touch scrolling |
+| Desktop screens | Wider cards with visible hover and keyboard-focus feedback |
+| No thumbnail available | A consistent visual placeholder |
+
+If restored, test on:
+
+- Narrow mobile viewport.
+- Tablet viewport.
+- Typical laptop viewport.
+- Large desktop viewport.
+- Keyboard-only navigation.
+- Touch scrolling.
+- Screen reader navigation.
+
+---
+
+## Requirements before restoration
+
+Do not restore Continue Watching by only uncommenting or copying historical code. Before making it current again, complete all of the following:
+
+1. Confirm that `watch_history` is present in the current database schema.
+2. Confirm that watch-progress updates are still written correctly during video playback.
+3. Confirm that `content_id`, file paths, and encrypted watch links match current content-indexing conventions.
+4. Confirm that thumbnails resolve correctly for Docker and XAMPP deployments.
+5. Confirm that guest accounts do not receive personalized viewing-history content.
+6. Confirm that completed videos are excluded according to the chosen completion threshold.
+7. Add or update automated tests for history selection, resume-link generation, and progress calculation.
+8. Test the restored section in the current Home-page layout.
+9. Update the README and user-facing documentation only after the feature is visible and verified.
+10. Change this document’s status from **Historical feature specification** to **Current feature specification**.
+
+---
+
+## Suggested future implementation approach
+
+If the feature returns, prefer a separated implementation rather than placing a large database query and rendering block directly inside `htdocs/index.php`.
+
+A maintainable structure would be:
+
+```text
+htdocs/
+├── includes/
+│   ├── continue-watching.php
+│   └── tiles.php
+├── api/
+│   └── watch-history.php
+├── js/
+│   └── continue-watching.js
+└── css/
+    └── continue-watching.css
 ```
 
-**Card component:**
-```html
-<a class="continue-card" href="/player.php?id=VIDEO_ID" role="listitem"
-   aria-label="Continue: Intro to Fractions – 42% watched">
-  <div class="continue-card__thumb">
-    <img src="/assets/thumbs/VIDEO_ID.jpg"
-         data-src="/assets/thumbs/VIDEO_ID.webp"
-         alt="Intro to Fractions thumbnail"
-         loading="lazy" decoding="async">
-    <div class="continue-card__progress" style="--pct: 42%"></div>
-  </div>
-  <p class="continue-card__title">Intro to Fractions</p>
-</a>
-```
+Recommended responsibilities:
 
-**CSS:**
-```css
-.continue-row__scroll {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;   /* iOS momentum */
-  scroll-snap-type: x mandatory;
-  padding: 4px 12px 12px;
-  scrollbar-width: none;               /* hide scrollbar on Firefox */
-}
-.continue-row__scroll::-webkit-scrollbar { display: none; }
+| Component | Responsibility |
+|---|---|
+| `includes/continue-watching.php` | Server-side query and safe initial rendering, if needed |
+| `api/watch-history.php` | Authenticated JSON endpoint for history data |
+| `js/continue-watching.js` | Progressive enhancement, loading state, and client interaction |
+| `css/continue-watching.css` | Isolated responsive styles |
+| PHPUnit tests | Query, eligibility, progress, and link-generation tests |
+| Playwright tests | Signed-in user flow and Home-page rendering verification |
 
-.continue-card {
-  flex: 0 0 160px;                     /* fixed card width */
-  scroll-snap-align: start;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #1a1a1a;
-  text-decoration: none;
-  color: #fff;
-  position: relative;
-  min-height: 44px;
-}
+This separation reduces the chance that Home-page changes accidentally remove or break the feature again.
 
-@media (min-width: 600px)  { .continue-card { flex: 0 0 200px; } }
-@media (min-width: 900px)  { .continue-card { flex: 0 0 240px; } }
+---
 
-.continue-card__thumb {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  background: #333;
-}
-.continue-card__thumb img {
-  width: 100%; height: 100%; object-fit: cover;
-}
+## Documentation update rule
 
-/* Progress bar overlay */
-.continue-card__progress {
-  position: absolute;
-  bottom: 0; left: 0;
-  height: 4px;
-  width: var(--pct);
-  background: #E50914;                 /* configurable accent color */
-}
+Use the following rule when updating project documentation:
 
-.continue-card__title {
-  font-size: 0.8rem;
-  padding: 6px 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-```
+> A feature is documented as active only when it is available in the current application, reachable through the documented UI or URL, and verified in the supported deployment environment.
 
-**Lazy-load JS (no external libs):**
-```js
-document.addEventListener('DOMContentLoaded', () => {
-  const imgs = document.querySelectorAll('.continue-card img[data-src]');
-  if (!('IntersectionObserver' in window)) {
-    // Fallback: load all immediately on low-capability browsers
-    imgs.forEach(img => { img.src = img.dataset.src || img.src; });
-    return;
-  }
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (!e.isIntersecting) return;
-      const img = e.target;
-      img.src = img.dataset.src;
-      io.unobserve(img);
-    });
-  }, { rootMargin: '100px' });
-  imgs.forEach(img => io.observe(img));
-});
-```
-
-**[ASSUMPTION]** `IntersectionObserver` is available on Android 5+. The fallback above handles older WebViews.
-
-### Backend (PHP/MySQL)
-
-**Endpoint:** `api/continue_watching.php` (called via XHR on page load, or PHP-rendered inline for no-JS path)
-
-```php
-// api/continue_watching.php
-header('Content-Type: application/json');
-
-session_start();
-$user_id = $_SESSION['user_id'] ?? null;
-if (!$user_id) { echo json_encode([]); exit; }
-
-$pdo = getPDO(); // shared DB connection helper
-
-$stmt = $pdo->prepare("
-    SELECT
-        wh.content_id,
-        wh.content_title,
-        wh.thumbnail_path,
-        wh.progress_seconds,
-        wh.duration_seconds,
-        wh.last_watched
-    FROM watch_history wh
-    WHERE wh.user_id = :uid
-      AND wh.duration_seconds > 0
-    ORDER BY wh.last_watched DESC
-    LIMIT 5
-");
-$stmt->execute([':uid' => $user_id]);
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Validate thumbnails exist on disk; mark missing ones
-foreach ($rows as &$row) {
-    $thumbPath = __DIR__ . '/../' . ltrim($row['thumbnail_path'], '/');
-    $row['thumb_ok'] = file_exists($thumbPath);
-    $row['progress_pct'] = $row['duration_seconds'] > 0
-        ? round(($row['progress_seconds'] / $row['duration_seconds']) * 100)
-        : 0;
-    // Remove items that are ≥ 95% complete (consider "finished")
-    // [ASSUMPTION] 95% threshold for "done" — confirm with product
-}
-unset($row);
-
-// Filter out fully watched items
-$rows = array_filter($rows, fn($r) => $r['progress_pct'] < 95);
-$rows = array_values(array_slice($rows, 0, 5)); // re-index + re-cap
-
-echo json_encode($rows);
-```
-
-**Writing watch progress** (called from player page):
-```php
-// api/update_progress.php — POST: content_id, progress_seconds, duration_seconds
-$stmt = $pdo->prepare("
-    INSERT INTO watch_history
-        (user_id, content_id, content_title, thumbnail_path, progress_seconds, duration_seconds)
-    VALUES
-        (:uid, :cid, :title, :thumb, :prog, :dur)
-    ON DUPLICATE KEY UPDATE
-        progress_seconds = VALUES(progress_seconds),
-        last_watched     = CURRENT_TIMESTAMP
-");
-```
-
-**[ASSUMPTION]** A `UNIQUE KEY` on `(user_id, content_id)` needs to be added to `watch_history` for `ON DUPLICATE KEY UPDATE` to work. Current schema does not show this constraint.
-
-```sql
--- Migration needed:
-ALTER TABLE watch_history
-  ADD CONSTRAINT uq_user_content UNIQUE (user_id, content_id);
-```
-
-### Data Model
-
-Referencing the existing schema:
-
-```sql
--- Existing watch_history table (from schema.sql):
-CREATE TABLE IF NOT EXISTS watch_history (
-    id               INT AUTO_INCREMENT PRIMARY KEY,
-    user_id          INT,
-    content_id       VARCHAR(255) NOT NULL,
-    content_title    VARCHAR(500),
-    content_type     VARCHAR(50),
-    thumbnail_path   VARCHAR(500),
-    progress_seconds INT DEFAULT 0,
-    duration_seconds INT DEFAULT 0,
-    last_watched     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_last (user_id, last_watched DESC)
-);
-```
-
-**Required addition** (migration script):
-```sql
-ALTER TABLE watch_history
-  ADD CONSTRAINT uq_user_content UNIQUE (user_id, content_id);
-```
-
-**Query performance note:** The existing `INDEX idx_user_last (user_id, last_watched DESC)` covers the `ORDER BY last_watched DESC WHERE user_id = ?` query perfectly. No additional indexes needed.
-
-## UI/UX Specification
-
-| Element | Spec |
-|---------|------|
-| Card width | 160px phone / 200px tablet / 240px large |
-| Card aspect ratio | 16:9 thumbnail + title below |
-| Progress bar | 4px height, red (`#E50914` default), anchored to bottom of thumbnail |
-| Row heading | "Continue Watching" — hidden if row is empty |
-| Touch scrolling | Horizontal scroll, momentum, snap-to-card |
-| Empty state | Section not rendered at all (PHP skips the block if 0 results) |
-| Placeholder while loading | CSS skeleton shimmer on card area (`background: linear-gradient(90deg, #eee 25%, #ddd 50%, #eee 75%)`) |
-| Missing thumbnail | Gray placeholder with play icon SVG centred |
-
-## Edge Cases & Failure Modes
-
-| Case | Handling |
-|------|----------|
-| User has no history | Row not rendered; no "empty" heading shown |
-| `content_id` in DB but video file deleted from disk | Card still shows with thumbnail (if thumb exists); player handles missing file separately |
-| Thumbnail file deleted from disk | `thumb_ok = false` in API response; frontend renders gray placeholder |
-| `duration_seconds = 0` (never set) | Row in API filtered out (`WHERE duration_seconds > 0`) |
-| Progress ≥ 95% | Filtered from the "continue watching" list — treat as complete |
-| User switches account mid-session | Row re-fetches on next page load via new `user_id` in session |
-| DB unavailable | PHP catches `PDOException`, returns `[]`, row not rendered |
-| 6+ history items | Query `LIMIT 5` — only freshest 5 shown |
-| Two sessions same user (different tabs) | `last_watched` auto-updates; next page load shows latest state |
-| `content_id` contains path traversal characters | `content_id` is used only in DB query with prepared statements — not used for filesystem access directly |
-
-## Test Plan
-
-| # | Test | Expected |
-|---|------|----------|
-| T1 | Watch 3 videos as "Amara", load home | Row shows 3 cards in reverse-watch order |
-| T2 | Watch a 4th video | Row shows 4 cards (capped at 5) |
-| T3 | Watch a video to 96% completion | Card disappears from row on next load |
-| T4 | Delete thumbnail file from disk | Card renders gray placeholder, no broken image |
-| T5 | Log out, switch to new user "Kofi" with no history | Continue Watching row not present on page |
-| T6 | Switch back to "Amara" | Amara's row reappears |
-| T7 | Watch video to 50%, check progress bar | Bar visually covers ~50% of thumbnail width |
-| T8 | Horizontal scroll on 320px phone | Scrolls smoothly, snap-to-card works |
-| T9 | JS disabled (no-JS path) | PHP-rendered inline cards visible without JS |
-| T10 | 1GB RAM device: load page with 5 cards | No jank; lazy-load defers off-screen thumbnails |
-| T11 | `UNIQUE` constraint absent (legacy DB) | `INSERT ... ON DUPLICATE KEY` degrades to multiple rows; detect via migration check |
-
-## Dependencies
-- **Spec 03 (Simple Name Login):** `$_SESSION['user_id']` must be set before this feature functions
-- **Spec 01 (Visual Home Tiles):** Continue Watching row renders on the home page (index.php), below or above the segment tiles
-- **Player page (out of scope):** Must call `api/update_progress.php` on play and on pause/seek events
-- DB migration: `UNIQUE KEY (user_id, content_id)` on `watch_history`
-- Thumbnail generation pipeline: thumbnails for all video content must exist at `thumbnail_path`
-
-## Estimated Effort
-
-| Task | Estimate |
-|------|----------|
-| PHP API endpoint (fetch + write progress) | 1 day |
-| DB migration + constraint | 0.25 days |
-| Frontend component (CSS, scroll, progress bar) | 1 day |
-| Lazy-load JS + no-JS fallback | 0.5 days |
-| Edge case handling (missing thumb, empty state) | 0.5 days |
-| Test + bug fix | 1 day |
-| **Total** | **4.25 days** |
-
-## Open Questions
-1. **[BLOCKING]** Is there an existing player page that can be modified to write progress, or does that need to be built from scratch?
-2. **[BLOCKING]** What is the video `content_id` format? (filename, UUID, path?) — needed to build the player URL in card `href`
-3. Should fully watched items (≥95%) be shown in a separate "Watched" row or hidden entirely?
-4. Should the row show content across all segments, or only content from the user's current segment?
-5. Is there a thumbnail generation script, or are thumbs manually placed per video?
+Until Continue Watching meets that rule again, documentation must describe it as historical or planned—not as a current Home-page capability.

@@ -329,8 +329,8 @@ usort($videoFiles, function ($a, $b) {
         <div class="player-card__title-bar">
           <h1 class="player-card__title"><?php echo htmlspecialchars($currentVideoName); ?></h1>
           <?php if (in_array(pathinfo($currentVideoName, PATHINFO_EXTENSION), $video)): ?>
-          <a class="btn-download" href="<?php echo htmlspecialchars(rtrim($folderWebPath, '/') . '/' . $currentVideoName); ?>" download="<?php echo htmlspecialchars($currentVideoName); ?>">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+		  <a class="btn-download" href="<?php echo htmlspecialchars($videoWebPath, ENT_QUOTES, 'UTF-8'); ?>" download="<?php echo htmlspecialchars($currentVideoName, ENT_QUOTES, 'UTF-8'); ?>">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download
           </a>
           <?php endif; ?>

@@ -32,12 +32,12 @@
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (width >= 768px) {
   .example {background: blue;}
-} 
+}
 
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (width >= 992px) {
   .example {background: orange;}
-} 
+}
 /* Navbar brand logo */
 .navbar-brand-logo {
     height: 32px;
@@ -1944,4 +1944,160 @@ body.fixed-nav {
     width: 100%;
     justify-content: flex-start;
   }
+}
+
+/* =========================================================
+   FINAL PUBLIC NAVBAR SEARCH LAYOUT FIX
+   Keep this block at the end of style.css.
+   ========================================================= */
+
+/* Prevent the desktop flex row from clipping the search form. */
+.app-navbar .app-navbar-desktop-main,
+.app-navbar .app-navbar-search,
+.app-navbar .app-navbar-search .input-group {
+    min-width: 0;
+}
+
+.app-navbar .app-navbar-search .input-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+
+/* The input must be allowed to shrink inside a flex container. */
+.app-navbar .app-navbar-search .form-control {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+}
+
+/* Desktop and large-tablet navigation. */
+@media (min-width: 992px) {
+    .app-navbar .app-navbar-desktop {
+        gap: 16px;
+    }
+
+    .app-navbar .app-navbar-desktop-main {
+        gap: 12px;
+    }
+
+    .app-navbar .app-navbar-search--desktop {
+        display: block !important;
+        flex: 1 1 320px;
+        width: auto;
+        min-width: 0;
+        max-width: 420px;
+        margin: 0 0 0 auto !important;
+    }
+
+    .app-navbar .app-navbar-search--desktop .form-control {
+        min-width: 0;
+    }
+
+    .app-navbar .app-navbar-search--mobile,
+    .app-navbar .app-navbar-mobile {
+        display: none !important;
+    }
+}
+
+/* Mobile/tablet navigation: do not render desktop controls. */
+@media (max-width: 991.98px) {
+    .app-navbar .app-navbar-desktop {
+        display: none !important;
+    }
+
+    .app-navbar .app-navbar-mobile {
+        display: block !important;
+        width: 100%;
+    }
+
+    .app-navbar .app-navbar-mobile-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .app-navbar .app-navbar-mobile-panel {
+        width: 100%;
+        max-width: none;
+        margin: 12px 0 0;
+    }
+
+    .app-navbar .app-navbar-search--desktop {
+        display: none !important;
+    }
+
+    .app-navbar .app-navbar-search--mobile {
+        display: block;
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        margin: 0 !important;
+    }
+
+    .app-navbar .app-navbar-search--mobile .input-group {
+        width: 100%;
+    }
+
+    .app-navbar .app-navbar-search--mobile .form-control {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* Small phones: preserve usable touch targets and prevent text clipping. */
+@media (max-width: 575.98px) {
+    .app-navbar .app-navbar-search .form-control {
+        font-size: 16px;
+    }
+
+    .app-navbar .app-navbar-search .input-group-btn .btn,
+    .app-navbar .app-navbar-search .input-group button {
+        flex: 0 0 auto;
+    }
+}
+
+/* Keep the public navbar search submit button and icon visible. */
+.app-navbar .app-navbar-search .input-group-btn .btn,
+.app-navbar .app-navbar-search .input-group button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 48px;
+    color: #231600 !important;
+    background: #f0b323 !important;
+    border: 0;
+}
+
+.app-navbar .app-navbar-search .input-group-btn .btn:hover,
+.app-navbar .app-navbar-search .input-group-btn .btn:focus,
+.app-navbar .app-navbar-search .input-group button:hover,
+.app-navbar .app-navbar-search .input-group button:focus {
+    color: #231600 !important;
+    background: #f7c64e !important;
+}
+
+.app-navbar .app-navbar-search .input-group-btn .btn .fa,
+.app-navbar .app-navbar-search .input-group button .fa {
+    display: inline-block;
+    color: currentColor !important;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Inline SVG search icon: independent of Font Awesome availability. */
+.app-navbar .app-navbar-search-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }

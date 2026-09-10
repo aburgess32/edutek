@@ -977,3 +977,51 @@ body[data-mode="screen"] {
 [data-mode="screen"] .bc__toggle:hover {
     color: rgba(255,255,255,0.6);
 }
+
+/* =========================================================
+   DIRECTORY: WATCH VIDEOS ONLY
+   This page is the destination of the home-page Watch Videos card.
+   Keep this block at the end of tiles.css so it overrides older
+   directory-list styles without affecting other pages.
+   ========================================================= */
+
+.directory-video-page .directory-video-section {
+    margin-top: 1.5rem;
+}
+
+.directory-video-page .directory-video-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.directory-video-page .directory-video-list .dir-item {
+    margin: 0;
+    min-width: 0;
+}
+
+.directory-video-page .directory-video-list .dir-item-link {
+    min-height: 58px;
+}
+
+.directory-video-page .directory-video-list .dir-item-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.directory-video-page .directory-video-empty {
+    margin: 0;
+    color: #5b6470;
+}
+
+@media (max-width: 767.98px) {
+    .directory-video-page .directory-video-list {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+    }
+}

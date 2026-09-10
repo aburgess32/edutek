@@ -1,6 +1,7 @@
 <?php
 include_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/tiles.php';
+require_once __DIR__ . '/../includes/unified-search-catalogs.php';
 
 if (!defined('CONTENT_CIPHER')) {
     define('CONTENT_CIPHER', 'AES-128-CTR');
@@ -51,8 +52,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $query = trim(isset($_GET['q']) ? $_GET['q'] : '');
 $typeFilter = isset($_GET['type']) ? trim($_GET['type']) : '';
 
-$allowedTypes = ['video', 'audiobook', 'pdf', 'interactive', 'tool', 'book', 'books'];
-if ($typeFilter !== '' && !in_array($typeFilter, $allowedTypes, true)) {
+$allowedTypes = [
+    'video',
+    'audiobook',
+    'music',
+    'audio',
+    'song',
+    'pdf',
+    'interactive',
+    'tool',
+    'book',
+    'books'
+];if ($typeFilter !== '' && !in_array($typeFilter, $allowedTypes, true)) {
     $typeFilter = '';
 }
 
@@ -255,8 +266,71 @@ try {
         }
     }
 
-    $items = [];
-    foreach ($results as $row) {
+		/*
+		 * Add read-only folder-level results from Books, Audiobooks, and Music.
+		 *
+		 * These functions use existing catalog directories and return the same
+		 * encrypted routes used by their public pages. They do not write to the
+		 * content index and do not run any library-wide rebuild or media rescan.
+		 */
+		$bookResults = [];
+		$audiobookResults = [];
+		$musicResults = [];
+
+		if (
+			$typeFilter === ''
+			|| $typeFilter === 'book'
+			|| $typeFilter === 'books'
+			|| $typeFilter === 'pdf'
+		) {
+			$bookResults = unifiedSearchBooks(
+				$query,
+				12,
+				$cipher,
+				$encryption_key,
+				$options,
+				$iv
+			);
+		}
+
+		if ($typeFilter === '' || $typeFilter === 'audiobook') {
+			$audiobookResults = unifiedSearchAudiobooks(
+				$query,
+				12,
+				$cipher,
+				$encryption_key,
+				$options,
+				$iv
+			);
+		}
+
+		if (
+			$typeFilter === ''
+			|| $typeFilter === 'music'
+			|| $typeFilter === 'audio'
+			|| $typeFilter === 'song'
+		) {
+			$musicResults = unifiedSearchMusic(
+				$query,
+				12,
+				$cipher,
+				$encryption_key,
+				$options,
+				$iv
+			);
+		}
+
+		/*
+		 * Begin with the folder-level non-video matches. The existing loop below
+		 * then appends the indexed video records while preserving their ranking.
+		 */
+		$items = array_merge(
+			$bookResults,
+			$audiobookResults,
+			$musicResults
+		);
+
+		foreach ($results as $row) {
         $categoryUrl = '';
         $subcategoryUrl = '';
 

@@ -7,9 +7,9 @@
 #   docker compose logs -f app    # Stream PHP/Apache logs
 #
 # Services:
-#   app        → Apache + PHP 8.1  → http://localhost:8080
-#   phpmyadmin → DB admin UI       → http://localhost:8081
-#   db         → MySQL 8.0         → localhost:3306
+#   app        -> Apache + PHP 8.1 -> http://localhost:8080
+#   phpmyadmin -> DB admin UI      -> http://localhost:8081
+#   db         -> MySQL 8.0        -> localhost:3307
 
 networks:
   edupak-net:
@@ -20,7 +20,6 @@ volumes:
     driver: local
 
 services:
-
   # ── PHP + Apache ─────────────────────────────────────────────────────────────
   app:
     build:
@@ -28,12 +27,18 @@ services:
       dockerfile: docker/Dockerfile
     container_name: edupak-app
     restart: unless-stopped
+
     ports:
       - "8080:80"
 
     volumes:
       # Application source — maps htdocs to Apache document root
       - ./htdocs:/var/www/html:cached
+
+      # Wiki for Schools — full legacy offline Wiki package, served read-only.
+      # Local URL:
+      # http://localhost:8080/wiki-for-schools/index.html
+      - D:/xampp/htdocs/Edutek/Wiki:/var/www/html/wiki-for-schools:ro
 
       # Persistent indexer audit/status files shared with the indexer service
       - D:/edutek-system/index-status:/system/index-status
@@ -64,7 +69,11 @@ services:
       DB_NAME: edupak
       DB_USER: edupak
       DB_PASS: edupak_dev
+
+      # Content-library location inside the PHP/Apache container
       CONTENT_PATH: /content/
+
+      # Persistent indexer report/status location inside the container
       INDEX_STATUS_DIR: /system/index-status
 
     depends_on:
@@ -113,6 +122,7 @@ services:
       DB_NAME: edupak
       DB_USER: edupak
       DB_PASS: edupak_dev
+
       CONTENT_PATH: /content/
       INDEX_DELAY_SECONDS: "5"
       INDEX_STATUS_DIR: /system/index-status
@@ -130,11 +140,12 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ── MySQL 8.0 ───────────────────────────────────────────────────────────────
+  # ── MySQL 8.0 ────────────────────────────────────────────────────────────────
   db:
     image: mysql:8.0
     container_name: edupak-db
     restart: unless-stopped
+
     ports:
       - "3307:3306"
 
@@ -148,7 +159,7 @@ services:
       # Persist MySQL data across container restarts
       - mysql-data:/var/lib/mysql
 
-      # Auto-import schema on first run only, when the data volume is empty
+      # Auto-import schema only when the MySQL data volume is empty
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
 
     command:
@@ -172,11 +183,12 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ── phpMyAdmin ──────────────────────────────────────────────────────────────
+  # ── phpMyAdmin ───────────────────────────────────────────────────────────────
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: edupak-phpmyadmin
     restart: unless-stopped
+
     ports:
       - "8081:80"
 

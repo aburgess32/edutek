@@ -269,9 +269,36 @@ function normalizeContentPath(string $path): string
 /**
  * Return a web-accessible absolute URL for a content path.
  */
+/**
+ * Return a browser-safe URL for a content path.
+ *
+ * Stored content paths and filesystem paths remain unchanged. Each path
+ * segment is encoded only when generating a URL for the browser, so names
+ * containing spaces, "#", "&", Unicode punctuation, apostrophes, and similar
+ * characters work correctly.
+ */
 function contentWebUrl(string $path): string
 {
-    return '/content/' . normalizeContentPath($path);
+    $normalizedPath = normalizeContentPath($path);
+
+    $segments = array_values(array_filter(
+        explode('/', trim($normalizedPath, '/')),
+        static function (string $segment): bool {
+            return $segment !== '';
+        }
+    ));
+
+    $encodedPath = implode(
+        '/',
+        array_map(
+            static function (string $segment): string {
+                return rawurlencode($segment);
+            },
+            $segments
+        )
+    );
+
+    return '/content/' . $encodedPath;
 }
 
 /**

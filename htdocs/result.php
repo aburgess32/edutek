@@ -91,13 +91,16 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
         var thumb = '';
 
         if (item.thumbnail_path) {
-          thumb = '<img src="' + escAttr(item.thumbnail_path) + '" alt="">';
-        } else if (type === 'video') {
+			thumb = '<img src="' + escAttr(encodeContentUrlPath(item.thumbnail_path)) + '" alt="">';
+			} else if (type === 'video') {
           thumb = '<img src="images/sample.png" data-lazy-thumb="' + escAttr(item.content_id) + '" alt="">';
         } else {
           var iconMap = {
             video: 'fa-film',
             audiobook: 'fa-headphones',
+			music: 'fa-music',
+            audio: 'fa-music',
+            song: 'fa-music',
             pdf: 'fa-file-pdf-o',
             interactive: 'fa-puzzle-piece',
             tool: 'fa-wrench',
@@ -165,8 +168,12 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
     return String(value || '').toLowerCase().trim();
   }
 
-  function buildResultHref(item, type) {
-    var id = item && item.content_id != null ? String(item.content_id) : '';
+function buildResultHref(item, type) {
+  if (item && item.result_url) {
+    return String(item.result_url);
+  }
+
+  var id = item && item.content_id != null ? String(item.content_id) : '';
 
     if (type === 'video' && id) {
       return 'watch.php?id=' + encodeURIComponent(id);
@@ -196,6 +203,56 @@ $queryEsc = htmlspecialchars($query, ENT_QUOTES, 'UTF-8');
 
     return '#';
   }
+
+function encodeContentUrlPath(path) {
+  var value = String(path || '').replace(/\\/g, '/');
+
+  if (!value) {
+    return '';
+  }
+
+  /*
+   * Keep absolute URLs unchanged. API thumbnail paths are normally relative,
+   * such as:
+   * content/Physics/Physics for Kids/Video #22.jpg
+   */
+/*
+ * Keep normal application URLs and absolute URLs unchanged.
+ *
+ * Examples:
+ *   book_thumb.php?folder=Physics
+ *   /book_thumb.php?folder=Physics
+ *   https://example.invalid/image.jpg
+ *
+ * Only filesystem-style content paths should be encoded segment by segment.
+ */
+if (
+  /^https?:\/\//i.test(value) ||
+  value.indexOf('?') !== -1 ||
+  /\.php(?:$|\?)/i.test(value)
+) {
+  return value;
+}
+
+  /*
+   * Preserve a leading slash if the API ever returns one. Encode each folder
+   * and filename segment individually so "/" remains a path separator while
+   * characters such as "#", spaces, "&", and Unicode punctuation are safe.
+   */
+  var hasLeadingSlash = value.charAt(0) === '/';
+
+  var encoded = value
+    .split('/')
+    .filter(function(segment) {
+      return segment !== '';
+    })
+    .map(function(segment) {
+      return encodeURIComponent(segment);
+    })
+    .join('/');
+
+  return (hasLeadingSlash ? '/' : '') + encoded;
+}
 
   function escHtml(str) {
     var div = document.createElement('div');

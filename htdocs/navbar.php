@@ -74,7 +74,9 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
             <input class="form-control" type="text" name="q" placeholder="Search for..." aria-label="Search">
             <span class="input-group-btn">
               <button type="submit" class="btn btn-danger">
-                <i class="fa fa-search"></i>
+                <svg class="app-navbar-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path>
+</svg>
               </button>
             </span>
           </div>
@@ -123,7 +125,9 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
           <input class="form-control" type="text" name="q" placeholder="Search for..." aria-label="Search">
           <span class="input-group-btn">
             <button type="submit" class="btn btn-danger">
-              <i class="fa fa-search"></i>
+              <svg class="app-navbar-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path>
+</svg>
             </button>
           </span>
         </div>

@@ -38,7 +38,7 @@
       '<div class="local-index-hotkey__backdrop" data-local-index-close="true"></div>',
       '<section class="local-index-hotkey__dialog" role="dialog" aria-modal="true" aria-labelledby="local-index-hotkey-title" aria-describedby="local-index-hotkey-message">',
       '  <div class="local-index-hotkey__header">',
-      '    <h2 id="local-index-hotkey-title">Content Index</h2>',
+      '    <h2 id="local-index-hotkey-title">Content maintenance</h2>',
       '  </div>',
       '  <div class="local-index-hotkey__body">',
       '    <p id="local-index-hotkey-message"></p>',
@@ -136,7 +136,201 @@
     }
   }
 
-  function showConfirmation() {
+  function showMaintenanceMenu() {
+    if (isRequestInFlight) {
+      return;
+    }
+
+    setModalState(
+      'Content maintenance',
+      'Choose a local maintenance action.',
+      'These actions are available only on this local Home page.',
+      [
+        {
+          label: 'Remove deleted content from catalog',
+          className: 'btn btn-danger',
+          onClick: showCleanupConfirmation
+        },
+        {
+          label: 'Index new or changed content',
+          className: 'btn btn-primary',
+          onClick: showIndexConfirmation
+        },
+        {
+          label: 'Cancel',
+          className: 'btn btn-secondary',
+          onClick: closeModal
+        }
+      ]
+    );
+
+    openModal();
+  }
+
+  function showCleanupConfirmation() {
+    if (isRequestInFlight) {
+      return;
+    }
+
+    setModalState(
+      'Remove deleted content from catalog?',
+      'This checks existing catalog entries and removes entries whose primary files no longer exist.',
+      'It does not scan or reindex the entire content library.',
+      [
+        {
+          label: 'Cancel',
+          className: 'btn btn-secondary',
+          onClick: showMaintenanceMenu
+        },
+        {
+          label: 'Run cleanup',
+          className: 'btn btn-danger',
+          onClick: startCleanup
+        }
+      ]
+    );
+  }
+
+  function showCleanupRunning() {
+    setModalState(
+      'Checking for deleted content…',
+      'Please keep this page open until cleanup completes.',
+      'This checks existing catalog records against their primary media files.',
+      [
+        {
+          label: 'Cleaning up…',
+          className: 'btn btn-secondary',
+          disabled: true
+        }
+      ]
+    );
+  }
+
+  function showCleanupFailure(message) {
+    isRequestInFlight = false;
+
+    setModalState(
+      'Catalog cleanup failed',
+      message || 'The catalog cleanup could not be completed.',
+      '',
+      [
+        {
+          label: 'Back to maintenance',
+          className: 'btn btn-secondary',
+          onClick: showMaintenanceMenu
+        },
+        {
+          label: 'Dismiss',
+          className: 'btn btn-secondary',
+          onClick: closeModal
+        }
+      ]
+    );
+  }
+
+  function showCleanupComplete(result) {
+    isRequestInFlight = false;
+
+    var checkedCount = Number(result.checked || 0);
+    var removedCount = Number(result.removed || 0);
+    var errorCount = Number(result.errors || 0);
+    var unresolvedCount = Number(result.unresolved || 0);
+    var details = '';
+
+    if (unresolvedCount > 0) {
+      details = 'Skipped unknown-path records: ' + unresolvedCount;
+    }
+
+    var actions = [];
+
+    if (result.verification_report_url) {
+      actions.push({
+        label: 'Download cleanup CSV',
+        href: result.verification_report_url,
+        className: 'btn btn-primary',
+        download: true
+      });
+    }
+
+    actions.push({
+      label: 'Dismiss',
+      className: 'btn btn-secondary',
+      onClick: closeModal
+    });
+
+    setModalState(
+      'Catalog cleanup complete',
+      'Checked: ' + checkedCount +
+        ' | Removed: ' + removedCount +
+        ' | Errors: ' + errorCount,
+      details,
+      actions
+    );
+  }
+
+  function parseResponse(response, defaultErrorMessage) {
+    return response.text().then(function (text) {
+      var data;
+
+      try {
+        data = JSON.parse(text);
+      } catch (error) {
+        data = {
+          success: false,
+          error: 'The server returned an unexpected response.'
+        };
+      }
+
+      if (!response.ok) {
+        data.success = false;
+
+        if (!data.error) {
+          data.error = defaultErrorMessage;
+        }
+      }
+
+      return data;
+    });
+  }
+
+  function startCleanup() {
+    if (isRequestInFlight) {
+      return;
+    }
+
+    isRequestInFlight = true;
+    showCleanupRunning();
+
+    fetch('/api/local-catalog-cleanup-start.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+      .then(function (response) {
+        return parseResponse(
+          response,
+          'The server could not complete the cleanup request.'
+        );
+      })
+      .then(function (result) {
+        if (!result.success) {
+          showCleanupFailure(result.error);
+          return;
+        }
+
+        showCleanupComplete(result);
+      })
+      .catch(function () {
+        showCleanupFailure(
+          'The browser could not reach the local catalog cleanup service. ' +
+          'Check that EduTek is running and try again.'
+        );
+      });
+  }
+
+  function showIndexConfirmation() {
     if (isRequestInFlight) {
       return;
     }
@@ -144,12 +338,12 @@
     setModalState(
       'Start a full content index now?',
       'This checks Videos, Books, and Audiobooks for newly added or updated files.',
-      '',
+      'The scan may take several minutes for a large content library.',
       [
         {
           label: 'Cancel',
           className: 'btn btn-secondary',
-          onClick: closeModal
+          onClick: showMaintenanceMenu
         },
         {
           label: 'Start Index',
@@ -158,11 +352,9 @@
         }
       ]
     );
-
-    openModal();
   }
 
-  function showRunning() {
+  function showIndexRunning() {
     setModalState(
       'Checking and indexing new content…',
       'Please keep this page open until the index completes.',
@@ -177,7 +369,7 @@
     );
   }
 
-  function showFailure(message) {
+  function showIndexFailure(message) {
     isRequestInFlight = false;
 
     setModalState(
@@ -185,6 +377,11 @@
       message || 'The content index could not be completed.',
       '',
       [
+        {
+          label: 'Back to maintenance',
+          className: 'btn btn-secondary',
+          onClick: showMaintenanceMenu
+        },
         {
           label: 'Dismiss',
           className: 'btn btn-secondary',
@@ -194,7 +391,7 @@
     );
   }
 
-  function showComplete(result) {
+  function showIndexComplete(result) {
     isRequestInFlight = false;
 
     var newCount = Number(result.new || 0);
@@ -250,38 +447,13 @@
     );
   }
 
-  function parseResponse(response) {
-    return response.text().then(function (text) {
-      var data;
-
-      try {
-        data = JSON.parse(text);
-      } catch (error) {
-        data = {
-          success: false,
-          error: 'The server returned an unexpected response.'
-        };
-      }
-
-      if (!response.ok) {
-        data.success = false;
-
-        if (!data.error) {
-          data.error = 'The server could not complete the index request.';
-        }
-      }
-
-      return data;
-    });
-  }
-
   function startIndex() {
     if (isRequestInFlight) {
       return;
     }
 
     isRequestInFlight = true;
-    showRunning();
+    showIndexRunning();
 
     fetch('/api/local-index-start.php', {
       method: 'POST',
@@ -290,19 +462,24 @@
         'Accept': 'application/json'
       }
     })
-      .then(parseResponse)
+      .then(function (response) {
+        return parseResponse(
+          response,
+          'The server could not complete the index request.'
+        );
+      })
       .then(function (result) {
         if (!result.success) {
-          showFailure(result.error);
+          showIndexFailure(result.error);
           return;
         }
 
-        showComplete(result);
+        showIndexComplete(result);
       })
       .catch(function () {
-        showFailure(
-          'The browser could not reach the local indexing service. '
-          + 'Check that the EduTek app is running and try again.'
+        showIndexFailure(
+          'The browser could not reach the local indexing service. ' +
+          'Check that the EduTek app is running and try again.'
         );
       });
   }
@@ -310,7 +487,11 @@
   document.addEventListener('keydown', function (event) {
     var key = String(event.key || '').toLowerCase();
 
-    if (event.key === 'Escape' && getModal() && getModal().classList.contains('local-index-hotkey--open')) {
+    if (
+      event.key === 'Escape' &&
+      getModal() &&
+      getModal().classList.contains('local-index-hotkey--open')
+    ) {
       closeModal();
       return;
     }
@@ -324,7 +505,7 @@
       !isRequestInFlight
     ) {
       event.preventDefault();
-      showConfirmation();
+      showMaintenanceMenu();
     }
   });
 }());

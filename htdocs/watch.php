@@ -288,14 +288,30 @@ usort($videoFiles, function ($a, $b) {
       </a>
       <?php endif; ?>
 
-      <!-- Breadcrumb -->
-      <nav class="wp-breadcrumb" aria-label="Breadcrumb">
-        <ol>
-          <li><a href="index.php">Home</a></li>
-          <li><a href="index.php"><?php echo htmlspecialchars($file1); ?></a></li>
-          <li class="wp-bc-current"><?php echo htmlspecialchars($currentVideoName); ?></li>
-        </ol>
-      </nav>
+<!-- Breadcrumb -->
+<nav class="wp-breadcrumb" aria-label="Breadcrumb">
+  <ol>
+    <li><a href="index.php">Home</a></li>
+
+    <li>
+      <a
+        href="index.php"
+        onclick="
+          if (window.history.length > 1) {
+            event.preventDefault();
+            window.history.back();
+          }
+        "
+      >
+        <?php echo htmlspecialchars($file1, ENT_QUOTES, 'UTF-8'); ?>
+      </a>
+    </li>
+
+    <li class="wp-bc-current">
+      <?php echo htmlspecialchars($currentVideoName, ENT_QUOTES, 'UTF-8'); ?>
+    </li>
+  </ol>
+</nav>
 
       <!-- Player Card -->
       <div class="player-card">

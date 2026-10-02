@@ -350,6 +350,7 @@ function audiobookFindCoverWebPath(
     <?php endif; ?>
 </form>
 
+<div id="audiobook-search-results" aria-live="polite">
 <?php
 if ($baseFsPath === null || !is_dir($baseFsPath)) {
     echo '<div class="SavedWrapper">'
@@ -602,35 +603,50 @@ if ($renderedCount === 0) {
 }
 }
 ?>
+</div>
 
 <script>
 (function () {
     const input = document.getElementById('audiobook-search-input');
     const status = document.getElementById('audiobook-search-status');
+    const results = document.getElementById('audiobook-search-results');
 
-    if (!input || !status) {
+    if (!input || !status || !results || !input.form) {
         return;
     }
 
     let timerId = null;
-    const currentQuery = <?php echo json_encode($searchQuery); ?>;
+    let requestController = null;
+    let requestNumber = 0;
+    let appliedQuery = <?php echo json_encode($searchQuery); ?>;
 
-    function runSearch() {
+    function updateStatus(query) {
+        if (query.length === 0) {
+            status.textContent = '';
+        } else if (query.length === 1) {
+            status.textContent = 'Type one more character to search.';
+        } else {
+            status.textContent = 'Finding matches...';
+        }
+    }
+
+    async function runSearch() {
         const query = input.value.trim();
 
         if (query.length === 1) {
-            status.textContent = 'Type one more character to search.';
+            updateStatus(query);
             return;
         }
 
-        if (query === currentQuery) {
-            status.textContent = '';
+        if (query === appliedQuery) {
+            updateStatus(query);
             return;
         }
 
-        status.textContent = 'Finding matches...';
-
+        const selectionStart = input.selectionStart;
+        const selectionEnd = input.selectionEnd;
         const url = new URL(window.location.href);
+
         url.searchParams.delete('page');
 
         if (query === '') {
@@ -639,7 +655,68 @@ if ($renderedCount === 0) {
             url.searchParams.set('q', query);
         }
 
-        window.location.assign(url.toString());
+        if (requestController) {
+            requestController.abort();
+        }
+
+        requestController = new AbortController();
+
+        const thisRequest = ++requestNumber;
+
+        updateStatus(query);
+        results.setAttribute('aria-busy', 'true');
+
+        try {
+            const response = await fetch(url.toString(), {
+                signal: requestController.signal,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Search request failed with status ' + response.status);
+            }
+
+            const html = await response.text();
+
+            if (thisRequest !== requestNumber) {
+                return;
+            }
+
+            const documentResult = new DOMParser().parseFromString(html, 'text/html');
+            const nextResults = documentResult.getElementById('audiobook-search-results');
+
+            if (!nextResults) {
+                throw new Error('Updated Audiobooks results were not found.');
+            }
+
+            results.replaceChildren(...nextResults.childNodes);
+            window.history.replaceState({}, '', url.toString());
+            appliedQuery = query;
+
+            if (document.activeElement === input) {
+                input.focus({ preventScroll: true });
+
+                if (
+                    selectionStart !== null
+                    && selectionEnd !== null
+                ) {
+                    input.setSelectionRange(selectionStart, selectionEnd);
+                }
+            }
+
+            status.textContent = '';
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Audiobooks live search failed:', error);
+                status.textContent = 'Unable to update results. Please try again.';
+            }
+        } finally {
+            if (thisRequest === requestNumber) {
+                results.removeAttribute('aria-busy');
+            }
+        }
     }
 
     input.addEventListener('input', function () {
@@ -647,18 +724,11 @@ if ($renderedCount === 0) {
 
         const query = input.value.trim();
 
-        if (query.length === 0) {
-            status.textContent = 'Finding matches...';
-            timerId = window.setTimeout(runSearch, 400);
-            return;
-        }
-
         if (query.length === 1) {
-            status.textContent = 'Type one more character to search.';
+            updateStatus(query);
             return;
         }
 
-        status.textContent = 'Finding matches...';
         timerId = window.setTimeout(runSearch, 400);
     });
 

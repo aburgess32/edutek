@@ -397,13 +397,28 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
         }
 
         $fullPath  = str_replace('\\', '/', $fileInfo->getPathname());
+        $basename  = $fileInfo->getFilename();
         $extension = strtolower($fileInfo->getExtension());
+
+        /*
+        * Ignore filesystem metadata artifacts. macOS AppleDouble files begin
+        * with "._" and can have media-like extensions such as ".mp4", but they
+        * are metadata sidecars rather than playable media files.
+        */
+        if (
+            str_starts_with($basename, '._')
+            || $basename === '.DS_Store'
+            || strcasecmp($basename, 'Thumbs.db') === 0
+            || strcasecmp($basename, 'desktop.ini') === 0
+        ) {
+            $skippedCount++;
+            continue;
+        }
 
         // Only index known content types
         if (!isset(CONTENT_EXTENSION_MAP[$extension])) {
             continue;
         }
-
         $contentType  = CONTENT_EXTENSION_MAP[$extension];
         $relativePath = ltrim(str_replace($contentRoot, '', $fullPath), '/');
         $parts        = explode('/', $relativePath);

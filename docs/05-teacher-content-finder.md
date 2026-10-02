@@ -1,343 +1,580 @@
-# Teacher Content Finder
+# Teacher Content Finder and Content Indexing
 
-## Summary
-- Teachers search the full content catalog by keyword ("tractor", "grade 2") and browse results in a filterable grid; search runs against a **pre-built JSON index** for offline performance across a 4TB catalog
-- A "Lesson Plan" feature lets teachers curate, save, name, and share collections of content items — backed by the `lesson_plans` DB table
-- Lesson plans are shareable between teachers on the same EduPak server via a simple share code or direct DB record duplication
-- All search and plan operations work entirely offline; no internet dependency
+> **Status: Current feature specification**
+>
+> This document describes the current EduTek content-discovery experience for teachers and the related content-index maintenance workflows.
+>
+> It is aligned with the current application structure, including the topic directory, library search, Books and Audiobooks browsing, Comic Books catalog, teacher-protected reindexing, and the device-local indexing shortcut.
+>
+> **Last aligned with implementation:** 2026-09-06
 
-## User Story
-> As a **teacher**, I want to type "grade 2 math" and immediately see matching videos and articles so I can pick content for tomorrow's lesson without manually browsing every topic folder.
+---
 
-> As a **teacher**, I want to save a set of 5 videos into a named lesson plan ("Week 3 – Fractions") so I can pull it up in class and play them in order without navigating between topics.
+## Purpose
 
-> As a **teacher**, I want to share a lesson plan with my colleague's device so she can use the same sequence in her classroom.
+EduTek is designed for an offline or low-connectivity learning environment. Teachers need reliable ways to:
 
-## Technical Approach
+1. Find educational content already available on the device.
+2. Browse content by subject, category, and collection.
+3. Search the indexed library for a topic, skill, title, or keyword.
+4. Confirm that newly added local media has been indexed.
+5. Verify which files were newly indexed or updated after maintenance.
 
-### Frontend (HTML/CSS/JS)
+These goals are supported by separate browsing, searching, and indexing workflows. They should not be treated as the same operation.
 
-**Search UI:**
-```html
-<div class="content-finder">
-  <div class="finder-search">
-    <input type="search" id="finder-input" class="finder-search__input"
-           placeholder="Search videos, topics, keywords…"
-           aria-label="Search content"
-           autocomplete="off" autocorrect="off" spellcheck="false">
-    <button class="finder-search__btn" type="button" id="finder-btn">Search</button>
-  </div>
+---
 
-  <div class="finder-filters">
-    <select id="filter-seg" aria-label="Audience segment">
-      <option value="">All Segments</option>
-      <option value="kid">Kid</option>
-      <option value="teen">Teen</option>
-      <option value="adult">Adult</option>
-    </select>
-    <select id="filter-type" aria-label="Content type">
-      <option value="">All Types</option>
-      <option value="video">Video</option>
-      <option value="article">Article</option>
-      <option value="quiz">Quiz</option>
-    </select>
-  </div>
+## Current content-finding paths
 
-  <div id="finder-results" class="finder-results" role="list"
-       aria-live="polite" aria-label="Search results">
-    <!-- Rendered by JS from search index -->
-  </div>
-</div>
+Teachers can find existing learning resources through the following application pages.
+
+| Path | Page | Primary purpose |
+|---|---|---|
+| Home search | `index.php` → `result.php?q=<query>` | Search the broader learning library |
+| Video/topic directory | `directory.php` | Browse available video resources and topics |
+| Search results | `result.php` | View library-wide search matches and navigate to matching content |
+| Audiobooks | `audiobooks.php` | Browse and search audiobook folders |
+| Books & PDFs | `books.php` | Browse and search book/PDF category folders |
+| Comic Books | `Comic_books.php` | Browse comic, manga, superhero, supervillain, and Marvel-related PDFs |
+| Music | `music.php` | Browse local music collections |
+| Learning Tools | `tools.php` | Open locally configured interactive and reference tools |
+
+The current Home page provides quick links to Videos, Audiobooks, Books & PDFs, Music, and Learning Tools. It also contains the main library search form.
+
+---
+
+## Search the learning library
+
+Use the Home-page search field when you know all or part of a topic, subject, title, or skill.
+
+### Steps
+
+1. Open the EduTek Home page.
+2. Select the search field.
+3. Enter a search term.
+4. Select **Search** or press `Enter`.
+5. Review results on `result.php`.
+
+The Home-page search uses a standard HTTP `GET` request:
+
+```text
+result.php?q=<search-term>
 ```
 
-**Result card:**
-```html
-<div class="result-card" role="listitem">
-  <img class="result-card__thumb" src="/assets/thumbs/V042.jpg"
-       alt="Intro to Fractions thumbnail" loading="lazy">
-  <div class="result-card__info">
-    <p class="result-card__title">Intro to Fractions</p>
-    <p class="result-card__meta">Math · Grade 2 · 8 min</p>
-  </div>
-  <div class="result-card__actions">
-    <a class="btn btn--sm" href="/player.php?id=V042">Preview</a>
-    <button class="btn btn--sm btn--add" data-id="V042" data-title="Intro to Fractions">
-      + Add to Plan
-    </button>
-  </div>
-</div>
+Because it uses a normal HTML form, the basic search submission should work even if JavaScript is unavailable.
+
+### Search guidance
+
+Use short, specific words first:
+
+```text
+fractions
+geography
+reading
+science
+algebra
+history
 ```
 
-**Client-side search against JSON index:**
-```js
-let searchIndex = null;
+If the results are too broad, add a second distinguishing term:
 
-async function loadIndex() {
-  if (searchIndex) return searchIndex;
-  const res = await fetch('/data/search_index.json');
-  searchIndex = await res.json();
-  return searchIndex;
-}
-
-function tokenize(str) {
-  return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
-}
-
-async function runSearch(query, filters) {
-  const index = await loadIndex();
-  const tokens = tokenize(query);
-  if (tokens.length === 0) return [];
-
-  return index.filter(item => {
-    // All tokens must match somewhere in the item's text fields
-    const haystack = item._search_text; // pre-normalized in index
-    const matchesTokens = tokens.every(t => haystack.includes(t));
-
-    const matchesSeg  = !filters.seg  || item.segment === filters.seg;
-    const matchesType = !filters.type || item.content_type === filters.type;
-
-    return matchesTokens && matchesSeg && matchesType;
-  });
-}
-
-document.getElementById('finder-btn').addEventListener('click', async () => {
-  const query   = document.getElementById('finder-input').value.trim();
-  const seg     = document.getElementById('filter-seg').value;
-  const type    = document.getElementById('filter-type').value;
-  const results = await runSearch(query, { seg, type });
-  renderResults(results);
-});
+```text
+solar system
+civil rights
+basic fractions
+world geography
 ```
 
-**Fuzzy / typo handling:**  
-**[ASSUMPTION]** v1 uses exact token matching (all query words must appear). For typo tolerance, add a [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) check at edit-distance 1 for tokens longer than 4 characters — implementable in ~30 lines of JS without a library.
+Search results depend on content that has already been indexed. If newly added material is missing, use the appropriate indexing workflow described later in this document.
 
-### Backend (PHP/MySQL)
+---
 
-**Search index generation script** (`scripts/build_search_index.php`):
+## Browse video topics
 
-```php
-/**
- * Scans content directory + DB metadata, builds /htdocs/data/search_index.json
- * Run manually or via cron when content library is updated.
- */
+Use the topic directory when you want to explore rather than search for a known term.
 
-$pdo  = getPDO();
-$stmt = $pdo->query("SELECT * FROM content_meta"); // [ASSUMPTION] table exists
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+### Steps
 
-$index = [];
-foreach ($rows as $row) {
-    $index[] = [
-        'id'           => $row['content_id'],
-        'title'        => $row['title'],
-        'segment'      => $row['segment'],
-        'topic'        => $row['topic'],
-        'content_type' => $row['content_type'],
-        'duration_sec' => $row['duration_seconds'] ?? null,
-        'grade'        => $row['grade_level'] ?? null,
-        'thumb'        => $row['thumbnail_path'],
-        'href'         => "/player.php?id={$row['content_id']}",
-        // Pre-normalized search text field
-        '_search_text' => strtolower(implode(' ', [
-            $row['title'],
-            $row['topic'],
-            $row['keywords'] ?? '',
-            $row['grade_level'] ?? '',
-            $row['segment'],
-        ])),
-    ];
-}
+1. Open the EduTek Home page.
+2. Select **Watch Videos** or **Browse All Topics**.
+3. Browse the topic directory at:
 
-file_put_contents(
-    __DIR__ . '/../htdocs/data/search_index.json',
-    json_encode($index, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-);
-echo "Index built: " . count($index) . " items\n";
+   ```text
+   directory.php
+   ```
+
+4. Select a category, subcategory, or content item.
+5. Open the selected learning resource.
+
+The directory is the current primary browsing destination for video learning content. Do not document the removed Home-page segment tiles or directory anchor-navigation bar as active navigation features unless they are intentionally restored.
+
+---
+
+## Find books and PDFs
+
+The Books page shows book-category folders that contain PDF files.
+
+### Steps
+
+1. Open the EduTek Home page.
+2. Select **Books & PDFs**.
+3. Browse the displayed categories.
+4. Enter at least two characters into the category search field to filter the list.
+5. Select a category to open its available PDF resources.
+
+Current Books page:
+
+```text
+books.php
 ```
 
-**Index size estimate:** 4TB library, assumed ~10,000–50,000 content items. At ~300 bytes per index entry (JSON), that is 3–15 MB — acceptable to load once and cache in memory. **[ASSUMPTION]** If item count exceeds 100,000, split index into per-segment files (`search_index_kid.json`, etc.) and load lazily on first search per segment.
+### Current discovery rules
 
-**Lesson Plan CRUD:**
+- EduTek reads book categories from the configured Books content location.
+- In Docker, the primary Books filesystem location is:
 
-```php
-// api/lesson_plans.php — RESTful-ish via POST action param
+  ```text
+  /content/Books
+  ```
 
-// CREATE
-$title      = trim($_POST['title']);
-$teacher_id = $_SESSION['user_id'];
-$stmt = $pdo->prepare("INSERT INTO lesson_plans (teacher_id, title, content_ids) VALUES (?,?,?)");
-$stmt->execute([$teacher_id, $title, json_encode([])]);
-echo json_encode(['id' => $pdo->lastInsertId()]);
+- A legacy fallback may use:
 
-// READ (list for current teacher)
-$stmt = $pdo->prepare("SELECT * FROM lesson_plans WHERE teacher_id = ? ORDER BY created_at DESC");
-$stmt->execute([$teacher_id]);
-echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+  ```text
+  htdocs/videos/Books
+  ```
 
-// UPDATE (add/remove content item)
-$plan_id = (int)$_POST['plan_id'];
-$stmt = $pdo->prepare("SELECT content_ids, teacher_id FROM lesson_plans WHERE id = ?");
-$stmt->execute([$plan_id]);
-$plan = $stmt->fetch();
-if ($plan['teacher_id'] !== $teacher_id) { http_response_code(403); exit; }
-$ids = json_decode($plan['content_ids'], true);
-// Add or remove
-if ($_POST['op'] === 'add')    $ids[] = $_POST['content_id'];
-if ($_POST['op'] === 'remove') $ids = array_values(array_diff($ids, [$_POST['content_id']]));
-$stmt = $pdo->prepare("UPDATE lesson_plans SET content_ids = ? WHERE id = ?");
-$stmt->execute([json_encode(array_unique($ids)), $plan_id]);
+- Only folders containing one or more `.pdf` files are displayed.
+- Folders whose names begin with `_` are treated as maintenance folders and are hidden from the normal Books page.
+- The Books search filters **category folder names**.
+- Books search does not search inside PDF document text.
 
-// DELETE
-$stmt = $pdo->prepare("DELETE FROM lesson_plans WHERE id = ? AND teacher_id = ?");
-$stmt->execute([$plan_id, $teacher_id]);
+### Cover images
+
+The Books page can request category thumbnail images through the local application. Missing images must not prevent a book category from opening.
+
+Keep book category names clear and stable. The category folder name is visible to users and is used by the search/filter experience.
+
+---
+
+## Find audiobooks
+
+The Audiobooks page is intended for browsing and quickly filtering audiobook folders.
+
+### Steps
+
+1. Open the EduTek Home page.
+2. Select **Audiobooks**.
+3. Browse available audiobook folders.
+4. Type at least two characters into the search field.
+5. Wait briefly for the search to apply, or press `Enter`.
+6. Select the desired audiobook collection.
+
+Current Audiobooks page:
+
+```text
+audiobooks.php
 ```
 
-**Lesson plan sharing:**  
-**[ASSUMPTION]** "Sharing" means copying a plan to another teacher's account on the same server — not inter-server sync.
+### Current search behavior
 
-```php
-// Share: duplicate a plan to another teacher by display_name
-$target = $pdo->prepare("SELECT id FROM users WHERE display_name = ? AND user_type = 'teacher'");
-$target->execute([$_POST['share_with_name']]);
-$recipient = $target->fetch();
-if (!$recipient) { echo json_encode(['error' => 'Teacher not found']); exit; }
+- The search uses the query parameter:
 
-$src  = $pdo->prepare("SELECT title, content_ids FROM lesson_plans WHERE id = ? AND teacher_id = ?");
-$src->execute([$plan_id, $teacher_id]);
-$plan = $src->fetch();
+  ```text
+  q
+  ```
 
-$copy = $pdo->prepare("INSERT INTO lesson_plans (teacher_id, title, content_ids) VALUES (?,?,?)");
-$copy->execute([$recipient['id'], $plan['title'] . ' (shared)', $plan['content_ids']]);
+- The search matches audiobook folder names without case sensitivity.
+- It is intended to help locate titles, authors, and series.
+- A one-character query does not run; the interface prompts the user to type one more character.
+- After typing stops, the page applies the search after a short delay.
+- A search clears the current pagination position so results begin at page one.
+- The **Clear search** link returns to the full audiobook listing.
+- The search does not claim to search spoken audio, transcript content, or embedded audio metadata unless such behavior is separately implemented and documented.
+
+---
+
+## Find comic books
+
+Comic Books are presented as a catalog of qualifying PDFs found in the Books library.
+
+### Steps
+
+1. Open the EduTek Home page or navigate directly to:
+
+   ```text
+   Comic_books.php
+   ```
+
+2. Browse the catalog cards.
+3. Select **Read** to open a PDF in the reader.
+4. Select **Download** to download the original PDF when local browser settings permit it.
+
+### Current discovery rules
+
+The Comic Books page recursively scans the Books content root for PDF files. A PDF is included when its filename contains one of these recognized terms:
+
+```text
+comic
+manga
+superhero
+superheroes
+supervillain
+supervillains
+marvel
 ```
 
-### Data Model
+The matching behavior is case-insensitive.
 
-```sql
--- Existing lesson_plans table (from schema.sql):
-CREATE TABLE IF NOT EXISTS lesson_plans (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    teacher_id INT,
-    title      VARCHAR(255) NOT NULL,
-    content_ids JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
-);
+Comic Books do **not** need to be stored in one dedicated folder named `Comic Books`. The current discovery behavior is filename-based and searches beneath the Books library.
+
+### Cover images and caching
+
+For each qualifying PDF, EduTek looks beside the PDF for a same-name image file using one of these extensions:
+
+```text
+.jpg
+.jpeg
+.png
+.webp
 ```
 
-**Required additions:**
-```sql
--- Index for fast teacher plan lookup
-ALTER TABLE lesson_plans ADD INDEX idx_teacher (teacher_id);
+For example:
 
--- [ASSUMPTION] A content_meta table is needed to drive the search index builder.
--- If content is file-system only, this must be created and populated.
-CREATE TABLE IF NOT EXISTS content_meta (
-    content_id      VARCHAR(255) PRIMARY KEY,
-    title           VARCHAR(500) NOT NULL,
-    segment         ENUM('kid','teen','adult','teacher'),
-    topic           VARCHAR(100),
-    content_type    ENUM('video','article','quiz'),
-    duration_seconds INT,
-    grade_level     VARCHAR(20),
-    keywords        TEXT,
-    thumbnail_path  VARCHAR(500),
-    file_path       VARCHAR(500),
-    added_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+```text
+/content/Books/Graphic Novels/Example Comic.pdf
+/content/Books/Graphic Novels/Example Comic.jpg
 ```
 
-**[ASSUMPTION]** `content_meta` is populated by a one-time scan script and updated when content is added to the library.
+If no matching cover image exists, EduTek displays a local placeholder cover.
 
-**Search index file structure (`/htdocs/data/search_index.json`):**
-```json
-[
-  {
-    "id": "V042",
-    "title": "Intro to Fractions",
-    "segment": "kid",
-    "topic": "math",
-    "content_type": "video",
-    "duration_sec": 480,
-    "grade": "Grade 2",
-    "thumb": "assets/thumbs/V042.jpg",
-    "href": "/player.php?id=V042",
-    "_search_text": "intro to fractions math grade 2 kid"
-  }
-]
+The Comic Books catalog may cache scan results for approximately 10 minutes to avoid recursively scanning a large Books library on every page request. The generated cache file is local runtime data and must not be committed to Git:
+
+```text
+htdocs/storage/comic-books-cache.json
 ```
 
-## UI/UX Specification
+When adding or reorganizing comic PDFs, allow the cache to expire or clear the local cache in the runtime environment before verifying the new catalog results.
 
-| Element | Spec |
-|---------|------|
-| Search input | Full-width, large (48px height), autofocus on page load |
-| Results grid | 2 columns on phone, 3 on tablet, 4 on desktop |
-| Result card | Thumbnail (16:9) + title + meta line + Preview + Add to Plan buttons |
-| Empty state | "No results for 'xyz'. Try a different keyword." + suggested categories |
-| Loading state | Skeleton cards while index loads (<500ms expected) |
-| Lesson Plan sidebar | Collapsible right panel (or bottom sheet on mobile) showing current plan items with drag-to-reorder |
-| Plan item count | Badge on "My Plan" button: "My Plan (5)" |
-| Share lesson plan | Modal with dropdown of other teachers on the server |
-| Teacher-only gate | Redirect to `/login.php` if `$_SESSION['role'] !== 'teacher'` |
+---
 
-## Edge Cases & Failure Modes
+## Learning Tools
 
-| Case | Handling |
-|------|----------|
-| `search_index.json` missing | Show error: "Search index not available. Ask admin to rebuild the content index." |
-| Index > 15 MB (very large catalog) | Split into per-segment files; load lazily |
-| Zero results | Show empty state with search tips and category browse links |
-| Typo in query ("tracktor") | v1: no fuzzy match — document limitation; v2 adds Levenshtein edit-distance 1 |
-| Very large result set (500+ matches) | Paginate client-side: show first 24 results, "Show 24 more" button |
-| Lesson plan with deleted content | `content_ids` may reference items no longer in `content_meta`; resolve gracefully: show "[Deleted content]" with strike-through |
-| Lesson plan title collision | Allowed — plans are identified by `id`, not title |
-| Non-teacher user accesses `/teacher.php` | PHP role check → redirect to `/login.php` |
-| `content_ids` JSON column malformed | `json_decode` returns `null`; treat as empty plan |
-| Share with non-existent teacher name | API returns `{error: "Teacher not found"}`; UI shows inline error |
+The Learning Tools page displays locally configured educational applications, interactive resources, and reference tools.
 
-## Test Plan
+Current page:
 
-| # | Test | Expected |
-|---|------|----------|
-| T1 | Search "math" | Returns all math-tagged items across segments |
-| T2 | Search "grade 2" | Returns items with "grade 2" in keywords or grade_level |
-| T3 | Search "tractor" | Returns farming videos with "tractor" in title or keywords |
-| T4 | Search "zzzznothing" | Empty state message shown |
-| T5 | Filter by Segment "kid" after search | Results narrow to kid segment only |
-| T6 | Click "Add to Plan" on 3 videos | Plan badge shows "(3)", items appear in plan sidebar |
-| T7 | Remove item from plan | Item removed; badge decrements |
-| T8 | Save plan as "Week 3 – Fractions" | Plan appears in "My Lesson Plans" list |
-| T9 | Share plan with "Teacher Fatou" | Fatou sees plan in her list as "Week 3 – Fractions (shared)" |
-| T10 | Delete a video from disk; load plan containing it | "[Deleted content]" shown with strike-through |
-| T11 | Non-teacher user visits `/teacher.php` | Redirected to `/login.php` |
-| T12 | Search index file missing | User-friendly error message, no PHP fatal |
-| T13 | 500 search results | First 24 shown, "Show more" loads next 24 |
-| T14 | `build_search_index.php` runs after adding 10 new videos | New videos appear in search results |
+```text
+tools.php
+```
 
-## Dependencies
-- **Spec 03 (Simple Name Login):** role gate requires `$_SESSION['role'] === 'teacher'`; teacher `user_id` required for plan ownership
-- **`content_meta` table:** must be designed and populated (new requirement surfaced by this spec)
-- **`search_index.json`:** build script must run as part of content ingestion workflow
-- **Spec 02 (Continue Watching):** player links from search results must pass `content_id` to the same player page
+### Steps
 
-## Estimated Effort
+1. Open the EduTek Home page.
+2. Select **Learning Tools**.
+3. Select a tool card.
+4. Use the selected local application in the new tab or launcher window that opens.
 
-| Task | Estimate |
-|------|----------|
-| Search UI (input, filters, results grid) | 1.5 days |
-| Client-side search against JSON index | 1 day |
-| Index build script (`build_search_index.php`) | 1 day |
-| Lesson plan CRUD (API + UI) | 1.5 days |
-| Plan sharing feature | 0.75 days |
-| Edge cases + empty states | 0.5 days |
-| Test + bug fix | 1 day |
-| **Total** | **7.25 days** |
+Most configured tools open in a new browser tab. Khan Interactive uses its dedicated local launcher:
 
-## Open Questions
-1. **[BLOCKING]** Does a `content_meta` DB table exist, or does content currently live only on the filesystem? If filesystem-only, the index builder must scan directories and parse filenames — define naming convention.
-2. **[BLOCKING]** What fields are available per content item? (title, grade level, keywords, segment, duration?) Required to define the index structure.
-3. Should lesson plans support ordering of content items (drag-to-reorder), or is insertion order sufficient for v1?
-4. Should teachers be able to see and duplicate other teachers' public lesson plans, or only plans explicitly shared with them?
-5. Is there a maximum number of items per lesson plan? (Suggest capping at 50 for v1.)
-6. Is the index rebuild triggered manually, scheduled (cron), or automatically on content upload?
+```text
+launch-khan.php
+```
+
+Tool links are generated from the configured service definitions. Do not hard-code a device hostname, host-only IP address, or external internet URL in user instructions unless the local configuration has been verified on the target device.
+
+---
+
+## Indexing overview
+
+Browsing and search show information that has already been discovered by the EduTek content indexer.
+
+Use indexing after adding, replacing, moving, or reorganizing local content files.
+
+Examples include:
+
+- New videos.
+- New Books/PDF folders.
+- New audiobook folders.
+- New thumbnails or updated media files.
+- Content moved to a different category or subcategory.
+- Files whose metadata must be refreshed.
+
+There are two distinct indexing paths:
+
+| Workflow | Intended user | Access model | Purpose |
+|---|---|---|---|
+| Teacher-protected reindexing | Authorized teacher/administrator | Teacher authentication and CSRF protection | Existing protected application reindex workflow |
+| Local maintenance index | Person physically using the host device | Localhost-only keyboard shortcut | Device-local rescan and verification of new or updated content |
+
+The local maintenance index does not replace the protected teacher reindex workflow.
+
+---
+
+## Teacher-protected reindexing
+
+The application retains a protected reindex endpoint:
+
+```text
+api/reindex.php
+```
+
+This endpoint is intended for an authorized teacher or administrator workflow and remains protected by teacher authorization and CSRF validation.
+
+### Documentation rules
+
+- Do not expose this endpoint as a public, unauthenticated URL.
+- Do not provide instructions that bypass teacher authorization.
+- Do not remove CSRF protection to make reindexing easier.
+- Do not represent the local maintenance shortcut as a substitute for this protected workflow.
+- If a future UI adds a teacher-facing reindex button, document its permission requirement and CSRF behavior.
+
+Before changing the protected workflow, verify the current authorization logic in the code and test it with an authorized account and an unauthorized/guest account.
+
+---
+
+## Local maintenance index
+
+The local maintenance index is intended for the person maintaining the computer that runs the local EduTek application.
+
+It is available only from a local browser request. It is not a remote administration feature.
+
+### What it does
+
+When started, the local maintenance index:
+
+1. Checks Videos, Books, and Audiobooks for new or updated files.
+2. Uses the existing shared content-indexing logic.
+3. Prevents simultaneous indexing runs with an exclusive lock.
+4. Saves index status information to a persistent local directory.
+5. Produces a verification CSV when new or updated content is found.
+6. Does not include unchanged entries or skipped/error entries in that verification CSV.
+
+### Security and access restrictions
+
+The local maintenance API endpoints are:
+
+```text
+api/local-index-start.php
+api/local-index-report.php
+```
+
+They are restricted to local requests, including normal loopback addresses and the current Docker Desktop development bridge address used by the project.
+
+Do not document these endpoints as remotely accessible. A request from a non-local client should be rejected.
+
+### Start the local maintenance index
+
+Use these steps on the same computer that hosts the local EduTek application.
+
+1. Open EduTek through its local browser address.
+2. Click outside any text field, search field, select list, or editable area.
+3. Press:
+
+   ```text
+   Ctrl + Alt + Shift + I
+   ```
+
+4. A confirmation dialog appears with the title:
+
+   ```text
+   Start a full content index now?
+   ```
+
+5. Confirm that the dialog states it checks Videos, Books, and Audiobooks.
+6. Select **Start Index**.
+7. Keep the browser page open while the scan runs.
+8. Wait for the completion or failure message.
+
+The shortcut is intentionally hidden from normal learner navigation. It is a maintenance action, not a visible Home-page control.
+
+### Completion results
+
+A successful completion dialog reports:
+
+- Number of scanned items.
+- Number of new items.
+- Number of updated items.
+- Number of skipped items.
+- Number of thumbnails generated, when applicable.
+
+If no changes are found, the dialog states that the content index is already up to date.
+
+If new or updated content is found, the dialog can provide:
+
+```text
+Download verification CSV
+```
+
+The verification CSV contains only content records whose indexing action was:
+
+```text
+new
+updated
+```
+
+It excludes unchanged content and skipped/error records.
+
+### Duplicate-run behavior
+
+Only one local maintenance index can run at a time.
+
+If another index is already running, a second start attempt is rejected and the application reports that an index is already running.
+
+Wait for the active job to finish before trying again. Do not work around the lock by deleting status files while an index is running.
+
+---
+
+## Local index status and reports
+
+The Docker development configuration persists index status and verification-report files outside the repository.
+
+### Windows host directory
+
+The current Docker Compose configuration uses:
+
+```text
+D:\edutek-system\index-status
+```
+
+### Container directory
+
+Docker maps that host directory into the application and indexer containers as:
+
+```text
+/system/index-status
+```
+
+The application uses this environment variable:
+
+```text
+INDEX_STATUS_DIR=/system/index-status
+```
+
+### Create the host directory
+
+Before using the local maintenance index in the Windows Docker environment, create the directory:
+
+```powershell
+New-Item -ItemType Directory -Force D:\edutek-system\index-status
+```
+
+Verify that it exists:
+
+```powershell
+Test-Path D:\edutek-system\index-status
+```
+
+Expected result:
+
+```text
+True
+```
+
+### Generated local files
+
+The directory may contain files such as:
+
+```text
+local-hotkey-index.lock
+local-hotkey-index.json
+local-index-verification-YYYYMMDD_HHMMSS_<identifier>.csv
+```
+
+These are local runtime records. They may be useful for troubleshooting and verification, but they must not be committed to Git.
+
+The application’s ignored local runtime paths include:
+
+```text
+htdocs/storage/index-status/
+htdocs/storage/comic-books-cache.json
+```
+
+---
+
+## Verify newly added content
+
+Use this checklist after adding content.
+
+### Videos
+
+1. Place the video in the expected content-library location.
+2. Run the appropriate indexing workflow.
+3. Open the video topic directory.
+4. Search for the category, subcategory, or title.
+5. Open the video.
+6. Confirm playback begins and any thumbnail behavior is correct.
+
+### Books and PDFs
+
+1. Place PDFs beneath the Books content root.
+2. Put user-visible PDFs in category folders that do not begin with `_`.
+3. Run indexing when the relevant workflow requires it.
+4. Open **Books & PDFs**.
+5. Search for the category folder name if needed.
+6. Open the category and verify the expected PDFs are visible.
+
+### Audiobooks
+
+1. Place audio content in the expected audiobook folder structure.
+2. Run indexing when appropriate.
+3. Open **Audiobooks**.
+4. Search using part of a title, author, or series folder name.
+5. Open the matching audiobook collection.
+6. Confirm playback works.
+
+### Comic books
+
+1. Place a qualifying PDF anywhere below the Books content root.
+2. Use a filename containing a recognized comic-related term when it should appear in the Comic Books catalog.
+3. Optionally place a matching image beside the PDF for a cover.
+4. Clear or wait for the Comic Books cache if necessary.
+5. Open `Comic_books.php`.
+6. Confirm the item appears.
+7. Confirm **Read** opens the expected PDF.
+8. Confirm **Download** targets the expected file.
+
+### Verification CSV
+
+When the local maintenance index reports new or updated content:
+
+1. Select **Download verification CSV**.
+2. Open the CSV in a spreadsheet editor or text editor.
+3. Confirm that each expected changed item appears.
+4. Review the `content_type`, `category`, `subcategory`, `title`, `file_path`, and `open_url` columns.
+5. Use `open_url` as a starting point to verify the item in the local EduTek interface.
+6. Investigate missing expected files through the indexer audit/status output and the file/folder structure.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | What to check |
+|---|---|---|
+| A known file does not appear in search | Content was not indexed or does not meet discovery rules | Run the appropriate index workflow and confirm folder/file naming |
+| Books page shows no category | The folder has no PDF files, is outside the Books root, or begins with `_` | Confirm the physical folder path and PDF extension |
+| Audiobook search has no results | Search text does not match a folder name | Check title, author, or series folder spelling |
+| Comic book does not appear | Filename does not match a recognized term, cache has not expired, or PDF is outside Books root | Check filename, path, cache, and PDF extension |
+| Comic cover is a placeholder | No same-name local image file exists beside the PDF | Add a `.jpg`, `.jpeg`, `.png`, or `.webp` image with the same base filename |
+| Local index shortcut does nothing | Browser focus is in an editable field, JavaScript did not load, or host is not local | Click outside editable fields, reload, and confirm you are using the local host device |
+| Local index returns access denied | Request is not considered local | Use a browser directly on the host computer; do not use a remote client |
+| Index says another job is running | A previous run is active or did not release the lock after an unexpected failure | Wait for completion, inspect the status JSON, and investigate the prior run before removing files |
+| Index cannot create or write status files | Windows host directory is missing or Docker cannot access it | Create `D:\edutek-system\index-status` and verify Docker/Desktop file access |
+| Verification CSV is unavailable | The index completed but report creation failed or no changed records were available | Review index completion details and the local status/report directory |
+
+---
+
+## Documentation maintenance rules
+
+Update this document whenever any of the following changes:
+
+- Home-page search endpoint, behavior, or visible navigation cards.
+- Directory, Books, Audiobooks, Comic Books, Music, or Learning Tools routes.
+- Books, audiobook, or comic discovery rules.
+- Comic cover image naming rules or cache behavior.
+- Teacher authorization or CSRF requirements for protected reindexing.
+- Local maintenance shortcut keys, access restrictions, status locations, or verification CSV fields.
+- Docker host-path or container-path mapping for index-status files.
+- Content types scanned by the indexer.
+- User-visible completion, error, or verification behavior.
+
+Do not describe a feature as current until it has been verified in the supported local deployment environment.

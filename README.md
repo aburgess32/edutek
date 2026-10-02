@@ -1,474 +1,904 @@
-﻿# EduTek Global â€” EduPak Application
+﻿# EduTek
 
-[![EduPak CI](https://github.com/edutek-global/edupak/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/edutek-global/edupak/actions/workflows/ci.yml)
-[![PHP 8.1](https://img.shields.io/badge/PHP-8.1-777BB4?logo=php&logoColor=white)](https://www.php.net/)
-[![MySQL 8.0](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+EduTek is an offline-first educational media platform for local learning environments. It provides locally hosted videos, audiobooks, books and PDFs, comic books, music, library search, and configurable learning tools.
 
-## Overview
+The application is designed for devices and local networks where internet access may be limited, unreliable, or unavailable.
 
-Web application for the EduPak offline education server. Serves learning content to 60+ devices over local WiFi with zero internet dependency. The app is designed for low-spec hardware, intermittent power, and fully offline operation, with a large local content library (up to 4TB).
-
-## Stack
-
-- **Server (Dev):** Apache in Docker (Docker Desktop + Compose)
-- **Server (Prod):** Apache via XAMPP on EduPak devices
-- **Backend:** PHP
-- **Database:** MySQL 8.0
-- **Frontend:** HTML/CSS/JS (vanilla â€” no heavy frameworks)
-- **Deployment:** Solar-powered EduPak device, offline content library
-
-## Project Structure
-
-```text
-edutek/
-â”œâ”€â”€ .github/workflows/   # CI/CD â€” GitHub Actions
-â”‚   â””â”€â”€ ci.yml           # Lint â†’ Test â†’ Lighthouse pipeline
-â”œâ”€â”€ config/
-â”‚   â””â”€â”€ apache/          # Apache virtual host config (EduPak vhost)
-â”œâ”€â”€ db/
-â”‚   â””â”€â”€ schema.sql       # Database schema (auto-imported in Docker, imported in XAMPP)
-â”œâ”€â”€ dist/                # Built deployment archives (gitignored)
-â”œâ”€â”€ docker/
-â”‚   â””â”€â”€ Dockerfile       # PHP 8.1 + Apache + extensions
-â”œâ”€â”€ docs/                # Sprint specs & architecture docs
-â”œâ”€â”€ htdocs/              # Apache document root (the web app)
-â”‚   â”œâ”€â”€ api/             # Internal API endpoints
-â”‚   â”œâ”€â”€ css/             # Stylesheets
-â”‚   â”œâ”€â”€ img/             # UI images (tiles, icons, avatars)
-â”‚   â”‚   â”œâ”€â”€ tiles/       # Home screen tile images
-â”‚   â”‚   â”œâ”€â”€ icons/       # Navigation & UI icons
-â”‚   â”‚   â””â”€â”€ avatars/     # User profile avatars (Simple Name Login)
-â”‚   â”œâ”€â”€ includes/        # PHP includes (header, footer, db config, helpers)
-â”‚   â”œâ”€â”€ js/              # Client-side JavaScript
-â”‚   â””â”€â”€ index.php        # Main entry point
-â”œâ”€â”€ logs/                # Application and web server logs
-â”œâ”€â”€ reports/             # Test reports, Lighthouse reports (local dev)
-â”œâ”€â”€ scripts/
-â”‚   â”œâ”€â”€ deploy.sh              # Package app for EduPak deployment
-â”‚   â””â”€â”€ deploy-to-device.sh    # Push archive to physical EduPak device (USB/SSH/network)
-â”œâ”€â”€ tests/               # PHPUnit test suite, Playwright e2e tests
-â”œâ”€â”€ vendor/              # Composer dependencies
-â”œâ”€â”€ .dockerignore        # Docker build exclusions
-â”œâ”€â”€ docker-compose.yml   # Local dev sandbox (Docker Desktop)
-â”œâ”€â”€ .env.example         # Environment variable template
-â””â”€â”€ README.md
-```
-
-## Target Devices
-
-- Low-spec Android tablets
-- Feature phones with browsers
-- Shared screens / projectors
-
+> **Documentation status:** Current implementation overview
+> **Last aligned with implementation:** 2026-09-06
 
 ---
 
-## Local Development Setup (Windows + Docker on D:)
+## What EduTek provides
 
-These instructions assume a **Windows 10/11 PC** with Docker Desktop installed and the EduPak content library located on the **D: drive**.
+EduTek helps learners and teachers find and use locally available educational resources.
 
-### Prerequisites
+Current primary content paths:
 
-- Windows 10/11
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Engine + Compose v2)
-- Git
-- Offline content library at:
+| Content type | Main route | Purpose |
+|---|---|---|
+| Videos | `directory.php` | Browse locally available video lessons and topics |
+| Library search | `result.php` | Search indexed learning resources |
+| Audiobooks | `audiobooks.php` | Browse and search audiobook folders |
+| Books & PDFs | `books.php` | Browse and search book/PDF categories |
+| Comic Books | `Comic_books.php` | Browse comic, manga, superhero, and Marvel-related PDFs |
+| Music | `music.php` | Browse local music collections |
+| Learning Tools | `Tools.php` | Open locally configured learning applications and reference tools |
 
-  ```text
-  D:\xampp\htdocs\Edutek\videos
-  ```
+---
 
-  This folder should contain the course/video subdirectories (e.g. Accounting and Bookkeeping, Adobe Photoshop, Adobe XD, Audiobooks, etc.). This path is bind-mounted into the app container as `/content`. [2]
+## Current Home page
 
-### Clone the repository to D:
+The Home page is implemented by:
 
-Open **PowerShell** and run:
+```text
+htdocs/index.php
+```
+
+It is designed as a simple starting point for offline learning.
+
+### Home-page features
+
+- A library-wide search box.
+- A **Watch Videos** card linking to the topic directory.
+- An **Audiobooks** card.
+- A **Books & PDFs** card.
+- A **Music** card.
+- A **Learning Tools** card.
+- A **Browse All Topics** action.
+- A **Search the Library** action.
+
+### Current Home-page destinations
+
+| Home-page action | Destination |
+|---|---|
+| Search form | `result.php?q=<search-term>` |
+| Watch Videos | `directory.php` |
+| Audiobooks | `audiobooks.php` |
+| Books & PDFs | `books.php` |
+| Music | `music.php` |
+| Learning Tools | `tools.php` |
+| Browse All Topics | `directory.php` |
+| Search the Library | `result.php` |
+
+### Features not currently on Home
+
+The Home page does not currently display:
+
+- Continue Watching cards.
+- Personalized watch-progress cards.
+- My Assignments.
+- Choose Your Path segment tiles.
+- A generic all-content grid.
+
+The historical Continue Watching specification is retained in:
+
+```text
+docs/02-continue-watching.md
+```
+
+It is not a current Home-page feature.
+
+---
+
+## Requirements
+
+### Required for Docker development
+
+| Requirement | Recommended version or type | Verify |
+|---|---|---|
+| Windows | Windows 10 or Windows 11 | `winver` |
+| Docker Desktop | Current stable version | `docker version` |
+| Docker Compose | Compose v2 | `docker compose version` |
+| Git for Windows | Current version | `git --version` |
+| Visual Studio Code | Current version | `code --version` |
+| Web browser | Current Edge, Chrome, Firefox, or equivalent | Open local application URL |
+
+### Required host folders
+
+The Docker development configuration expects these Windows folders:
+
+```text
+D:\xampp\htdocs\Edutek\videos
+D:\edutek-system\index-status
+```
+
+The content library is mounted into containers as:
+
+```text
+/content
+```
+
+The index-status and report directory is mounted into containers as:
+
+```text
+/system/index-status
+```
+
+Before first Docker startup, verify that both folders exist:
+
+```powershell
+Test-Path D:\xampp\htdocs\Edutek\videos
+Test-Path D:\edutek-system\index-status
+```
+
+Both commands should return:
+
+```text
+True
+```
+
+If the index-status directory is missing, create it:
+
+```powershell
+New-Item -ItemType Directory -Force D:\edutek-system\index-status
+```
+
+---
+
+## Repository layout
+
+```text
+edutek/
+├── htdocs/                     PHP application document root
+│   ├── api/                    HTTP endpoints and maintenance APIs
+│   ├── assets/                 Local CSS, JavaScript, fonts, and images
+│   ├── css/                    Application and page styles
+│   ├── includes/               Shared auth, config, database, and indexer logic
+│   ├── js/                     Browser-side application behavior
+│   ├── index.php               Home page
+│   ├── directory.php           Video/topic browsing
+│   ├── result.php              Search results
+│   ├── books.php               Books/PDF categories and search
+│   ├── audiobooks.php          Audiobook browsing and search
+│   ├── Comic_books.php         Comic Books catalog
+│   ├── music.php               Music browsing
+│   └── Tools.php               Locally configured learning tools
+├── db/                         Database schema and migrations
+├── docker/                     Docker image configuration
+├── config/                     Apache, OpenSSL, and application configuration
+├── docs/                       Architecture, feature, deployment, and planning docs
+├── scripts/                    Maintenance and setup scripts
+├── tests/                      Automated tests
+├── docker-compose.yml          Docker development services
+├── composer.json               PHP dependencies and scripts
+├── package.json                JavaScript dependencies and scripts
+├── Makefile                    Development command shortcuts
+└── .env.example                Environment-variable template
+```
+
+---
+
+## Docker development setup
+
+Use Docker for a repeatable local development environment.
+
+### 1. Clone the repository
+
+Use a normal Git clone outside the XAMPP deployment folder.
+
+Recommended location:
+
+```text
+D:\edutek
+```
+
+Clone:
 
 ```powershell
 cd D:\
-git clone https://github.com/aburgess32/edutek.git
+git clone [https://github.com/aburgess32/edutek.git](https://github.com/aburgess32/edutek.git) edutek
 cd D:\edutek
 ```
 
-`D:\edutek` is the working project root for all development and Docker operations.
-
-### Create your `.env` file
-
-The repository includes `.env.example`, which documents all available configuration variables (DB connection, logging, content path, cipher key/IV, teacher passphrase). [3]
-
-Create a local `.env` from the template:
+Verify:
 
 ```powershell
-cd D:\edutek
-Copy-Item .env.example .env
+git status
+git branch --show-current
 ```
 
-You can edit `.env` to adjust `APP_ENV`, `APP_DEBUG`, logging level, teacher passphrase, etc. The Docker Compose file injects DB connection values for the app via environment variables: [2]
+The working tree should be clean.
+
+Do not assume this directory is a Git repository:
 
 ```text
-DB_HOST=db
-DB_PORT=3306
-DB_NAME=edupak
-DB_USER=edupak
-DB_PASS=edupak_dev
-CONTENT_PATH=/content/
+D:\xampp\htdocs\Edutek
 ```
 
-### Verify the content library path
+That location may be an XAMPP runtime/deployment copy without a `.git` directory.
 
-The Docker stack bind-mounts the offline content library from:
+### 2. Confirm Docker is available
+
+From the repository root:
+
+```powershell
+docker version
+docker compose version
+```
+
+Both commands must complete without errors.
+
+If Docker Desktop is not running, start it and wait until its status reports that the Docker engine is running.
+
+### 3. Confirm local host directories
+
+Verify the mounted content and index-status directories:
+
+```powershell
+Test-Path D:\xampp\htdocs\Edutek\videos
+Test-Path D:\edutek-system\index-status
+```
+
+Create the index-status directory if needed:
+
+```powershell
+New-Item -ItemType Directory -Force D:\edutek-system\index-status
+```
+
+The media-library directory must contain your local EduTek content. Do not delete or replace it when working with the Git clone.
+
+### 4. Configure environment values
+
+Create a local `.env` file from the example:
+
+```powershell
+Copy-Item .\.env.example .\.env
+```
+
+Open it:
+
+```powershell
+code .\.env
+```
+
+Review each value before starting the application.
+
+Do not commit `.env`. It can contain device-specific settings and secrets.
+
+### 5. Validate the Compose configuration
+
+From the repository root:
+
+```powershell
+docker compose config
+```
+
+Expected result:
+
+- Docker prints the resolved Compose configuration.
+- No required-variable error appears.
+- The application, database, phpMyAdmin, and indexer services resolve successfully.
+
+### 6. Start the development stack
+
+Run:
+
+```powershell
+docker compose up --build -d
+```
+
+Verify service status:
+
+```powershell
+docker compose ps
+```
+
+Expected services:
+
+| Service | Expected state |
+|---|---|
+| `app` | Running |
+| `db` | Running or healthy |
+| `phpmyadmin` | Running |
+| `indexer` | One-shot service; behavior depends on its configured command |
+
+If a service fails, inspect logs:
+
+```powershell
+docker compose logs --tail 150
+```
+
+To inspect one service:
+
+```powershell
+docker compose logs --tail 150 app
+docker compose logs --tail 150 db
+docker compose logs --tail 150 indexer
+```
+
+### 7. Open EduTek
+
+Open the application in your browser:
+
+```text
+http://localhost:8080
+```
+
+Open phpMyAdmin, if needed:
+
+```text
+http://localhost:8081
+```
+
+The database is reachable from the Windows host on:
+
+```text
+localhost:3307
+```
+
+The database remains on port `3306` inside the Docker network.
+
+### 8. Stop the development stack
+
+When you are finished:
+
+```powershell
+docker compose down
+```
+
+To also remove the database volume, use this only when you intentionally want to erase Docker database data:
+
+```powershell
+docker compose down -v
+```
+
+Warning: `docker compose down -v` removes named volumes, including the Docker database volume. Do not use it casually.
+
+---
+
+## XAMPP-oriented deployment
+
+EduTek can also run through an Apache/PHP and MySQL/MariaDB stack outside Docker, including XAMPP-style local deployments.
+
+Typical runtime location:
+
+```text
+D:\xampp\htdocs\Edutek
+```
+
+This directory can be used by Apache as the web application root. It may not be a Git repository.
+
+### Deployment rules
+
+- Use a separate Git clone for development, branches, commits, and pull requests.
+- Deploy tested application changes from the Git clone to the XAMPP runtime directory using a deliberate deployment process.
+- Keep local media libraries, `.env` files, caches, logs, generated reports, and database data outside Git.
+- Confirm that Apache/PHP has read access to local content folders.
+- Confirm writable runtime locations for features that generate files.
+- Do not copy or overwrite the media library while deploying ordinary code/documentation changes.
+
+For device-specific deployment information, see:
+
+```text
+docs/device-matrix.md
+```
+
+---
+
+## Content library
+
+Docker development mounts this Windows library into containers:
 
 ```text
 D:\xampp\htdocs\Edutek\videos
 ```
 
-Verify this path exists and contains your video/course directories:
+Container path:
 
-```powershell
-Test-Path "D:\xampp\htdocs\Edutek\videos"
-ls "D:\xampp\htdocs\Edutek\videos"
+```text
+/content
 ```
 
-If you move the library to a different location on `D:`, update the volume mapping in `docker-compose.yml`:
+The content library may contain:
 
-```yaml
-- D:/new/path/to/videos:/content
+```text
+Videos
+Books
+Audiobooks
+Music
 ```
 
-Note the use of **forward slashes** for Windows paths inside Docker Compose. [2]
+The exact internal organization must remain consistent with the current content indexer and browsing pages.
+
+### Videos
+
+Use the topic directory and library search to find indexed video learning resources:
+
+```text
+directory.php
+result.php
+```
+
+After adding, moving, or replacing video files, run the appropriate indexing workflow before expecting the files to appear in search and browsing results.
+
+### Books and PDFs
+
+The Books page is:
+
+```text
+books.php
+```
+
+Current behavior:
+
+- Displays book-category folders containing PDF files.
+- Uses the Docker Books root:
+
+  ```text
+  /content/Books
+  ```
+
+- May fall back to `htdocs/videos/Books` for legacy/local layouts.
+- Hides folders beginning with `_`.
+- Filters category names through the `q` query parameter.
+- Does not search inside PDF text.
+
+For user-visible content, avoid using category folder names that begin with `_`.
+
+### Audiobooks
+
+The Audiobooks page is:
+
+```text
+audiobooks.php
+```
+
+Current behavior:
+
+- Browses local audiobook folders.
+- Filters folder names using the `q` query parameter.
+- Supports title, author, and series discovery when those details are represented in folder names.
+- Requires at least two entered characters before automatic filtering runs.
+- Applies filtering after a short typing delay.
+- Provides a **Clear search** link when a query is active.
+- Does not search audio transcripts or embedded metadata unless separately implemented.
+
+### Comic Books
+
+The Comic Books page is:
+
+```text
+Comic_books.php
+```
+
+Current behavior:
+
+- Recursively scans the Books library for PDF files.
+- Includes PDFs whose filenames contain recognized comic-related terms.
+- Recognized case-insensitive terms include:
+
+  ```text
+  comic
+  manga
+  superhero
+  superheroes
+  supervillain
+  supervillains
+  marvel
+  ```
+
+- Displays catalog cards with **Read** and **Download** actions.
+- Uses a same-name image beside the PDF as a cover when available.
+- Uses a local placeholder cover if no image exists.
+- Caches discovered entries for approximately 10 minutes.
+
+Comic PDFs do not need to be stored in one dedicated `Comic Books` folder.
+
+Example:
+
+```text
+/content/Books/Graphic Novels/Example Comic.pdf
+/content/Books/Graphic Novels/Example Comic.jpg
+```
+
+Supported cover-image extensions:
+
+```text
+.jpg
+.jpeg
+.png
+.webp
+```
+
+The generated Comic Books cache is local runtime data:
+
+```text
+htdocs/storage/comic-books-cache.json
+```
+
+It is ignored by Git and must not be committed.
+
+### Music
+
+The Music page is:
+
+```text
+music.php
+```
+
+Use the Home-page Music card to browse available local music collections.
+
+### Learning Tools
+
+The Learning Tools page is:
+
+```text
+Tools.php
+```
+
+It renders locally configured learning applications and reference tools.
+
+Current behavior:
+
+- Most configured tools open in a new browser tab.
+- Khan Interactive uses the local launcher:
+
+  ```text
+  launch-khan.php
+  ```
+
+- Tool destinations can use local ports, relative paths, or configured service URLs.
+- Local service URLs use the current host name when another port is required.
+
+Before adding a tool, verify that it works without internet access when offline operation is required.
 
 ---
 
-## Running the EduPak Stack with Docker Compose (Windows Dev)
+## Content indexing
 
-The `docker-compose.yml` file defines a three-service local stack for development: [2]
+EduTek browsing and search depend on indexed content metadata.
 
-- `app` (`edupak-app`): Apache + PHP 8.1 (EduPak web app)
-- `db` (`edupak-db`): MySQL 8.0
-- `phpmyadmin` (`edupak-phpmyadmin`): Database admin UI
+Run indexing after:
 
-### Start the stack
+- Adding videos, books/PDFs, audiobooks, or music.
+- Moving or reorganizing content.
+- Replacing a file.
+- Updating file names, categories, subcategories, covers, or thumbnails.
+- Investigating content missing from search or browsing.
 
-From `D:\edutek` in PowerShell:
+### Teacher-protected reindexing
 
-```powershell
-cd D:\edutek
-docker compose up -d --build
-docker compose ps
-```
-
-On success, you should see something like:
+EduTek retains a teacher-protected reindex endpoint:
 
 ```text
-NAME                IMAGE               STATUS                        PORTS
-edupak-app          edutek-app          Up                            0.0.0.0:8080->80/tcp
-edupak-db           mysql:8.0           Up (healthy)                  0.0.0.0:3307->3306/tcp
-edupak-phpmyadmin   phpmyadmin:latest   Up                            0.0.0.0:8081->80/tcp
+htdocs/api/reindex.php
 ```
 
-### Access the app and database
+This workflow is intended for authorized teacher or administrator use and remains protected by authorization and CSRF validation.
 
-- EduPak web app: `http://localhost:8080`
-- phpMyAdmin: `http://localhost:8081` [2]
+Do not expose it as an unauthenticated public action or weaken its security checks.
 
-Default phpMyAdmin credentials (from `docker-compose.yml`): [2]
+### Local maintenance index
 
-- Server: `db`
-- Username: `edupak`
-- Password: `edupak_dev`
+EduTek also includes a local-host-only maintenance workflow for the person using the host computer.
 
-### Stop and restart services
+It uses these components:
 
-Stop the stack and remove containers:
-
-```powershell
-cd D:\edutek
-docker compose down
+```text
+htdocs/api/local-index-start.php
+htdocs/api/local-index-report.php
+htdocs/js/local-index-hotkey.js
 ```
 
-Restart the app after code changes:
+The local maintenance action is started with this keyboard shortcut:
 
-```powershell
-cd D:\edutek
-docker compose restart app
+```text
+Ctrl + Alt + Shift + I
 ```
 
-Most PHP and asset changes under `D:\edutek\htdocs` take effect immediately because `htdocs` is bind-mounted into `/var/www/html` in the app container. [2]
+Use it only from a browser on the computer hosting the local EduTek application.
 
-### Useful Docker commands
+### Run the local maintenance index
 
-```powershell
-# View app logs
-cd D:\edutek
-docker compose logs -f app
+1. Open EduTek locally in a browser.
+2. Click outside all search inputs, form fields, and editable text areas.
+3. Press:
 
-# View database logs
-docker compose logs -f db
+   ```text
+   Ctrl + Alt + Shift + I
+   ```
 
-# Wipe database volume and start fresh
-docker compose down -v
-docker compose up -d --build
+4. Review the confirmation dialog.
+5. Confirm that it states it checks Videos, Books, and Audiobooks.
+6. Select **Start Index**.
+7. Keep the browser page open while the scan runs.
+8. Review the completion message.
+
+The local maintenance index:
+
+- Uses the shared application indexer.
+- Checks Videos, Books, and Audiobooks for new or updated content.
+- Prevents simultaneous runs through an exclusive lock.
+- Writes status and report files into the local index-status directory.
+- Can provide a downloadable verification CSV when new or updated content is found.
+- Is restricted to local requests and is not a remote administration feature.
+
+### Index status and reports
+
+Windows host directory:
+
+```text
+D:\edutek-system\index-status
 ```
+
+Container directory:
+
+```text
+/system/index-status
+```
+
+The directory can contain existing indexer output and local maintenance output, including:
+
+```text
+README.txt
+index-run-YYYY-MM-DD_HH-MM-SS.csv
+index-up-to-date.json
+scan-YYYY-MM-DD_HH-MM-SS.json
+local-hotkey-index.lock
+local-hotkey-index.json
+local-index-verification-YYYYMMDD_HHMMSS_<identifier>.csv
+```
+
+The newer verification CSV contains only `new` and `updated` records. It excludes unchanged content and skipped/error entries.
+
+Do not commit index reports, lock files, status files, or generated caches.
 
 ---
 
-## Troubleshooting (Windows + Docker)
+## Verification checklist
 
-### Container name `edupak-db` already in use
+Run this checklist after deployment or a significant application/content update.
 
-If `docker compose up` reports:
+### Application checks
 
-```text
-Error response from daemon: Conflict. The container name "/edupak-db" is already in useâ€¦
-You have to remove (or rename) that container to be able to reuse that name.
-```
+1. Open:
 
-Remove the old containers and restart:
+   ```text
+   http://localhost:8080
+   ```
 
-```powershell
-docker rm -f edupak-db edupak-app edupak-phpmyadmin
-cd D:\edutek
-docker compose up -d --build
-```
+2. Confirm the Home page shows:
+   - Search.
+   - Watch Videos.
+   - Audiobooks.
+   - Books & PDFs.
+   - Music.
+   - Learning Tools.
 
-Docker requires unique container names; removing old containers frees the names for the current stack. [87][89]
+3. Submit a known library search term.
+4. Open the video/topic directory.
+5. Open a known Book/PDF category.
+6. Search for a known audiobook title, author, or series folder.
+7. Open a Comic Books item, if available.
+8. Open the Music page.
+9. Open configured Learning Tools.
 
-### No containers listed for this project
+### Indexing checks
 
-If `docker compose ps` shows an empty table for this project:
-
-```text
-NAME  IMAGE  COMMAND  SERVICE  CREATED  STATUS  PORTS
-```
-
-Start the stack:
-
-```powershell
-cd D:\edutek
-docker compose up -d
-docker compose ps
-```
-
-### App or DB connection issues
-
-Check logs:
-
-```powershell
-cd D:\edutek
-docker compose logs app
-docker compose logs db
-```
-
-Fix reported PHP/DB issues, then restart:
-
-```powershell
-docker compose restart app
-```
-
-### Content library not visible in the app
-
-Confirm the source path still exists and is correctly mapped:
-
-```powershell
-Test-Path "D:\xampp\htdocs\Edutek\videos"
-ls "D:\xampp\htdocs\Edutek\videos"
-```
-
-If the path changes on D:, update the `D:/...:/content` volume mapping in `docker-compose.yml` to match the new location. [2]
-
----
-
-## Deployment Pipeline: Docker Dev â†’ XAMPP Production
-
-This section explains how to move from a **Docker Desktop development build on a Windows PC (D: drive)** to a **XAMPP-based production deployment on an EduPak device**.
-
-### 1. Develop and verify using Docker Desktop (Windows PC)
-
-On your development machine (Windows):
-
-1. Follow the **Local Development Setup (Windows + Docker on D:)** instructions above.
-2. Confirm the local Docker stack runs successfully:
+1. Confirm the status folder exists:
 
    ```powershell
-   cd D:\edutek
-   docker compose up -d --build
-   docker compose ps
+   Test-Path D:\edutek-system\index-status
    ```
 
-3. Test locally:
+2. On the host browser, press:
 
-   - EduPak app: `http://localhost:8080`
-   - phpMyAdmin: `http://localhost:8081`
-
-   Confirm that:
-   - Home tiles, login, content browsing work as expected.
-   - Database interactions and progress tracking work.
-
-Once the app behaves correctly under Docker on your PC, youâ€™re ready to package and deploy to an EduPak device.
-
-### 2. Build a deployment archive from the Docker dev workspace
-
-From the same `D:\edutek` workspace, run the deployment script to create an archive of the app code and related assets:
-
-```bash
-./scripts/deploy.sh
-# Output: dist/edupak-YYYYMMDD-HHMMSS.tar.gz
-```
-
-This script packages:
-
-- `htdocs/` â€” main web application code.
-- `config/apache/` â€” Apache virtual host configuration.
-- `db/schema.sql` and any other required DB artifacts.
-- Any additional files required by the EduPak runtime.
-
-The resulting `.tar.gz` archive in `dist/` is what you transfer to the EduPak device for XAMPP-based deployment.
-
-### 3. Transfer the archive to the EduPak device
-
-There are two main options:
-
-#### Option A â€” Network (SSH/FTP) transfer
-
-If the EduPak device is reachable on the local network:
-
-```bash
-./scripts/deploy-to-device.sh dist/edupak-YYYYMMDD-HHMMSS.tar.gz 192.168.1.100
-```
-
-- `192.168.1.100` is the EduPak deviceâ€™s IP address.
-- `deploy-to-device.sh` handles copying the archive and placing it in the correct directory on the device.
-
-See `scripts/deploy-to-device.sh` for detailed options and manual USB/SSH transfer instructions.
-
-#### Option B â€” USB/manual copy
-
-If you cannot reach the device over the network:
-
-1. Copy `dist/edupak-YYYYMMDD-HHMMSS.tar.gz` to a USB drive.
-2. Plug the USB into the EduPak device.
-3. Manually copy the archive to a suitable folder (e.g. `/home/edupak/deploy`).
-4. SSH into the device and extract the archive (see next step).
-
-### 4. Install into XAMPP on the EduPak device
-
-On the **EduPak device** (production), XAMPP is used as the runtime stack (Apache + MySQL). Docker Desktop is **not** required on the device.
-
-1. **Extract the archive** on the device:
-
-   ```bash
-   cd /path/to/deploy-folder
-   tar -xzf edupak-YYYYMMDD-HHMMSS.tar.gz
-   # This should produce an edutek/ folder structure similar to the repo
+   ```text
+   Ctrl + Alt + Shift + I
    ```
 
-2. **Copy the web app into XAMPPâ€™s htdocs**:
+3. Start an index run.
+4. Wait for completion.
+5. If content changed, download the verification CSV.
+6. Confirm expected new or updated content appears in the report.
+7. Use the report’s `open_url` column as a starting point for UI verification.
 
-   - Locate XAMPPâ€™s `htdocs` directory on the device (for example `C:\xampp\htdocs` on Windows or `/opt/lampp/htdocs` on Linux).
-   - Copy the contents of the extracted `htdocs/` into the XAMPP htdocs directory, e.g.:
+### Docker checks
 
-     ```bash
-     # Example on a Linux-based EduPak device:
-     cp -r edutek/htdocs/* /opt/lampp/htdocs/edutek/
-     ```
+```powershell
+docker compose ps
+docker compose logs --tail 150
+docker compose config
+```
 
-     Adjust paths as needed for the deviceâ€™s XAMPP installation.
-
-3. **Import the database schema into XAMPP MySQL**:
-
-   - Use phpMyAdmin or the `mysql` CLI to import `db/schema.sql`:
-
-     ```bash
-     mysql -u root -p edupak < edutek/db/schema.sql
-     ```
-
-     Or:
-
-     - Open phpMyAdmin on the device (typically `http://localhost/phpmyadmin`).
-     - Create a database named `edupak`.
-     - Import `edutek/db/schema.sql` into that database.
-
-4. **Configure database credentials in the app**:
-
-   - Edit `htdocs/includes/config.php` (on the deviceâ€™s XAMPP htdocs) to match the XAMPP MySQL credentials:
-
-     ```php
-     // Example: adjust host, user, password, db
-     $db_host = 'localhost';
-     $db_port = 3306;
-     $db_name = 'edupak';
-     $db_user = 'root';           // or a non-root user if configured
-     $db_pass = '';               // set to the actual password
-     ```
-
-   - Ensure these values match the actual XAMPP MySQL configuration on the EduPak device.
-
-5. **Copy Apache virtual host config**:
-
-   - Copy `config/apache/edupak.conf` from the extracted archive into XAMPPâ€™s Apache vhost directory.
-
-     For example (Linux-based XAMPP):
-
-     ```bash
-     cp edutek/config/apache/edupak.conf /opt/lampp/apache/conf/extra/edupak.conf
-     ```
-
-   - Include this vhost file from the main Apache config (e.g., in `httpd.conf`):
-
-     ```apache
-     Include conf/extra/edupak.conf
-     ```
-
-   - Ensure the vhost points to the correct document root (e.g. `/opt/lampp/htdocs/edutek`).
-
-6. **Restart XAMPP services**:
-
-   - Use the XAMPP control panel or CLI to restart Apache and MySQL:
-
-     ```bash
-     /opt/lampp/lampp restart
-     ```
-
-   - On Windows, use the XAMPP Control Panel to stop and start Apache and MySQL.
-
-### 5. Verify the production deployment on the EduPak device
-
-On the EduPak device (or a client connected to its local network):
-
-1. Open the configured EduPak URL (e.g. `http://edupak.local/` or `http://192.168.1.100/edutek`), depending on the vhost configuration.
-2. Confirm:
-   - Home tiles load correctly.
-   - Simple Name Login works.
-   - Content browsing and video playback work using the deviceâ€™s offline content library (4TB drive).
-   - Progress tracking and database writes succeed.
-
-This completes the pipeline:
-
-- **Dev environment** â†’ Docker Desktop + Compose on your Windows PC (`D:\edutek`).
-- **Production environment** â†’ XAMPP (Apache + MySQL) on EduPak devices, using the deployment archive produced from the dev workspace.
+Do not mark a deployment as verified until the relevant user paths and local content behavior have been tested.
 
 ---
 
-## Git Workflow
+## Development workflow
 
-All changes for the EduPak Windows/Docker setup should be made in the local clone at `D:\edutek`:
+### Create a feature or documentation branch
+
+From the Git clone:
 
 ```powershell
 cd D:\edutek
-git pull origin master
-# make changes
-git add .
-git commit -m "Describe your change"
-git push origin master
+git status
+git switch master
+git pull --ff-only origin master
+git switch -c <type>/<short-description>
 ```
 
-On macOS or Linux, contributors can edit and commit code and documentation (including this README) while still targeting the Windows runtime environment. The repoâ€™s CI (GitHub Actions) continues to lint, test, and run Lighthouse audits on each push.
+Examples:
+
+```text
+docs/update-content-indexing-guide
+fix/audiobook-search-layout
+feat/add-learning-tool-card
+```
+
+### Review changes before committing
+
+```powershell
+git status
+git diff --check
+git diff --stat
+git diff
+```
+
+Stage only intended files:
+
+```powershell
+git add path/to/file1 path/to/file2
+```
+
+Review staged changes:
+
+```powershell
+git diff --cached --check
+git diff --cached --stat
+git diff --cached
+```
+
+Commit:
+
+```powershell
+git commit -m "docs: describe the change clearly"
+```
+
+Push:
+
+```powershell
+git push -u origin <branch-name>
+```
+
+Create a pull request against:
+
+```text
+master
+```
+
+### Line endings on Windows
+
+This repository uses `.gitattributes` to normalize source and Markdown files to LF line endings.
+
+For a Windows clone, use:
+
+```powershell
+git config core.autocrlf false
+```
+
+Verify:
+
+```powershell
+git config --get core.autocrlf
+```
+
+Expected result:
+
+```text
+false
+```
+
+If Git reports only CRLF/LF differences in a fresh clone, confirm there are no meaningful differences:
+
+```powershell
+git diff --ignore-space-at-eol --stat
+git diff --ignore-all-space --stat
+```
+
+Do not commit line-ending-only changes.
 
 ---
 
-## Team
+## Testing and quality checks
 
-- **Lyndon Jones** â€” Original developer, Africa Dev Ops
-- **Alexander Burgess** â€” Lead developer (current)
-- **Anne Prinzhorn** â€” Executive Director
+The repository includes test and quality configuration in:
+
+```text
+phpunit.xml
+phpcs.xml
+playwright.config.js
+lighthouserc.js
+package.json
+composer.json
+Makefile
+.github/workflows/ci.yml
+```
+
+These files are the authoritative source for commands and CI requirements.
+
+List available JavaScript scripts:
+
+```powershell
+npm run
+```
+
+List available Composer scripts:
+
+```powershell
+composer run-script --list
+```
+
+List Make targets, if GNU Make is installed:
+
+```powershell
+make help
+```
+
+On standard Windows installations, GNU Make may not be installed. Use the underlying `npm`, Composer, and Docker commands when Make is unavailable.
+
+Before opening a pull request:
+
+1. Run the relevant local tests and quality checks defined by the repository scripts.
+2. Run `git diff --check`.
+3. Confirm no secrets, local reports, caches, media files, or `.env` files are staged.
+4. Verify user-facing changes in the local application.
+5. Confirm that documentation matches the current implementation.
+
+---
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| `docs/01-visual-home-tiles.md` | Current Home-page structure and navigation |
+| `docs/02-continue-watching.md` | Historical Continue Watching feature specification |
+| `docs/05-teacher-content-finder.md` | Teacher content finding and indexing workflows |
+| `docs/architecture.md` | Current technical architecture |
+| `docs/device-matrix.md` | Device roles, deployment models, and validation expectations |
+| `CONTRIBUTING.md` | Contribution workflow and repository standards |
+| `CLAUDE.md` | Repository-specific development guidance |
+
+Planning documents under `docs/` may describe historical or proposed work. Verify their status before treating them as current implementation instructions.
+
+---
+
+## Security and offline-first rules
+
+- Do not commit `.env` files, passwords, API keys, or other secrets.
+- Do not commit local media libraries, generated caches, logs, database data, index reports, status JSON, verification CSVs, or lock files.
+- Do not expose local maintenance APIs publicly.
+- Do not weaken teacher authorization or CSRF protection for reindexing.
+- Do not add mandatory CDN dependencies to core application behavior.
+- Keep CSS, JavaScript, fonts, icons, and essential learning resources available locally.
+- Test the application with no internet connection before claiming offline support.
+- Use a separate Git clone for development if the XAMPP runtime directory is not a Git repository.
+
+---
+
+## Troubleshooting
+
+| Problem | Check | Typical next step |
+|---|---|---|
+| `fatal: not a git repository` | Current folder has no `.git` directory | Move to the actual Git clone, such as `D:\edutek` |
+| Docker command fails | Docker Desktop may not be running | Start Docker Desktop and rerun `docker version` |
+| Port `3307` is unavailable | Another local service uses the port | Identify the conflicting service or update Compose configuration deliberately |
+| App does not load at `localhost:8080` | Container may not be running | Run `docker compose ps` and inspect `docker compose logs app` |
+| Database is unhealthy | Database startup or schema issue | Run `docker compose logs db` |
+| New content is missing | Content has not been indexed or is in the wrong folder | Verify path, naming, then run the appropriate index workflow |
+| Books category is missing | Folder has no PDFs or begins with `_` | Add PDFs or rename the user-visible category |
+| Audiobook search finds nothing | Query does not match a folder name | Check title, author, or series folder naming |
+| Comic PDF is missing | Filename does not contain a recognized comic-related term | Rename appropriately, confirm it is below the Books root, and allow/clear cache |
+| Comic cover is a placeholder | No same-name image is available | Add `.jpg`, `.jpeg`, `.png`, or `.webp` beside the PDF |
+| Local index shortcut does nothing | Focus is inside a form field or JavaScript did not load | Click outside editable fields, reload, then retry |
+| Local index reports access denied | Request did not originate locally | Run it from a browser on the EduTek host device |
+| Local index cannot write reports | Host folder or Docker access issue | Confirm `D:\edutek-system\index-status` exists and Docker can mount it |
+| Git reports CRLF/LF-only changes | Windows line ending conversion | Verify with whitespace-ignore diff commands; do not commit formatting-only changes |
+
+---
+
+## License and project ownership
+
+Add the applicable project license and ownership terms here if they are not already defined elsewhere in the repository.

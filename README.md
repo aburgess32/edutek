@@ -1,4 +1,4 @@
-﻿# EduTek Global â€” EduPak Application
+﻿# EduTek Global — EduPak Application
 
 [![EduPak CI](https://github.com/edutek-global/edupak/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/edutek-global/edupak/actions/workflows/ci.yml)
 [![PHP 8.1](https://img.shields.io/badge/PHP-8.1-777BB4?logo=php&logoColor=white)](https://www.php.net/)
@@ -15,44 +15,44 @@ Web application for the EduPak offline education server. Serves learning content
 - **Server (Prod):** Apache via XAMPP on EduPak devices
 - **Backend:** PHP
 - **Database:** MySQL 8.0
-- **Frontend:** HTML/CSS/JS (vanilla â€” no heavy frameworks)
+- **Frontend:** HTML/CSS/JS (vanilla — no heavy frameworks)
 - **Deployment:** Solar-powered EduPak device, offline content library
 
 ## Project Structure
 
 ```text
 edutek/
-â”œâ”€â”€ .github/workflows/   # CI/CD â€” GitHub Actions
-â”‚   â””â”€â”€ ci.yml           # Lint â†’ Test â†’ Lighthouse pipeline
-â”œâ”€â”€ config/
-â”‚   â””â”€â”€ apache/          # Apache virtual host config (EduPak vhost)
-â”œâ”€â”€ db/
-â”‚   â””â”€â”€ schema.sql       # Database schema (auto-imported in Docker, imported in XAMPP)
-â”œâ”€â”€ dist/                # Built deployment archives (gitignored)
-â”œâ”€â”€ docker/
-â”‚   â””â”€â”€ Dockerfile       # PHP 8.1 + Apache + extensions
-â”œâ”€â”€ docs/                # Sprint specs & architecture docs
-â”œâ”€â”€ htdocs/              # Apache document root (the web app)
-â”‚   â”œâ”€â”€ api/             # Internal API endpoints
-â”‚   â”œâ”€â”€ css/             # Stylesheets
-â”‚   â”œâ”€â”€ img/             # UI images (tiles, icons, avatars)
-â”‚   â”‚   â”œâ”€â”€ tiles/       # Home screen tile images
-â”‚   â”‚   â”œâ”€â”€ icons/       # Navigation & UI icons
-â”‚   â”‚   â””â”€â”€ avatars/     # User profile avatars (Simple Name Login)
-â”‚   â”œâ”€â”€ includes/        # PHP includes (header, footer, db config, helpers)
-â”‚   â”œâ”€â”€ js/              # Client-side JavaScript
-â”‚   â””â”€â”€ index.php        # Main entry point
-â”œâ”€â”€ logs/                # Application and web server logs
-â”œâ”€â”€ reports/             # Test reports, Lighthouse reports (local dev)
-â”œâ”€â”€ scripts/
-â”‚   â”œâ”€â”€ deploy.sh              # Package app for EduPak deployment
-â”‚   â””â”€â”€ deploy-to-device.sh    # Push archive to physical EduPak device (USB/SSH/network)
-â”œâ”€â”€ tests/               # PHPUnit test suite, Playwright e2e tests
-â”œâ”€â”€ vendor/              # Composer dependencies
-â”œâ”€â”€ .dockerignore        # Docker build exclusions
-â”œâ”€â”€ docker-compose.yml   # Local dev sandbox (Docker Desktop)
-â”œâ”€â”€ .env.example         # Environment variable template
-â””â”€â”€ README.md
+├── .github/workflows/   # CI/CD — GitHub Actions
+│   └── ci.yml           # Lint → Test → Lighthouse pipeline
+├── config/
+│   └── apache/          # Apache virtual host config (EduPak vhost)
+├── db/
+│   └── schema.sql       # Database schema (auto-imported in Docker, imported in XAMPP)
+├── dist/                # Built deployment archives (gitignored)
+├── docker/
+│   └── Dockerfile       # PHP 8.1 + Apache + extensions
+├── docs/                # Sprint specs & architecture docs
+├── htdocs/              # Apache document root (the web app)
+│   ├── api/             # Internal API endpoints
+│   ├── css/             # Stylesheets
+│   ├── img/             # UI images (tiles, icons, avatars)
+│   │   ├── tiles/       # Home screen tile images
+│   │   ├── icons/       # Navigation & UI icons
+│   │   └── avatars/     # User profile avatars (Simple Name Login)
+│   ├── includes/        # PHP includes (header, footer, db config, helpers)
+│   ├── js/              # Client-side JavaScript
+│   └── index.php        # Main entry point
+├── logs/                # Application and web server logs
+├── reports/             # Test reports, Lighthouse reports (local dev)
+├── scripts/
+│   ├── deploy.sh              # Package app for EduPak deployment
+│   └── deploy-to-device.sh    # Push archive to physical EduPak device (USB/SSH/network)
+├── tests/               # PHPUnit test suite, Playwright e2e tests
+├── vendor/              # Composer dependencies
+├── .dockerignore        # Docker build exclusions
+├── docker-compose.yml   # Local dev sandbox (Docker Desktop)
+├── .env.example         # Environment variable template
+└── README.md
 ```
 
 ## Target Devices
@@ -220,7 +220,7 @@ docker compose up -d --build
 If `docker compose up` reports:
 
 ```text
-Error response from daemon: Conflict. The container name "/edupak-db" is already in useâ€¦
+Error response from daemon: Conflict. The container name "/edupak-db" is already in use…
 You have to remove (or rename) that container to be able to reuse that name.
 ```
 
@@ -279,7 +279,7 @@ If the path changes on D:, update the `D:/...:/content` volume mapping in `docke
 
 ---
 
-## Deployment Pipeline: Docker Dev â†’ XAMPP Production
+## Deployment Pipeline: Docker Dev → XAMPP Production
 
 This section explains how to move from a **Docker Desktop development build on a Windows PC (D: drive)** to a **XAMPP-based production deployment on an EduPak device**.
 
@@ -305,7 +305,7 @@ On your development machine (Windows):
    - Home tiles, login, content browsing work as expected.
    - Database interactions and progress tracking work.
 
-Once the app behaves correctly under Docker on your PC, youâ€™re ready to package and deploy to an EduPak device.
+Once the app behaves correctly under Docker on your PC, you’re ready to package and deploy to an EduPak device.
 
 ### 2. Build a deployment archive from the Docker dev workspace
 
@@ -318,8 +318,8 @@ From the same `D:\edutek` workspace, run the deployment script to create an arch
 
 This script packages:
 
-- `htdocs/` â€” main web application code.
-- `config/apache/` â€” Apache virtual host configuration.
+- `htdocs/` — main web application code.
+- `config/apache/` — Apache virtual host configuration.
 - `db/schema.sql` and any other required DB artifacts.
 - Any additional files required by the EduPak runtime.
 
@@ -329,7 +329,7 @@ The resulting `.tar.gz` archive in `dist/` is what you transfer to the EduPak de
 
 There are two main options:
 
-#### Option A â€” Network (SSH/FTP) transfer
+#### Option A — Network (SSH/FTP) transfer
 
 If the EduPak device is reachable on the local network:
 
@@ -337,12 +337,12 @@ If the EduPak device is reachable on the local network:
 ./scripts/deploy-to-device.sh dist/edupak-YYYYMMDD-HHMMSS.tar.gz 192.168.1.100
 ```
 
-- `192.168.1.100` is the EduPak deviceâ€™s IP address.
+- `192.168.1.100` is the EduPak device’s IP address.
 - `deploy-to-device.sh` handles copying the archive and placing it in the correct directory on the device.
 
 See `scripts/deploy-to-device.sh` for detailed options and manual USB/SSH transfer instructions.
 
-#### Option B â€” USB/manual copy
+#### Option B — USB/manual copy
 
 If you cannot reach the device over the network:
 
@@ -363,9 +363,9 @@ On the **EduPak device** (production), XAMPP is used as the runtime stack (Apach
    # This should produce an edutek/ folder structure similar to the repo
    ```
 
-2. **Copy the web app into XAMPPâ€™s htdocs**:
+2. **Copy the web app into XAMPP’s htdocs**:
 
-   - Locate XAMPPâ€™s `htdocs` directory on the device (for example `C:\xampp\htdocs` on Windows or `/opt/lampp/htdocs` on Linux).
+   - Locate XAMPP’s `htdocs` directory on the device (for example `C:\xampp\htdocs` on Windows or `/opt/lampp/htdocs` on Linux).
    - Copy the contents of the extracted `htdocs/` into the XAMPP htdocs directory, e.g.:
 
      ```bash
@@ -373,7 +373,7 @@ On the **EduPak device** (production), XAMPP is used as the runtime stack (Apach
      cp -r edutek/htdocs/* /opt/lampp/htdocs/edutek/
      ```
 
-     Adjust paths as needed for the deviceâ€™s XAMPP installation.
+     Adjust paths as needed for the device’s XAMPP installation.
 
 3. **Import the database schema into XAMPP MySQL**:
 
@@ -391,7 +391,7 @@ On the **EduPak device** (production), XAMPP is used as the runtime stack (Apach
 
 4. **Configure database credentials in the app**:
 
-   - Edit `htdocs/includes/config.php` (on the deviceâ€™s XAMPP htdocs) to match the XAMPP MySQL credentials:
+   - Edit `htdocs/includes/config.php` (on the device’s XAMPP htdocs) to match the XAMPP MySQL credentials:
 
      ```php
      // Example: adjust host, user, password, db
@@ -406,7 +406,7 @@ On the **EduPak device** (production), XAMPP is used as the runtime stack (Apach
 
 5. **Copy Apache virtual host config**:
 
-   - Copy `config/apache/edupak.conf` from the extracted archive into XAMPPâ€™s Apache vhost directory.
+   - Copy `config/apache/edupak.conf` from the extracted archive into XAMPP’s Apache vhost directory.
 
      For example (Linux-based XAMPP):
 
@@ -440,13 +440,67 @@ On the EduPak device (or a client connected to its local network):
 2. Confirm:
    - Home tiles load correctly.
    - Simple Name Login works.
-   - Content browsing and video playback work using the deviceâ€™s offline content library (4TB drive).
+   - Content browsing and video playback work using the device’s offline content library (4TB drive).
    - Progress tracking and database writes succeed.
 
 This completes the pipeline:
 
-- **Dev environment** â†’ Docker Desktop + Compose on your Windows PC (`D:\edutek`).
-- **Production environment** â†’ XAMPP (Apache + MySQL) on EduPak devices, using the deployment archive produced from the dev workspace.
+- **Dev environment** → Docker Desktop + Compose on your Windows PC (`D:\edutek`).
+- **Production environment** → XAMPP (Apache + MySQL) on EduPak devices, using the deployment archive produced from the dev workspace.
+
+---
+
+## Administrator Content Management
+
+Use the Home-page maintenance controls after adding, moving, or deleting items in the local content library.
+
+### Open the maintenance controls
+
+1. Open the Edutek Home page.
+2. Click outside any search box or text field so the page has focus.
+3. Press `Ctrl + Alt + Shift + I`.
+4. Choose the required action from the administrator maintenance dialog.
+
+| Task | Shortcut or action |
+| --- | --- |
+| Open administrator content-maintenance controls | `Ctrl + Alt + Shift + I` on the Home page |
+| Add or refresh content in the catalog | Use the content indexing action in the maintenance dialog |
+| Remove catalog records for files deleted from disk | Select **Remove deleted content from catalog** |
+
+### Add content safely
+
+1. Copy the real primary content file into the appropriate subject or category folder in the configured content library.
+2. Preserve the intended folder structure, because Edutek derives catalog organization from the content path.
+3. Add supported primary files only, such as video, audio, documents, or ebooks.
+4. Do not add operating-system metadata artifacts as learning content. This includes filenames beginning with `._`, `.DS_Store`, `Thumbs.db`, and `desktop.ini`.
+5. On the Home page, press `Ctrl + Alt + Shift + I` and run the content indexing action.
+6. Verify that the added item appears in the expected browse or search results and opens correctly.
+
+### Remove content safely
+
+1. Identify the actual primary content file to remove. Do not remove similarly named files unless they are also intended for removal.
+2. Remove or archive that primary file from the content library.
+3. On the Home page, press `Ctrl + Alt + Shift + I`.
+4. Select **Remove deleted content from catalog**.
+5. Save the resulting maintenance report when available.
+6. Confirm that the removed item no longer appears in browse or search results.
+
+Use the dedicated removal action for deleted files instead of running a full index solely to remove stale catalog entries. The cleanup action removes catalog records for files no longer present; it does not delete normal media from disk.
+
+### Metadata artifacts excluded from indexing
+
+Edutek automatically skips the following filesystem metadata artifacts so they are not shown as playable or readable learning content:
+
+- macOS AppleDouble sidecars: filenames beginning with `._`
+- macOS Finder metadata: `.DS_Store`
+- Windows Explorer metadata: `Thumbs.db` and `desktop.ini`
+
+AppleDouble sidecars can have media-looking names such as `._lesson.mp4` or `._chapter.mp3`, but they are metadata sidecars rather than the real media files. Review unmatched sidecars before deleting them from disk.
+
+### Recent usability improvements
+
+- Books and Audiobooks provide debounced live search, updating results without a full-page reload while keeping the search field focused.
+- Watch-page breadcrumbs use browser history when available, improving return navigation.
 
 ---
 
@@ -463,12 +517,12 @@ git commit -m "Describe your change"
 git push origin master
 ```
 
-On macOS or Linux, contributors can edit and commit code and documentation (including this README) while still targeting the Windows runtime environment. The repoâ€™s CI (GitHub Actions) continues to lint, test, and run Lighthouse audits on each push.
+On macOS or Linux, contributors can edit and commit code and documentation (including this README) while still targeting the Windows runtime environment. The repo’s CI (GitHub Actions) continues to lint, test, and run Lighthouse audits on each push.
 
 ---
 
 ## Team
 
-- **Lyndon Jones** â€” Original developer, Africa Dev Ops
-- **Alexander Burgess** â€” Lead developer (current)
-- **Anne Prinzhorn** â€” Executive Director
+- **Lyndon Jones** — Original developer, Africa Dev Ops
+- **Alexander Burgess** — Lead developer (current)
+- **Anne Prinzhorn** — Executive Director

@@ -142,6 +142,20 @@ usort($videoFiles, function ($a, $b) {
 
   // FRE-50: Check DB for transcoded HEVC path
   $transcodedPath = '';
+
+  // Build the canonical tutorials.php category from the current folder path.
+  // Example: /content/Agra Forestry/Agra Forestry Videos/ -> Agra Forestry.
+  $breadcrumbCategory = '';
+  $breadcrumbPath = trim(str_replace('\\', '/', $file), '/');
+
+  if (str_starts_with($breadcrumbPath, 'content/')) {
+      $breadcrumbPath = substr($breadcrumbPath, strlen('content/'));
+  }
+
+  if ($breadcrumbPath !== '') {
+      $breadcrumbCategory = strtok($breadcrumbPath, '/');
+  }
+
   if ($currentVideoSrc !== '') {
       try {
           $pdo = getDbConnection();
@@ -288,30 +302,32 @@ usort($videoFiles, function ($a, $b) {
       </a>
       <?php endif; ?>
 
-<!-- Breadcrumb -->
-<nav class="wp-breadcrumb" aria-label="Breadcrumb">
-  <ol>
-    <li><a href="index.php">Home</a></li>
+      <!-- Breadcrumb -->
+      <?php
+      // Build the category return route using the existing encrypted
+      // tutorials.php course parameter format.
+      $breadcrumbFolderHref = 'index.php';
 
-    <li>
-      <a
-        href="index.php"
-        onclick="
-          if (window.history.length > 1) {
-            event.preventDefault();
-            window.history.back();
-          }
-        "
-      >
-        <?php echo htmlspecialchars($file1, ENT_QUOTES, 'UTF-8'); ?>
-      </a>
-    </li>
-
-    <li class="wp-bc-current">
-      <?php echo htmlspecialchars($currentVideoName, ENT_QUOTES, 'UTF-8'); ?>
-    </li>
-  </ol>
-</nav>
+      if ($breadcrumbCategory !== '') {
+          $breadcrumbFolderHref = 'tutorials.php?'
+              . tileEncrypt('course')
+              . '='
+              . tileEncrypt($breadcrumbCategory);
+      }
+      ?>
+      <nav class="wp-breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="index.php">Home</a></li>
+          <li>
+            <a href="<?php echo htmlspecialchars($breadcrumbFolderHref, ENT_QUOTES, 'UTF-8'); ?>">
+              <?php echo htmlspecialchars($file1, ENT_QUOTES, 'UTF-8'); ?>
+            </a>
+          </li>
+          <li class="wp-bc-current">
+            <?php echo htmlspecialchars($currentVideoName, ENT_QUOTES, 'UTF-8'); ?>
+          </li>
+        </ol>
+      </nav>
 
       <!-- Player Card -->
       <div class="player-card">

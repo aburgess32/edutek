@@ -166,6 +166,7 @@ function myFunction() {
 
   </div>
 </nav>
+<script src="js/navbar-offset.js"></script>
 	
 	
 	<!-----Main Contianer-->

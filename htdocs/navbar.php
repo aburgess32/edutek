@@ -157,6 +157,7 @@ require_once __DIR__ . '/includes/auto-index.php'; checkAndReindex();
 
   </div>
 </nav>
+<script src="js/navbar-offset.js"></script>
 
       
     <!-- Bootstrap core JavaScript — all local, no CDN fallbacks (offline-first) -->

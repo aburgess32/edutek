@@ -317,8 +317,6 @@ echo '<div class="SavedWrapper book-category-card">'
             return;
         }
 
-        const selectionStart = input.selectionStart;
-        const selectionEnd = input.selectionEnd;
         const url = new URL(window.location.href);
 
         if (query === '') {
@@ -367,16 +365,12 @@ echo '<div class="SavedWrapper book-category-card">'
             window.history.replaceState({}, '', url.toString());
             appliedQuery = query;
 
-            if (document.activeElement === input) {
-                input.focus({ preventScroll: true });
-
-                if (
-                    selectionStart !== null
-                    && selectionEnd !== null
-                ) {
-                    input.setSelectionRange(selectionStart, selectionEnd);
-                }
-            }
+            // Deliberately do NOT touch input focus or selection here.
+            // The input element is never replaced (only the results div is
+            // updated), so the browser already preserves the caret. Restoring
+            // a caret position captured when the request started yanks the
+            // cursor backward if the user typed more while the request was
+            // in flight, inserting characters in the middle of the word.
 
             status.textContent = '';
         } catch (error) {

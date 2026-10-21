@@ -42,6 +42,13 @@ $file1b = decQueryParam($videoname1, $cipher, $decryption_key, $options, $iv);
 
 $pdfPath = $filea;
 $pdfName = $file1b !== '' ? $file1b : basename($filea);
+$idUrl = '';
+$idParam = isset($_GET['id']) ? (string) $_GET['id'] : '';
+if ($pdfPath === '' && $idParam !== '' && strpos($idParam, 'content/') === 0 && strpos($idParam, '..') === false && strpos($idParam, "\0") === false && strpos($idParam, '\\') === false) {
+    $pdfPath = '/' . $idParam;
+    $pdfName = basename($idParam);
+    $idUrl = '/' . implode('/', array_map('rawurlencode', explode('/', $idParam)));
+}
 
 $isValidPdf = false;
 $pdfUrl = '';
@@ -50,7 +57,9 @@ if ($pdfPath !== '') {
     $ext = strtolower(pathinfo($pdfPath, PATHINFO_EXTENSION));
     if ($ext === 'pdf' && file_exists($pdfPath) && is_file($pdfPath)) {
         $isValidPdf = true;
-        if (function_exists('resolveContentUrl')) {
+        if ($idUrl !== '') {
+            $pdfUrl = $idUrl;
+        } elseif (function_exists('resolveContentUrl')) {
             $pdfUrl = resolveContentUrl($pdfPath);
         } else {
             $pdfUrl = $pdfPath;

@@ -42,7 +42,20 @@ echo "Indexing content from: {$contentRoot}\n";
 // Run indexer
 // -----------------------------------------------------------------------------
 
-$result = indexContent($contentRoot);
+$onlyPaths = null;
+foreach (array_slice($argv, 2) as $arg) {
+    if (strpos($arg, '--files=') === 0) {
+        $manifest = substr($arg, 8);
+        $data = is_file($manifest) ? json_decode((string) file_get_contents($manifest), true) : null;
+        if (!is_array($data)) {
+            fwrite(STDERR, "Error: cannot read file list {$manifest}\n");
+            exit(1);
+        }
+        $onlyPaths = array_values(array_filter($data, 'is_string'));
+        echo 'Indexing only ' . count($onlyPaths) . " listed files\n";
+    }
+}
+$result = indexContent($contentRoot, 0, $onlyPaths);
 
 if (!$result['success']) {
     fwrite(STDERR, "Error: {$result['error']}\n");

@@ -275,7 +275,7 @@ function writeIndexAuditRow($handle, array $row): void
         fputcsv($handle, $row);
     }
 }
-function indexContent(string $contentRoot, int $maxThumbnails = 0): array
+function indexContent(string $contentRoot, int $maxThumbnails = 0, ?array $onlyPaths = null): array
 {
     // Normalize to forward slashes for cross-platform consistency
     $contentRoot = rtrim(str_replace('\\', '/', $contentRoot), '/');
@@ -372,6 +372,19 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
     ");
 
     try {
+        if ($onlyPaths !== null) {
+        $iterator = [];
+        foreach ($onlyPaths as $onlyRel) {
+            $onlyRel = ltrim(str_replace('\\', '/', (string) $onlyRel), '/');
+            if ($onlyRel === '' || strpos($onlyRel, '..') !== false) {
+                continue;
+            }
+            $onlyAbs = $contentRoot . '/' . $onlyRel;
+            if (is_file($onlyAbs)) {
+                $iterator[] = new SplFileInfo($onlyAbs);
+            }
+        }
+    } else {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator(
                 $contentRoot,
@@ -379,6 +392,7 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0): array
             ),
             RecursiveIteratorIterator::LEAVES_ONLY
         );
+    }
     } catch (Exception $e) {
         return [
             'success' => false,

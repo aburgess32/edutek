@@ -56,8 +56,9 @@ function isHevc(string $filePath): bool
 
 // 1. Already transcoded → update DB if needed, then serve
 if (file_exists($outputFile) && filesize($outputFile) > 0) {
-    $webUrl = '/content/' . $normalizedPath;
-    $webUrl = dirname($webUrl) . '/' . rawurlencode($baseName . '.h264.' . $ext);
+    // Patch 6: raw relative path for the DB (same form as step 4 / watch.php), encoded URL for the browser.
+    $transcodedRelReady = dirname($normalizedPath) . '/' . basename($outputFile);
+    $webUrl = contentWebUrl($transcodedRelReady);
 
     // Ensure DB knows about the transcoded file so the batch loop skips it
     try {
@@ -74,7 +75,7 @@ if (file_exists($outputFile) && filesize($outputFile) > 0) {
         $stmt = $pdo->prepare(
             "UPDATE content_meta SET transcoded_path = :tp, codec = 'hevc' WHERE content_id = :id AND (transcoded_path IS NULL OR transcoded_path = '')"
         );
-        $stmt->execute([':tp' => $webUrl, ':id' => $contentId]);
+        $stmt->execute([':tp' => $transcodedRelReady, ':id' => $contentId]);
     } catch (PDOException $e) {
         error_log('Transcode DB update failed: ' . $e->getMessage());
     }
@@ -118,7 +119,7 @@ if (!isHevc($sourceFile)) {
     $stmt = $pdo->prepare("UPDATE content_meta SET codec = 'h264', duration_seconds = COALESCE(duration_seconds, 0) WHERE content_id = :id AND (codec IS NULL OR codec != 'h264')");
     $stmt->execute([':id' => $contentId]);
 
-    $webUrl = '/content/' . $normalizedPath;
+    $webUrl = contentWebUrl($normalizedPath);
     echo json_encode(['status' => 'ready', 'url' => $webUrl, 'codec' => 'h264']);
     exit;
 }

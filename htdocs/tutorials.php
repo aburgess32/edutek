@@ -26,7 +26,7 @@ function findSubcategoryThumb($category, $subcategory, $contentRoot) {
     foreach (['jpg', 'jpeg', 'png', 'webp'] as $ext) {
         $path = $base . '.' . $ext;
         if (file_exists($path)) {
-            return resolveContentUrl($category . '/' . $subcategory . '.' . $ext);
+            return contentWebUrl($category . '/' . $subcategory . '.' . $ext);
         }
     }
     return null;
@@ -153,11 +153,132 @@ try {
 } catch (Exception $e) {
     $subcategories = [];
 }
+
+// Patch 5: items stored directly in the category folder (no subfolder) have
+// subcategory = '' in content_meta. List them in their own section.
+$looseItems = [];
+if ($decryption !== '' && isset($pdo)) {
+    try {
+        $stmtLoose = $pdo->prepare(
+            "SELECT content_id, title, file_path, thumbnail_path
+             FROM content_meta
+             WHERE category = :cat AND (subcategory = '' OR subcategory IS NULL)
+             ORDER BY title ASC"
+        );
+        $stmtLoose->execute([':cat' => $decryption]);
+        foreach ($stmtLoose->fetchAll(PDO::FETCH_ASSOC) as $looseRow) {
+            // Skip catalog rows whose file is gone, so no dead links are shown.
+            $looseAbs = buildAbsoluteContentPath($looseRow['file_path'], $contentRoot);
+            if ($looseAbs !== '' && is_file($looseAbs)) {
+                $looseItems[] = $looseRow;
+            }
+        }
+    } catch (Exception $e) {
+        $looseItems = [];
+    }
+}
 ?>
+<style>
+/* Patch 5: collapsed sections are skipped by Tab; clear keyboard focus ring */
+.tut-section:not(.open) .tut-section-body { visibility: hidden; transition: max-height 0.35s ease, visibility 0s linear 0.35s; }
+.tut-section.open .tut-section-body { visibility: visible; transition: max-height 0.35s ease, visibility 0s; }
+.tut-section-toggle:focus-visible, .tut-video-item .tut-vid-name:focus-visible { outline: 3px solid #f0b429; outline-offset: 2px; }
+</style>
 
 <div class="tutorials-header">
     <span class="fa fa-fw fa-bookmark"></span><?php echo htmlspecialchars($decryption ?: 'Library'); ?> Library
 </div>
+
+<?php
+if (!empty($looseItems)) {
+    $sectionIdx++;
+    $looseFolderPath = $contentRoot . '/' . $decryption . '/';
+    $looseFolderName = $decryption;
+
+    $looseTypeCounts = [];
+    $looseThumb = 'images/sample.png';
+    foreach ($looseItems as $tmpItem) {
+        $tmpType = detectContentTypeFromPath($tmpItem['file_path']);
+        $looseTypeCounts[$tmpType] = ($looseTypeCounts[$tmpType] ?? 0) + 1;
+        if ($looseThumb === 'images/sample.png' && !empty($tmpItem['thumbnail_path'])) {
+            $looseThumb = contentWebUrl($tmpItem['thumbnail_path']);
+        }
+    }
+    $looseTitle = 'Items in this category';
+    $looseLabel = 'items';
+    if (count($looseTypeCounts) === 1) {
+        $onlyType = array_key_first($looseTypeCounts);
+        if ($onlyType === 'video') { $looseTitle = 'Videos in this category'; $looseLabel = 'videos'; }
+        elseif ($onlyType === 'pdf' || $onlyType === 'book') { $looseTitle = 'Books in this category'; $looseLabel = 'books'; }
+        elseif ($onlyType === 'audiobook') { $looseTitle = 'Audio in this category'; $looseLabel = 'audio files'; }
+    }
+    if (count($looseItems) === 1) {
+        $looseLabel = rtrim($looseLabel, 's');
+    }
+    $looseOpen = empty($subcategories);
+?>
+<div class="tut-section tut-section--loose<?php echo $looseOpen ? ' open' : ''; ?>" id="tut-sec--loose">
+    <button class="tut-section-toggle" onclick="toggleSection(this)" aria-expanded="<?php echo $looseOpen ? 'true' : 'false'; ?>" aria-controls="tut-sec--loose-body">
+        <img src="<?php echo htmlspecialchars($looseThumb, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="tut-thumb">
+        <div class="tut-section-info">
+            <p class="tut-section-title"><?php echo htmlspecialchars($decryption ?: 'Library'); ?></p>
+            <div class="tut-section-count"><?php echo count($looseItems); ?> <?php echo htmlspecialchars($looseLabel, ENT_QUOTES, 'UTF-8'); ?></div>
+        </div>
+        <span class="fa fa-chevron-down tut-chevron"></span>
+    </button>
+
+    <div class="tut-section-body" id="tut-sec--loose-body">
+        <ul class="tut-video-list">
+<?php
+    $itemNum = 0;
+    foreach ($looseItems as $item) {
+        $itemNum++;
+        $filePath = $item['file_path'];
+        $fullPath = buildAbsoluteContentPath($filePath, $contentRoot);
+        $baseName = basename($filePath);
+        $ext = strtoupper(pathinfo($baseName, PATHINFO_EXTENSION));
+        $title = $item['title'] ?: prettyName($baseName);
+        $type = detectContentTypeFromPath($filePath);
+
+        $href = buildContentHref(
+            $type,
+            $looseFolderPath,
+            $looseFolderName,
+            $fullPath,
+            $baseName,
+            $cipher,
+            $encryption_key,
+            $options,
+            $iv,
+            $videolink,
+            $videoname,
+            $videolink1,
+            $videoname1,
+            $bcQuery
+        );
+
+        if (!empty($item['thumbnail_path']) && $type === 'video') {
+            $thumbHtml = '<img src="' . htmlspecialchars(contentWebUrl($item['thumbnail_path']), ENT_QUOTES, 'UTF-8') . '" alt="" class="tut-vid-thumb">';
+        } elseif ($type === 'video') {
+            $thumbHtml = '<img src="images/sample.png" data-lazy-thumb="' . htmlspecialchars($item['content_id'], ENT_QUOTES, 'UTF-8') . '" alt="" class="tut-vid-thumb">';
+        } else {
+            $iconCls = contentTypeIcon($type);
+            $thumbHtml = '<span class="tut-vid-thumb tut-vid-thumb--icon"><i class="fa ' . htmlspecialchars($iconCls) . '" aria-hidden="true"></i></span>';
+        }
+?>
+            <li class="tut-video-item">
+                <span class="tut-vid-num"><?php echo $itemNum; ?></span>
+                <?php echo $thumbHtml; ?>
+                <a href="<?php echo htmlspecialchars($href, ENT_QUOTES, 'UTF-8'); ?>" class="tut-vid-name" title="<?php echo htmlspecialchars($baseName, ENT_QUOTES, 'UTF-8'); ?>">
+                    <?php echo htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?>
+                </a>
+                <span class="tut-vid-ext"><?php echo htmlspecialchars(contentTypeLabel($type), ENT_QUOTES, 'UTF-8'); ?><?php if ($ext) echo ' &middot; ' . htmlspecialchars($ext, ENT_QUOTES, 'UTF-8'); ?></span>
+            </li>
+<?php } ?>
+        </ul>
+    </div>
+</div>
+<?php } ?>
 
 <?php
 foreach ($subcategories as $folderName) {
@@ -180,12 +301,12 @@ foreach ($subcategories as $folderName) {
     if ($subcatThumb) {
         $firstThumb = $subcatThumb;
     } elseif (!empty($items[0]['thumbnail_path'])) {
-        $firstThumb = resolveContentUrl($items[0]['thumbnail_path']);
+        $firstThumb = contentWebUrl($items[0]['thumbnail_path']);
     } else {
         $firstThumb = 'images/sample.png';
     }
 
-    $thumbSrc = htmlspecialchars($firstThumb);
+    $thumbSrc = htmlspecialchars($firstThumb, ENT_QUOTES, 'UTF-8');
 
     $typeCounts = [];
     foreach ($items as $tmpItem) {
@@ -242,7 +363,7 @@ foreach ($subcategories as $folderName) {
         );
 
         if (!empty($item['thumbnail_path']) && $type === 'video') {
-            $thumbHtml = '<img src="' . htmlspecialchars(resolveContentUrl($item['thumbnail_path'])) . '" alt="" class="tut-vid-thumb">';
+            $thumbHtml = '<img src="' . htmlspecialchars(contentWebUrl($item['thumbnail_path']), ENT_QUOTES, 'UTF-8') . '" alt="" class="tut-vid-thumb">';
         } elseif ($type === 'video') {
             $thumbHtml = '<img src="images/sample.png" data-lazy-thumb="' . htmlspecialchars($item['content_id'], ENT_QUOTES, 'UTF-8') . '" alt="" class="tut-vid-thumb">';
         } else {
@@ -277,6 +398,16 @@ function toggleSection(btn) {
     var expanded = section.classList.contains('open');
     btn.setAttribute('aria-expanded', expanded);
 }
+// Patch 5: open and focus the section named in the address (#tut-sec-...)
+(function () {
+    var id = decodeURIComponent((window.location.hash || '').replace(/^#/, ''));
+    if (id.indexOf('tut-sec-') !== 0) return;
+    var sec = document.getElementById(id);
+    if (!sec) return;
+    var btn = sec.querySelector('.tut-section-toggle');
+    if (!sec.classList.contains('open') && btn) toggleSection(btn);
+    if (btn) btn.focus();
+})();
 </script>
 
 <script src="js/lazy-thumbs.js"></script>

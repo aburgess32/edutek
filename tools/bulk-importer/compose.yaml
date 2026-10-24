@@ -1,0 +1,39 @@
+services:
+  web:
+    image: ${EDUTEK_SANDBOX_IMAGE:?Run Install-FreshSandbox.ps1 first}
+    pull_policy: never
+    user: www-data
+    restart: unless-stopped
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "/sandbox/public"]
+    ports:
+      - "127.0.0.1:8092:8080"
+    volumes:
+      - ./app:/sandbox:ro
+      - ./data:/sandbox-data
+    networks:
+      - browser
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  worker:
+    image: ${EDUTEK_SANDBOX_IMAGE:?Run Install-FreshSandbox.ps1 first}
+    pull_policy: never
+    user: www-data
+    restart: unless-stopped
+    command: ["php", "/sandbox/public/bulk-import-sandbox.php"]
+    network_mode: none
+    volumes:
+      - ./app:/sandbox:ro
+      - ./data:/sandbox-data
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  browser:
+    driver: bridge

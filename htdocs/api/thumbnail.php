@@ -75,7 +75,7 @@ try {
     if ($dbThumb !== '') {
         $thumbDiskPath = $contentRoot . '/' . ltrim(str_replace(basename($contentRoot) . '/', '', $dbThumb), '/');
         if (file_exists($thumbDiskPath) && filesize($thumbDiskPath) > 100) {
-            echo json_encode(['success' => true, 'thumbnail_url' => resolveContentUrl($dbThumb), 'generated' => false]);
+            echo json_encode(['success' => true, 'thumbnail_url' => contentWebUrl($dbThumb), 'generated' => false]);
             exit;
         }
     }
@@ -90,7 +90,7 @@ try {
             // Update DB so next query is fast
             $up = $pdo->prepare('UPDATE content_meta SET thumbnail_path = ? WHERE content_id = ?');
             $up->execute([$webPath, $contentId]);
-            echo json_encode(['success' => true, 'thumbnail_url' => $webPath, 'generated' => false]);
+            echo json_encode(['success' => true, 'thumbnail_url' => contentWebUrl($webPath), 'generated' => false]);
             exit;
         }
     }
@@ -121,7 +121,7 @@ try {
             $webPath = resolveContentUrl(basename($contentRoot) . '/' . str_replace($contentRoot . '/', '', $candidate));
             $up = $pdo->prepare('UPDATE content_meta SET thumbnail_path = ? WHERE content_id = ?');
             $up->execute([$webPath, $contentId]);
-            echo json_encode(['success' => true, 'thumbnail_url' => $webPath, 'generated' => false]);
+            echo json_encode(['success' => true, 'thumbnail_url' => contentWebUrl($webPath), 'generated' => false]);
             exit;
         }
     }
@@ -137,7 +137,7 @@ try {
         $webPath = resolveContentUrl(basename($contentRoot) . '/' . str_replace($contentRoot . '/', '', $generatedPath));
         $up = $pdo->prepare('UPDATE content_meta SET thumbnail_path = ? WHERE content_id = ?');
         $up->execute([$webPath, $contentId]);
-        echo json_encode(['success' => true, 'thumbnail_url' => $webPath, 'generated' => true]);
+        echo json_encode(['success' => true, 'thumbnail_url' => contentWebUrl($webPath), 'generated' => true]);
         exit;
     }
 

@@ -1,0 +1,25 @@
+CHECKLIST-4p.txt - trying Patch 4p by keyboard (after it is installed; this file does not install anything)
+Install:  open PowerShell in this folder.
+  [ ] .\Install-Patch4p.ps1            check only (changes nothing) -> ALL CHECKS PASSED
+  [ ] .\Install-Patch4p.ps1 -E2E       throwaway tests + keyboard walk -> END-TO-END TEST PASSED
+  [ ] .\Install-Patch4p.ps1 -Apply     installs (backup in D:\edutek-system\backups\importer-4p\<time>)
+  Back to 4o at any time: .\Install-Patch4p.ps1 -Rollback latest
+
+Try it with Desktop\Import Big Test (see EXPECTED-4p.txt in that folder):
+  [ ] Choose the folder, Enter. The first screen ("Found ...") shows "Left out of this import (4)":
+      the damaged video, the broken MP3 and the 2 notes files, each with its reason.
+  [ ] It says books get the shelf you choose and loose audio goes to Music > Import Big Test.
+  [ ] N: in the list, Damaged Download Test.mp4 is shown as damaged and left out; X on it does not tick it.
+  [ ] Every book says "Needs a shelf". N (Next) is blocked: "... still need a shelf".
+  [ ] Space on two books, M, type "Scie" (or part of any shelf) - the list filters - Enter: both books show Books > that shelf.
+  [ ] Space on other books, C, type a new shelf name, Enter: they show "<name> (new shelf)".
+  [ ] X on one book skips it instead of choosing a shelf.
+  [ ] Space on the 2 loose videos, M, type a category, Enter.
+  [ ] N to the check screen; Tab to Publish; Enter: the confirm lists New categories, New Books shelves and new
+      subfolders; "No" has the focus. Esc goes back, nothing is published.
+  [ ] Publish again, Y: the import is converted, then published.
+  [ ] Done screen: totals and time; per category/subcategory counts; C jumps to the category links (they open
+      http://<this PC>:8080/...); B jumps to the books, one Open PDF link each; L jumps to the left-out list.
+  [ ] U asks to undo; "No, keep the import" has the focus; Esc keeps it.
+  [ ] N starts a new import.
+  [ ] When finished testing: U, Y to undo the test import.

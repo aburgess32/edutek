@@ -15,6 +15,9 @@
  * @package EduPak
  */
 
+// Patch 7 (2026-10-22): shared junk rule (edutek_safe_name v1) and clean display titles (edutek_title v1)
+require_once __DIR__ . '/edutek-title.php';
+
 // Content type mapping by file extension
 define('CONTENT_EXTENSION_MAP', [
     'mp4'  => 'video',
@@ -68,14 +71,9 @@ function detectSource(string $relativePath): string
  */
 function titleFromFilename(string $filename): string
 {
-    // Remove leading numbers/dots/dashes (e.g. "001 - ", "01.", "1-")
-    $clean = preg_replace('/^\d+[\s.\-_]+/', '', $filename);
-    // Replace underscores and hyphens with spaces
-    $clean = str_replace(['_', '-'], ' ', $clean);
-    // Collapse multiple spaces
-    $clean = preg_replace('/\s+/', ' ', trim($clean));
-    // Title case
-    return mb_convert_case($clean, MB_CASE_TITLE, 'UTF-8');
+    // Patch 7: same rule as before (leading numbering removed, "_" and "-" read as spaces, spaces collapsed,
+    // title case) plus leading "._" / "." / "_", stray dots, ".." and trailing dots removed. See edutek-title.php.
+    return edutek_display_title($filename);
 }
 
 /**
@@ -424,6 +422,9 @@ function indexContent(string $contentRoot, int $maxThumbnails = 0, ?array $onlyP
             || $basename === '.DS_Store'
             || strcasecmp($basename, 'Thumbs.db') === 0
             || strcasecmp($basename, 'desktop.ini') === 0
+            // Patch 7: every other junk entry of the shared rule (hidden dot-files, .lnk shortcuts, empty media
+            // files, anything inside __MACOSX / .Trashes / $RECYCLE.BIN / hidden folders)
+            || edutek_index_junk(ltrim(str_replace($contentRoot, '', $fullPath), '/'), (int) $fileInfo->getSize()) !== ''
         ) {
             $skippedCount++;
             continue;

@@ -109,6 +109,8 @@ if(PHP_SAPI==='cli'){
     while(true){file_put_contents(BI_ROOT.'/heartbeat.txt',gmdate(DATE_ATOM));foreach(glob(BI_ROOT.'/*/command.json')?:[] as $path){$claimed=dirname($path).'/claimed.json';if(rename($path,$claimed)){try{bi_process(dirname($path),bi_read($claimed));}catch(Throwable $e){error_log($e->getMessage());}unlink($claimed);}}sleep(2);}
 }
 /* Independent sandbox access; no Edutek account dependency. */
+/* Browser visits go to the guided importer. The worker runs this file as CLI and never leaves the loop above. */
+if(PHP_SAPI!=='cli'){header('Location: /bulk-import-guided.php',true,302);exit;}
 session_name('EDUTEK_BULK_FRESH_V05');
 session_set_cookie_params([
     'lifetime' => 0,

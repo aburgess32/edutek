@@ -99,3 +99,34 @@ htdocs/vendor/
 # Temporary cache files
 *.tmp
 *.temp
+# Edutek bulk importer runtime data, secrets and backups (never commit)
+**/.env
+!.env.example
+operator-auth.json
+**/operator-auth.json
+**/guide_config*
+**/*wifi*key*
+**/*.psk
+*.pem
+*.key
+*.pfx
+*.p12
+tools/bulk-importer/data/
+tools/bulk-importer/backups/
+tools/bulk-importer/configuration-backup-*/
+tools/bulk-importer/test-source-*/
+**/sandbox-data/
+**/quarantine/
+**/publish-records/
+**/publish-recovery/
+**/replaced-archive/
+*.tar
+*.zip
+*.7z
+*.wma
+*.aiff
+*.aif
+*.m4a
+*.m4v
+*.failed-*
+Patch*-walk-*/

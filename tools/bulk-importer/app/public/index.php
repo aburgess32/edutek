@@ -1,3 +1,3 @@
 <?php
-header('Location: /bulk-import-sandbox.php');
+header('Location: /bulk-import-guided.php', true, 302);
 exit;

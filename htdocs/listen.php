@@ -76,6 +76,24 @@ $videoname1 = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videona
 $videolink  = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videolink", $cipher, $encryption_key, $options, $iv)));
 $videoname  = str_replace('=', '[equal]', base64_encode(openssl_encrypt("videoname", $cipher, $encryption_key, $options, $iv)));
 
+if (!function_exists('edutekUrlPath')) {
+    /**
+     * Patch 6 (link encoding): percent-encode each path segment for use in an
+     * HTML src/href. Keeps '/' separators and a leading '/'. Scheme URLs
+     * (http:, https:, data:) are returned unchanged. Input must be a RAW path.
+     */
+    function edutekUrlPath($path)
+    {
+        $path = str_replace('\\', '/', (string) $path);
+        if ($path === '' || preg_match('#^[a-z][a-z0-9+.-]*:#i', $path)) {
+            return $path;
+        }
+        $lead = ($path[0] === '/') ? '/' : '';
+        $parts = array_filter(explode('/', $path), 'strlen');
+        return $lead . implode('/', array_map('rawurlencode', $parts));
+    }
+}
+
 function getQueryValue($key) {
     return isset($_GET[$key]) ? $_GET[$key] : '';
 }
@@ -171,7 +189,7 @@ if ($currentTrack !== '') {
       <div id="content">
         <div class="audio-player">
           <h2>' . htmlspecialchars($currentTrackName, ENT_QUOTES) . '</h2>
-          <audio id="audio-player" src="' . htmlspecialchars($currentTrack, ENT_QUOTES) . '" type="audio/mpeg" controls="controls"></audio>
+          <audio id="audio-player" src="' . htmlspecialchars(edutekUrlPath($currentTrack), ENT_QUOTES) . '" type="audio/mpeg" controls="controls"></audio>
         </div>
       </div>
     </div>';
@@ -226,7 +244,7 @@ foreach ($playlistFiles as $value) {
     </div>
 
     <button>
-      <a href="' . htmlspecialchars($value, ENT_QUOTES) . '" download="' . htmlspecialchars($displayName, ENT_QUOTES) . '">
+      <a href="' . htmlspecialchars(edutekUrlPath($value), ENT_QUOTES) . '" download="' . htmlspecialchars($displayName, ENT_QUOTES) . '">
         <i class="fa fa-download"> Download</i>
       </a>
     </button>';

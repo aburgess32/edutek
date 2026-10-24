@@ -1,0 +1,94 @@
+# Fix-ImportMounts (2026-10-23): the old Desktop folders "Import Sources", "Videos" and "Edutek Import Test\videos" are no longer
+# mounted. They were deleted, and the web container could not start without them (create_host_path: false -> Exited 127).
+# /import-dest was never used. /import-source and /import-sources were the old source folders; imports now come from Browse...
+# (/host below, unchanged). The worker gets only ./app and ./data from compose.yaml. Everything else is unchanged.
+# Patch 4d: /host = all Windows drives Docker Desktop exposes (C:, D:, and USB drives connected with
+# Refresh-ImportDrives.ps1), read-only, for the web page and preview worker only. The page refuses
+# protected folders (library, D:\edutek-system, Windows, program, hidden and system folders).
+# /host/wsl (Docker Desktop's own sockets and tools) is covered by an empty tmpfs (mode 0555) so the containers never see it.
+# Patch 4e: /host/c and /host/d are separate read-only binds that later writable remounts cannot replace.
+services:
+  previews:
+    image: edutek-sandbox-previews:v1
+    pull_policy: never
+    user: www-data
+    restart: unless-stopped
+    command: ["php", "/sandbox/public/video-preview-worker.php"]
+    network_mode: none
+    cpus: 0.75
+    mem_limit: 512m
+    pids_limit: 64
+    volumes:
+      - ./app:/sandbox:ro
+      - ./data:/sandbox-data
+      - type: bind
+        source: /run/desktop/mnt/host
+        target: /host
+        read_only: true
+        bind:
+          propagation: rslave
+          create_host_path: false
+      - type: tmpfs
+        target: /host/wsl
+        tmpfs:
+          size: 65536
+          mode: 0555
+      # Patch 4e: C: and D: get their own read-only binds on top of /host. Docker Desktop sometimes mounts a drive
+      # again (writable) underneath /host after the containers start; those later mounts land beneath these binds
+      # and stay hidden, so /host/c and /host/d are always read-only. USB drives stay under the /host bind above.
+      - type: bind
+        source: 'C:/'
+        target: /host/c
+        read_only: true
+        bind:
+          propagation: rprivate
+          recursive: readonly
+          create_host_path: false
+      - type: bind
+        source: 'D:/'
+        target: /host/d
+        read_only: true
+        bind:
+          propagation: rprivate
+          recursive: readonly
+          create_host_path: false
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
+  web:
+    environment:
+      PHP_CLI_SERVER_WORKERS: "4"
+    volumes:
+      - type: bind
+        source: /run/desktop/mnt/host
+        target: /host
+        read_only: true
+        bind:
+          propagation: rslave
+          create_host_path: false
+      - type: tmpfs
+        target: /host/wsl
+        tmpfs:
+          size: 65536
+          mode: 0555
+      # Patch 4e: C: and D: get their own read-only binds on top of /host. Docker Desktop sometimes mounts a drive
+      # again (writable) underneath /host after the containers start; those later mounts land beneath these binds
+      # and stay hidden, so /host/c and /host/d are always read-only. USB drives stay under the /host bind above.
+      - type: bind
+        source: 'C:/'
+        target: /host/c
+        read_only: true
+        bind:
+          propagation: rprivate
+          recursive: readonly
+          create_host_path: false
+      - type: bind
+        source: 'D:/'
+        target: /host/d
+        read_only: true
+        bind:
+          propagation: rprivate
+          recursive: readonly
+          create_host_path: false

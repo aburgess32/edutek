@@ -11,6 +11,20 @@
 (function () {
     'use strict';
 
+    // Patch 6 (link encoding): encode each segment of a RAW content path
+    // (no decodeURI first: some real file names contain literal '%E2%80%93').
+    // Absolute URLs and simple *.php endpoints (book_thumb.php?folder=...) pass through.
+    function lbEncodePath(path) {
+        var value = String(path || '').replace(/\\/g, '/');
+        if (!value) { return ''; }
+        if (/^https?:\/\//i.test(value) || /^\/?[A-Za-z0-9_\-\/]*\.php(\?|$)/.test(value)) {
+            return value;
+        }
+        var lead = value.charAt(0) === '/' ? '/' : '';
+        return lead + value.split('/').filter(function (s) { return s !== ''; })
+            .map(function (s) { return encodeURIComponent(s); }).join('/');
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // State
     // ─────────────────────────────────────────────────────────────────────────
@@ -686,7 +700,7 @@
             var thumb = el('div', { className: 'sr-card__thumb' });
             if (result.thumbnail_path) {
                 thumb.appendChild(el('img', {
-                    src: result.thumbnail_path,
+                    src: lbEncodePath(result.thumbnail_path),
                     alt: '',
                     loading: 'lazy'
                 }));
@@ -802,8 +816,8 @@
             // strip leading slashes, decode any %xx sequences, then
             // re-encode so the URL resolves on all browsers.
             var cleanPath = videoPath.replace(/\\/g, '/').replace(/^\/+/, '');
-            try { cleanPath = decodeURI(cleanPath); } catch(e) {}
-            videoEl.src = encodeURI(cleanPath);
+            // Patch 6: no decodeURI (raw DB paths); encode per segment below.
+            videoEl.src = lbEncodePath(cleanPath);
             playerSection.appendChild(videoEl);
 
             // Playback speed controls

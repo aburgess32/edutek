@@ -5,9 +5,9 @@
   <!-- FRE-41: Watch Page Facelift — CSS -->
   <!-- NOTE: No external font CDN — EduPak is offline-first. System fonts only. -->
   <link href="css/WatchVideos.css" rel="stylesheet">
-  <script src="ajax/jquery.min.js"></script>
-    <script src="ajax/popper.min.js"></script>
-    <script src="ajax/ajax.js"></script>
+
+
+
 
 <?php
     //navbar

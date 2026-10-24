@@ -11,6 +11,24 @@ $iv = CONTENT_CIPHER_IV;
 $encryption_key = CONTENT_CIPHER_KEY;
 $decryption_key = CONTENT_CIPHER_KEY;
 
+if (!function_exists('edutekUrlPath')) {
+    /**
+     * Patch 6 (link encoding): percent-encode each path segment for use in an
+     * HTML src/href. Keeps '/' separators and a leading '/'. Scheme URLs
+     * (http:, https:, data:) are returned unchanged. Input must be a RAW path.
+     */
+    function edutekUrlPath($path)
+    {
+        $path = str_replace('\\', '/', (string) $path);
+        if ($path === '' || preg_match('#^[a-z][a-z0-9+.-]*:#i', $path)) {
+            return $path;
+        }
+        $lead = ($path[0] === '/') ? '/' : '';
+        $parts = array_filter(explode('/', $path), 'strlen');
+        return $lead . implode('/', array_map('rawurlencode', $parts));
+    }
+}
+
 function encParamName($plain, $cipher, $key, $opts, $iv) {
     return str_replace('=', '[equal]', base64_encode(openssl_encrypt($plain, $cipher, $key, $opts, $iv)));
 }
@@ -60,9 +78,9 @@ if ($pdfPath !== '') {
         if ($idUrl !== '') {
             $pdfUrl = $idUrl;
         } elseif (function_exists('resolveContentUrl')) {
-            $pdfUrl = resolveContentUrl($pdfPath);
+            $pdfUrl = edutekUrlPath(resolveContentUrl($pdfPath));
         } else {
-            $pdfUrl = $pdfPath;
+            $pdfUrl = edutekUrlPath($pdfPath);
         }
     }
 }

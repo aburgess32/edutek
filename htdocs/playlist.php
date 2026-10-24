@@ -13,6 +13,23 @@
 
 include_once "includes/auth.php";
 include_once "includes/tiles.php";
+if (!function_exists('edutekUrlPath')) {
+    /**
+     * Patch 6 (link encoding): percent-encode each path segment for use in an
+     * HTML src/href. Keeps '/' separators and a leading '/'. Scheme URLs
+     * (http:, https:, data:) are returned unchanged. Input must be a RAW path.
+     */
+    function edutekUrlPath($path)
+    {
+        $path = str_replace('\\', '/', (string) $path);
+        if ($path === '' || preg_match('#^[a-z][a-z0-9+.-]*:#i', $path)) {
+            return $path;
+        }
+        $lead = ($path[0] === '/') ? '/' : '';
+        $parts = array_filter(explode('/', $path), 'strlen');
+        return $lead . implode('/', array_map('rawurlencode', $parts));
+    }
+}
 
 $planId = (int) ($_GET['plan'] ?? 0);
 
@@ -195,7 +212,7 @@ $teacherName = htmlspecialchars($plan['teacher_name'] ?? 'Teacher', ENT_QUOTES, 
 
             <div class="playlist-item__thumb">
                 <?php if ($hasThumb): ?>
-                <img src="<?php echo htmlspecialchars($thumbPath, ENT_QUOTES, 'UTF-8'); ?>"
+                <img src="<?php echo htmlspecialchars(edutekUrlPath($thumbPath), ENT_QUOTES, 'UTF-8'); ?>"
                      alt="<?php echo $itemTitle; ?>" loading="lazy" decoding="async">
                 <?php else: ?>
                 <div class="playlist-item__placeholder">

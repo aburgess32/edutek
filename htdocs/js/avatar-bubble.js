@@ -175,13 +175,9 @@
     };
   }
 
-function resetResignInput(wrap) {
-  return;
-}
-    closeBtn.onclick = function() {
-      wrap.classList.add('hidden');
-    };
-    input.focus();
+  function resetResignInput(wrap) {
+    // Guest re-sign-in remains disabled pending a separate functional repair.
+    return;
   }
 
   var emptyLabels = {

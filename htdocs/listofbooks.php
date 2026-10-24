@@ -37,6 +37,23 @@
     $ff2 = (glob($dd2 . "*", GLOB_BRACE));
     $ray = array();
     $acceptedFormats = array('pdf','htm');
+if (!function_exists('edutekUrlPath')) {
+    /**
+     * Patch 6 (link encoding): percent-encode each path segment for use in an
+     * HTML src/href. Keeps '/' separators and a leading '/'. Scheme URLs
+     * (http:, https:, data:) are returned unchanged. Input must be a RAW path.
+     */
+    function edutekUrlPath($path)
+    {
+        $path = str_replace('\\', '/', (string) $path);
+        if ($path === '' || preg_match('#^[a-z][a-z0-9+.-]*:#i', $path)) {
+            return $path;
+        }
+        $lead = ($path[0] === '/') ? '/' : '';
+        $parts = array_filter(explode('/', $path), 'strlen');
+        return $lead . implode('/', array_map('rawurlencode', $parts));
+    }
+}
     ?>
     
         <!--contens are here-->
@@ -58,12 +75,12 @@
 
                 if (pathinfo(substr($value, ($length)), PATHINFO_EXTENSION) == 'htm' or pathinfo(substr($value, ($length)), PATHINFO_EXTENSION) == 'html') {
                     echo'<div class="SavedWrapper">
-		<a href="' . $value . '">
-			<img src="' . $file . '/' . pathinfo(substr($value, ($length)), PATHINFO_FILENAME) . '.png" class="rimage">
+		<a href="' . htmlspecialchars(edutekUrlPath($value), ENT_QUOTES) . '">
+			<img src="' . htmlspecialchars(edutekUrlPath($file . '/' . pathinfo(substr($value, ($length)), PATHINFO_FILENAME) . '.png'), ENT_QUOTES) . '" class="rimage">
 		</a>
 		<div class="rcontents">
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="' . $value . '">
+			<a href="' . htmlspecialchars(edutekUrlPath($value), ENT_QUOTES) . '">
 						<p>
 					<b class="rtitle">' . substr($value, ($length)) . '</b>
 				</p>
@@ -74,7 +91,7 @@
                     echo'<div class="SavedWrapper">
 		<a href="readpdf.php?&' . $videolink . '=' . $encryptfile . '&' . $videoname . '=' . $encryptfile1 . '&' . $videolink1 . '=' . $encryptvalue . '&' . $videoname1 . '=' . $encryptvalue1 . '">
 			
-		<img src="' . $file . '/' . pathinfo(substr($value, ($length)), PATHINFO_FILENAME) . '.jpg" class="rimage">
+		<img src="' . htmlspecialchars(edutekUrlPath($file . '/' . pathinfo(substr($value, ($length)), PATHINFO_FILENAME) . '.jpg'), ENT_QUOTES) . '" class="rimage">
 		</a>
 		<div class="rcontents">
 			&nbsp;&nbsp;&nbsp;&nbsp;
@@ -85,7 +102,7 @@
 				</p>
 			</a>
 			 <button>
-				<a href="' . $value . '" download="' . substr($value, ($length)) . '"><i class="fa fa-download "> Download</i></a>
+				<a href="' . htmlspecialchars(edutekUrlPath($value), ENT_QUOTES) . '" download="' . substr($value, ($length)) . '"><i class="fa fa-download "> Download</i></a>
 			</button>
 		</div>
 	</div>';

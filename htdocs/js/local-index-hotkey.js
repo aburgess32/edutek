@@ -147,6 +147,11 @@
       'These actions are available only on this local Home page.',
       [
         {
+          label: 'Bulk import content',
+          href: 'http://127.0.0.1:8092/bulk-import-guided.php',
+          className: 'btn btn-primary'
+        },
+        {
           label: 'Remove deleted content from catalog',
           className: 'btn btn-danger',
           onClick: showCleanupConfirmation

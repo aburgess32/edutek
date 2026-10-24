@@ -1,0 +1,49 @@
+IMPORT BIG TEST - what Patch 4p changes (read with EXPECTED.txt, which still describes every file)
+Checked on a throwaway copy of this folder with the Patch 4p page. Nothing was published.
+
+WHAT IS DIFFERENT FROM EXPECTED.txt (4o)
+  1. Damaged video
+       Physics/Simple Machines/Damaged Download Test.mp4
+         -> NOT imported. Shown as "Can't be played - file is damaged: the file is cut short (truncated)...".
+            It is never ticked and X cannot tick it (a message says it is damaged).
+  2. Left out of this import (shown on the first screen and again on the Done screen), 4 items in this folder:
+       Physics/Simple Machines/Damaged Download Test.mp4   - damaged (cut short)
+       Music/Test Road Trip Volume 2/05 Broken Track.mp3   - damaged (no playable audio)
+       EXPECTED.txt                                         - not a video (.mp4), PDF book or audio file
+       EXPECTED-4p.txt                                      - not a video (.mp4), PDF book or audio file
+     (The two notes files are listed, never silently skipped. Any .mov/.mkv would be listed as
+      "only .mp4 videos are imported ... a later patch could convert .mov/.mkv with the 4i conversion".)
+  3. PDF books (8) are NOT shelved by folder name any more. Every book starts as "Needs a shelf":
+       History/Ancient Egypt/Hieroglyphs Activity Book.pdf
+       Big Test Welcome Letter.pdf
+       Books/Farming Guides/Small Plots/Kitchen Garden Guide.pdf
+       Test Health/First Aid/First Aid Pocket Guide.pdf
+       Books/Recipes & Cooking/Café Crème Recipes #2.pdf        (file name becomes Café Crème Recipes No. 2.pdf)
+       Books/Science Readers/Simple Machines Workbook.pdf
+       Books/Science Readers/The Water Cycle Reader.pdf
+       Test Farming/Soil/Soil Testing Handbook.pdf
+     -> Books/<the shelf YOU choose>/<file>.pdf
+     Next stays blocked ("... still need a shelf") until every book has a shelf or is skipped (X).
+     Shelf picker: select books with Space, press M, type part of a shelf name to filter, Enter.
+     C = a new shelf (the folder is made only when you publish). A name that matches an existing shelf
+     in other capitals picks the existing shelf. "/" is refused.
+  4. Loose audio is unchanged: Big Test Voice Memo.wav -> Music/Import Big Test/Big Test Voice Memo.wav
+  5. Before publishing, a confirm lists what will be made new:
+       New categories: Test Café Skills, Test Farming, Test Health
+       New Books shelves: any shelf you made with C
+       New subfolders under the new categories (for example Test Farming > Soil, Test Farming > Irrigation,
+       Test Farming > Tools and Machinery, Test Health > First Aid, ...)
+     "No, go back and check" has the focus. Esc = No. Y = publish.
+  6. Done screen: totals and time taken; counts per category and subcategory with "Open category" links;
+     one "Open PDF" link per book; the left-out list again; Start a new import (N, has the focus);
+     Undo (U, asks first; "No, keep the import" has the focus). Links use this page's host name with
+     port 8080 (e.g. http://<this PC name or address>:8080/...); if the site's own category pages can't be
+     read, the screen says a fallback link is used.
+
+EXPECTED TOTALS if you add everything that can be added (choose categories for the 2 loose videos and a
+shelf for all 8 books):
+  46 published: 28 videos (5 HEVC converted, 6 fast-start fixed, 17 kept), 8 books, 10 audio
+  (4 converted to MP3, 6 kept). Left out: 4 (2 damaged, 2 notes files).
+  Note: the "Found" counts on the first screen still include the 2 damaged files (29 videos, 11 audio);
+  they are then shown as left out and never ticked.
+After testing, remove this test import with Undo on the Done screen.
